@@ -1,0 +1,6 @@
+.vscode
+notes.txt
+*.code-workspace
+*.o
+*.exe
+stdout.txt
