@@ -24,6 +24,11 @@
 #ifndef LEVELBLIT_H
 #define LEVELBLIT_H
 
+// this is here to make VSCodium behave
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 #define PLAYERW 16
 #define PLAYERH 24
 
