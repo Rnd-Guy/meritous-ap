@@ -62,7 +62,7 @@ typedef enum specialStore {
   SS_BOSS_PRIZE_3,
   SS_CURSED_SEAL,
   SS_AGATE_KNIFE
-};
+} t_specialStore;
 
 typedef enum genFlags {
   GF_INCLUDE_TRAPS
