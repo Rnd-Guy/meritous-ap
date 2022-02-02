@@ -1,6 +1,5 @@
 // itemstore.c
 //
-// Copyright 2007, 2008 Lancer-X/ASCEAI
 // Copyright (C) 2022 FelicitusNeko
 //
 // This file is part of Meritous-AP.
@@ -20,74 +19,36 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include "itemstore.h"
 
-typedef enum itemTypes {
-  T_NOTHING,
-  T_REFLECT_SHIELD,
-  T_CIRCUIT_CHARGE,
-  T_CIRCUIT_REFILL,
-  T_MAP,
-  T_SHIELD_BOOST,
-  T_CRYSTAL_EFFICIENCY,
-  T_CIRCUIT_BOOSTER,
-  T_METABOLISM,
-  T_DODGE_ENHANCER,
-  T_ETHEREAL_MONOCLE,
-  T_CRYSTAL_GATHERER,
-  T_PSI_KEY_1,
-  T_PSI_KEY_2,
-  T_PSI_KEY_3,
-  T_CURSED_SEAL,
-  T_AGATE_KNIFE,
-  T_EVOLUTION_TRAP,
-  T_CRYSTALS_500,
-  T_CRYSTALS_1000,
-  T_CRYSTALS_2000
-} t_itemTypes;
-
-typedef enum itemStores {
-  IS_ALPHA,
-  IS_BETA,
-  IS_GAMMA,
-  IS_CHESTS,
-  IS_SPECIAL
-} t_itemStores;
-
-typedef enum specialStore {
-  SS_PSI_KEY_1,
-  SS_PSI_KEY_2,
-  SS_PSI_KEY_3,
-  SS_BOSS_PRIZE_1,
-  SS_BOSS_PRIZE_2,
-  SS_BOSS_PRIZE_3,
-  SS_CURSED_SEAL,
-  SS_AGATE_KNIFE
-} t_specialStore;
-
-typedef enum genFlags {
-  GF_INCLUDE_TRAPS
-} t_genFlags;
-
-struct itemStore
+typedef struct itemStore
 {
   t_itemTypes items[24];
   char collected[24];
   int length;
   char crystalFallback;
-};
+} t_itemStore;
 
-struct itemStore** stores = NULL;
+t_itemStore *stores = NULL;
 
 void CreateItemStores() {
   if (stores != NULL) free(stores);
-  stores = calloc(5, sizeof(struct itemStore));
+  stores = malloc(sizeof(t_itemStore) * IS_MAX);
+  memset(stores, 0, sizeof(t_itemStore) * IS_MAX);
+}
+
+void DestroyItemStores() {
+  if (stores != NULL) {
+    free(stores);
+    stores = NULL;
+  }
 }
 
 t_itemTypes GetNextItem(t_itemStores store, char collect) {
   if (stores == NULL) return T_NOTHING;
 
-  struct itemStore* thisStore = stores[(int)store];
-  if (thisStore == NULL) return T_NOTHING;
+  t_itemStore *thisStore = &stores[(int)store];
 
   for (int x = 0; x < thisStore->length; x++) {
     if (thisStore->collected[x] == 0) {
@@ -111,11 +72,10 @@ t_itemTypes GetNextItem(t_itemStores store, char collect) {
 char HasNextItem(t_itemStores store) {
   if (stores == NULL) return 0;
 
-  struct itemStore* thisStore = stores[(int)store];
-  if (thisStore == NULL) return 0;
+  t_itemStore *thisStore = &stores[(int)store];
 
   for (int x = 0; x < thisStore->length; x++) {
-    if (thisStore->collected[x] != 0) return 1;
+    if (thisStore->collected[x] == 0) return 1;
   }
 
   return 0;
@@ -124,8 +84,7 @@ char HasNextItem(t_itemStores store) {
 t_itemTypes GetItemByIndex(t_itemStores store, int index, char collect) {
   if (stores == NULL) return T_NOTHING;
 
-  struct itemStore* thisStore = stores[(int)store];
-  if (thisStore == NULL) return T_NOTHING;
+  t_itemStore *thisStore = &stores[(int)store];
 
   if (index < 0 || index >= thisStore->length) return T_NOTHING;
   if (thisStore->collected[index] != 0) return T_NOTHING;
@@ -140,8 +99,7 @@ t_itemTypes GetItemByIndex(t_itemStores store, int index, char collect) {
 char HasItemByIndex(t_itemStores store, int index) {
   if (stores == NULL) return 0;
 
-  struct itemStore *thisStore = stores[(int)store];
-  if (thisStore == NULL) return 0;
+  t_itemStore *thisStore = &stores[(int)store];
 
   if (index < 0 || index >= thisStore->length) return 0;
   if (thisStore->collected[index] != 0) return 0;
@@ -151,8 +109,7 @@ char HasItemByIndex(t_itemStores store, int index) {
 int EmptySlotsInStore(t_itemStores store) {
   if (stores == NULL) return -1;
 
-  struct itemStore* thisStore = stores[(int)store];
-  if (thisStore == NULL) return -1;
+  t_itemStore *thisStore = &stores[(int)store];
 
   int retval = 0;
   for (int x = 0; x < thisStore->length; x++)
@@ -161,11 +118,22 @@ int EmptySlotsInStore(t_itemStores store) {
   return retval;
 }
 
+int GetNextIndexInStore(t_itemStores store) {
+  if (stores == NULL) return -1;
+
+  t_itemStore *thisStore = &stores[(int)store];
+
+  for (int x = 0; x < thisStore->length; x++) {
+    if (thisStore->collected[x] != 0) return x;
+  }
+
+  return -1;
+}
+
 int GetEmptyPosInStore(t_itemStores store, int index) {
   if (stores == NULL) return -2;
 
-  struct itemStore* thisStore = stores[(int)store];
-  if (thisStore == NULL) return -2;
+  t_itemStore *thisStore = &stores[(int)store];
 
   if (index < 0 || index >= thisStore->length) return -1;
 
@@ -180,29 +148,51 @@ int GetEmptyPosInStore(t_itemStores store, int index) {
 }
 
 void LocalGenerateItemStores(int flags) {
+  printf("Creating item store containers\n");
   CreateItemStores();
   int leftToAdd[] = {25, 23, 22, 8, 0, 3};
   int leftToFill[] = {24, 24, 24, 20, 3};
+  t_itemStore *specialStore = &stores[(int)IS_SPECIAL];
 
+  printf("Determining flags\n");
   if (flags & GF_INCLUDE_TRAPS) {
     leftToFill[4] += 3;
     leftToAdd[4] += 3;
   }
-  else for (int x = 3; x < 6; x++)
-    stores[(int)IS_SPECIAL]->items[x] = T_EVOLUTION_TRAP;
+  else {
+    printf("Pre-placing evolution traps on bosses\n");
+    for (int x = 3; x < 6; x++)
+      specialStore->items[x] = T_EVOLUTION_TRAP;
+  }
 
-  struct itemStore *specialStore = stores[(int)IS_SPECIAL];
+  {
+    int totalToAdd = 0, totalToFill = 0;
+    for (int x = 0; x < 6; x++) totalToAdd += leftToAdd[x];
+    for (int x = 0; x < 5; x++) totalToFill += leftToFill[x];
+    printf("%d to add, %d to fill\n", totalToAdd, totalToFill);
+  }
 
+  printf("Placing guaranteed items\n");
   specialStore->items[(int)SS_CURSED_SEAL] = T_CURSED_SEAL;
   specialStore->items[(int)SS_AGATE_KNIFE] = T_AGATE_KNIFE;
 
-  stores[(int)IS_ALPHA]->length = 24;
-  stores[(int)IS_BETA]->length = 24;
-  stores[(int)IS_GAMMA]->length = 24;
-  stores[(int)IS_CHESTS]->length = 20;
+  printf("Defining stores\n");
+  stores[(int)IS_ALPHA].length = 24;
+  stores[(int)IS_BETA].length = 24;
+  stores[(int)IS_GAMMA].length = 24;
+  stores[(int)IS_CHESTS].length = 20;
   specialStore->length = 8;
 
-  stores[(int)IS_CHESTS]->crystalFallback = 1;
+  stores[(int)IS_CHESTS].crystalFallback = 1;
+
+  // {
+  //   int totalLeftEmpty = 0;
+  //   for (int x = 0; x < 5; x++) {
+  //     printf("%d reported empty, but counting %d\n", leftToFill[x], EmptySlotsInStore(x));
+  //     totalLeftEmpty += EmptySlotsInStore(x);
+  //   }
+  //   printf("%d left empty\n", totalLeftEmpty);
+  // }
 
   // put down the keys first with this logic:
   // - psi keys can be placed at regular psi key locations (is this even randomized?)
@@ -210,35 +200,40 @@ void LocalGenerateItemStores(int flags) {
   // - psi keys *can* be placed in the second half of store/chest drops, but that may result in a longer game
   // - psi keys can NEVER be placed as a boss prize
   // - psi keys can NEVER be placed in the cursed seal or agate knife location
+  printf("Placing Psi Keys\n");
   while (leftToAdd[5] > 0) {
     int randStore = rand() % 13 / 3;
-    if (randStore == 4) {
-      for (int x = 0; x < 3; x++)
-        if (specialStore->items[x] == T_NOTHING) {
-          specialStore->items[x] = (t_itemTypes)((int)T_PSI_KEY_1 + --leftToAdd[5]);
-          leftToFill[randStore]--;
-        }
+    if (randStore >= 5) {
+      printf("ERROR: Store %d is out of bounds.", randStore);
+      exit(1);
     }
-    else {
-      int offset = rand() % (stores[randStore]->length / 2);
-      for (int x = 0; x < stores[randStore]->length / 2; x++)
-        if (specialStore->items[x+offset] == T_NOTHING) {
-          specialStore->items[x+offset] = (t_itemTypes)((int)T_PSI_KEY_1 + --leftToAdd[5]);
-          leftToFill[randStore]--;
-        }
-    }
+    int offset = (randStore == (int)IS_SPECIAL) ? 0 : rand() % (stores[randStore].length / 2);
+    stores[randStore].items[GetEmptyPosInStore(randStore, offset)] = (t_itemTypes)((int)T_PSI_KEY_1 + --leftToAdd[5]);
+    leftToFill[randStore]--;
   }
 
   int totalLeftToFill = 0;
   for (int x = 0; x < 5; x++) totalLeftToFill += leftToFill[x];
+  // {
+  //   int totalLeftEmpty = 0;
+  //   for (int x = 0; x < 5; x++) {
+  //     printf("%d reported empty, but counting %d\n", leftToFill[x], EmptySlotsInStore(x));
+  //     totalLeftEmpty += EmptySlotsInStore(x);
+  //   }
+  //   printf("%d left empty\n", totalLeftEmpty);
+  // }
 
-  for (int x = 0; x < 5; x++) {
+  printf("Placing other items\n");
+  for (int x = 0; x < IS_MAX; x++) {
+    // printf("%d locations left to fill; placing %d items in store %d (next should be %d)\n", totalLeftToFill, leftToAdd[x], x, totalLeftToFill - leftToAdd[x]);
+
     t_itemTypes item = x + 1;
     if (x == 4) item = T_EVOLUTION_TRAP;
 
     while (leftToAdd[x] > 0) {
-      if (x == 3)
+      if (x == 3) {
         item = T_MAP + leftToAdd[x] - 1;
+      }
 
       int randLoc = rand() % totalLeftToFill;
       int store = 0;
@@ -248,12 +243,34 @@ void LocalGenerateItemStores(int flags) {
         store++;
       }
 
-      stores[store]->items[GetEmptyPosInStore(store, randLoc)] = item;
+      int emptyPos = GetEmptyPosInStore(store, randLoc);
+      if (emptyPos < 0) {
+        printf("ERROR: Tried to get empty position %d of store %d, which does not exist.", randLoc, store);
+        exit(1);
+      }
+      if (emptyPos >= stores[store].length) {
+        printf("ERROR: Store %d position %d is out of bounds (length %d).", store, emptyPos, stores[store].length);
+        exit(1);
+      }
+      if (stores[store].items[emptyPos] != T_NOTHING) {
+        printf("ERROR: Store %d position %d is not empty and contains %d.", store, emptyPos, stores[store].items[emptyPos]);
+        exit(1);
+      }
+      stores[store].items[emptyPos] = item;
+      totalLeftToFill--;
       leftToFill[store]--;
       leftToAdd[x]--;
     }
   }
 
+  // {
+  //   int totalLeftEmpty = 0;
+  //   for (int x = 0; x < 5; x++) totalLeftEmpty += EmptySlotsInStore(x);
+  //   printf("%d left empty\n", totalLeftEmpty);
+  // }
+
+  printf("Filling with random crystals\n");
+  int crystalsPlaced = 0;
   for (int x = 0; x < 5; x++) {
     while (EmptySlotsInStore(x) > 0) {
       int randCrystals = rand() % 32;
@@ -263,7 +280,40 @@ void LocalGenerateItemStores(int flags) {
       else if (randCrystals < 31) putCrystals = T_CRYSTALS_1000;
       else putCrystals = T_CRYSTALS_2000;
 
-      stores[x]->items[GetEmptyPosInStore(x, 0)] = putCrystals;
+      stores[x].items[GetEmptyPosInStore(x, 0)] = putCrystals;
+      crystalsPlaced++;
     }
   }
+  
+  if (crystalsPlaced != totalLeftToFill) {
+    printf("ERROR: mismatch between locations left to fill (%d) and crystal drops placed (%d).", totalLeftToFill, crystalsPlaced);
+    exit(1);
+  }
+
+  printf("Done.\n");
+}
+
+char VerifyItemStores() {
+  if (stores == NULL) {
+    printf("ERROR: Stores not initialized.");
+    return 1;
+  }
+
+  int counts[T_MAX] = {0};
+  int correctCounts[T_MAX - 3] = {0, 25, 23, 22, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3};
+
+  for (int x = 0; x < IS_MAX; x++) {
+    t_itemStore *thisStore = &stores[x];
+    for (int y = 0; y < thisStore->length; y++)
+      counts[thisStore->items[y]]++;
+  }
+
+  char retval = 0;
+  for (int x = 0; x < T_MAX - 3; x++)
+    if (counts[x] != correctCounts[x]) {
+      printf("ERROR: Item %d has %d instances (expected %d)", x, counts[x], correctCounts[x]);
+      retval = 1;
+    }
+
+  return retval;
 }
