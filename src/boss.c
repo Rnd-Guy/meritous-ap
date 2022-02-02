@@ -545,7 +545,7 @@ void DrawPowerObject()
 						if (collect > 100) {
 							collect = 0;
 							rooms[player_room].room_type = 4;
-							// TODO: decouple this (PSI Keys)
+							// TODO: decouple this (PSI Keys/cursed seal)
 							artifacts[8 + p_obj] = 1;
 							specialmessage = 30 + p_obj;
 							specialmessagetimer = 120;
