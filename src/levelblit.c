@@ -47,7 +47,7 @@
 #define PLAYERW 16
 #define PLAYERH 24
 
-#define MERITOUS_VERSION "v 1.1"
+#define MERITOUS_VERSION "v 1.2-AP"
 int RECORDING = 0;
 int PLAYBACK = 0;
 
