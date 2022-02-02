@@ -32,7 +32,8 @@ OBJS = 	src/levelblit.o \
 		src/boss.o \
 		src/ending.o \
 		src/gamepad.o \
-		src/itemstore.o
+		src/itemstore.o \
+		src/itemhandler.o
 #
 default:	meritous
 
