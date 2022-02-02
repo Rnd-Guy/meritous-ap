@@ -626,7 +626,7 @@ int main(int argc, char **argv)
 			ClearInput();
 			DestroyDungeon();
 			DestroyThings();
-			DeinitStores();
+			DestroyStores();
 			on_title = 1;
 			game_load = 0;
 
@@ -2551,6 +2551,8 @@ void SpecialTile(int x, int y)
 				case 12: sprintf(message, "Enhancement: Circuit refill upgrade"); break;
 
 				case 20: sprintf(message, "Reward: Psi crystals"); break;
+
+				case 25: sprintf(message, "The Dome becomes more dangerous"); break;
 
 				case 30: sprintf(message, "Holy Sword 'Balmung' answers your call"); break;
 				case 31: sprintf(message, "Mystic Halberd 'Amenonuhoko' answers your call"); break;
