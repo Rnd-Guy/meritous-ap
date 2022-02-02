@@ -545,6 +545,7 @@ void DrawPowerObject()
 						if (collect > 100) {
 							collect = 0;
 							rooms[player_room].room_type = 4;
+							// TODO: decouple this (PSI Keys)
 							artifacts[8 + p_obj] = 1;
 							specialmessage = 30 + p_obj;
 							specialmessagetimer = 120;
@@ -1591,6 +1592,7 @@ void BC_BossDying()
 			}
 		}
 
+		// TODO: decouple this (Evo traps)
 		if (current_boss > 0) {
 			SoupUpEnemies();
 		}

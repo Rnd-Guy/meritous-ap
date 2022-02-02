@@ -37,6 +37,7 @@
 #include "audio.h"
 #include "boss.h"
 #include "ending.h"
+#include "itemhandler.h"
 
 // this is here to make VSCodium behave
 #ifndef M_PI
@@ -625,6 +626,7 @@ int main(int argc, char **argv)
 			ClearInput();
 			DestroyDungeon();
 			DestroyThings();
+			DeinitStores();
 			on_title = 1;
 			game_load = 0;
 
@@ -951,6 +953,7 @@ int DungeonPlay(char *fname)
 					ypos = (int)((cos(agate_t * 0.7)*0.5+0.5) * (float)room_h) + room_y;
 
 					if (dist(player_x, player_y, xpos, ypos) < 20) {
+						// TODO: decouple this (Agate Knife)
 						agate_knife_loc = -1;
 						specialmessage = 50;
 						specialmessagetimer = 150;
@@ -1391,8 +1394,7 @@ void HandleEvents()
 						CancelVoluntaryExit();
 						break;
 
-
-					/*
+#ifdef DEBUG_KEYS
 					case SDLK_j:
 						{
 							player_shield = 20;
@@ -1437,7 +1439,8 @@ void HandleEvents()
 							expired_ms = 1000000;
 						}
 						break;
-					*/
+#endif
+
 					default:
 						break;
 				}
@@ -2073,6 +2076,7 @@ void ST_Teleport()
 
 int UpgradePrice(int t)
 {
+	// TODO: decouple this (upgrade prices)
 	int price = 0;
 	switch (t) {
 		case 0:
@@ -2092,6 +2096,7 @@ int UpgradePrice(int t)
 	return price;
 }
 
+// TODO: decouple this (treasure boxes)
 void RoomTreasure(int room, int typ)
 {
 	int treasure;
@@ -2268,6 +2273,7 @@ void ActivateTile(unsigned char tile, int x, int y)
 			if (player_shield >= 24) return;
 			if (player_gems >= UpgradePrice(0)) {
 				player_gems -= UpgradePrice(0);
+				// TODO: decouple this (shield upgrade)
 				player_shield += 1;
 				SND_Pos("dat/a/crystal.wav", 128, 0);
 			}
@@ -2276,6 +2282,7 @@ void ActivateTile(unsigned char tile, int x, int y)
 			if (circuit_fillrate >= 24) return;
 			if (player_gems >= UpgradePrice(1)) {
 				player_gems -= UpgradePrice(1);
+				// TODO: decouple this (fill rate upgrade)
 				circuit_fillrate += 1;
 				SND_Pos("dat/a/crystal.wav", 128, 0);
 			}
@@ -2284,6 +2291,7 @@ void ActivateTile(unsigned char tile, int x, int y)
 			if (circuit_recoverrate >= 24) return;
 			if (player_gems >= UpgradePrice(2)) {
 				player_gems -= UpgradePrice(2);
+				// TODO: decouple this (recover upgrade)
 				circuit_recoverrate += 1;
 				SND_Pos("dat/a/crystal.wav", 128, 0);
 			}
