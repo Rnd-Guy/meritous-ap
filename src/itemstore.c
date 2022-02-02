@@ -150,7 +150,7 @@ int GetEmptyPosInStore(t_itemStores store, int index) {
 void LocalGenerateItemStores(int flags) {
   printf("Creating item store containers\n");
   CreateItemStores();
-  int leftToAdd[] = {25, 23, 22, 8, 0, 3};
+  int leftToAdd[] = {24, 22, 21, 8, 0, 3};
   int leftToFill[] = {24, 24, 24, 20, 3};
   t_itemStore *specialStore = &stores[(int)IS_SPECIAL];
 
@@ -185,15 +185,6 @@ void LocalGenerateItemStores(int flags) {
 
   stores[(int)IS_CHESTS].crystalFallback = 1;
 
-  // {
-  //   int totalLeftEmpty = 0;
-  //   for (int x = 0; x < 5; x++) {
-  //     printf("%d reported empty, but counting %d\n", leftToFill[x], EmptySlotsInStore(x));
-  //     totalLeftEmpty += EmptySlotsInStore(x);
-  //   }
-  //   printf("%d left empty\n", totalLeftEmpty);
-  // }
-
   // put down the keys first with this logic:
   // - psi keys can be placed at regular psi key locations (is this even randomized?)
   // - psi keys can be placed in the first half of store/chest drops
@@ -214,19 +205,9 @@ void LocalGenerateItemStores(int flags) {
 
   int totalLeftToFill = 0;
   for (int x = 0; x < 5; x++) totalLeftToFill += leftToFill[x];
-  // {
-  //   int totalLeftEmpty = 0;
-  //   for (int x = 0; x < 5; x++) {
-  //     printf("%d reported empty, but counting %d\n", leftToFill[x], EmptySlotsInStore(x));
-  //     totalLeftEmpty += EmptySlotsInStore(x);
-  //   }
-  //   printf("%d left empty\n", totalLeftEmpty);
-  // }
 
   printf("Placing other items\n");
   for (int x = 0; x < IS_MAX; x++) {
-    // printf("%d locations left to fill; placing %d items in store %d (next should be %d)\n", totalLeftToFill, leftToAdd[x], x, totalLeftToFill - leftToAdd[x]);
-
     t_itemTypes item = x + 1;
     if (x == 4) item = T_EVOLUTION_TRAP;
 
@@ -263,12 +244,6 @@ void LocalGenerateItemStores(int flags) {
     }
   }
 
-  // {
-  //   int totalLeftEmpty = 0;
-  //   for (int x = 0; x < 5; x++) totalLeftEmpty += EmptySlotsInStore(x);
-  //   printf("%d left empty\n", totalLeftEmpty);
-  // }
-
   printf("Filling with random crystals\n");
   int crystalsPlaced = 0;
   for (int x = 0; x < 5; x++) {
@@ -300,7 +275,7 @@ char VerifyItemStores() {
   }
 
   int counts[T_MAX] = {0};
-  int correctCounts[T_MAX - 3] = {0, 25, 23, 22, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3};
+  int correctCounts[T_MAX - 3] = {0, 24, 22, 21, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3};
 
   for (int x = 0; x < IS_MAX; x++) {
     t_itemStore *thisStore = &stores[x];
