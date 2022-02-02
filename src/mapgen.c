@@ -29,6 +29,7 @@
 #include <SDL.h>
 #include "save.h"
 #include "levelblit.h"
+#include "itemhandler.h"
 
 void NewLevel();
 	
@@ -226,6 +227,7 @@ void RandomGenerateMap()
 		
 			trying = !Generate();
 		}
+		InitStores();
 	}
 	//SaveLevel();
 }
