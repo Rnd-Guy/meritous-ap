@@ -38,6 +38,7 @@ extern int player_x, player_y;
 extern int scroll_x, scroll_y;
 extern int player_room;
 extern int prv_player_room;
+extern int explored;
 
 extern int magic_circuit;
 extern int circuit_size;
@@ -51,6 +52,8 @@ void draw_text(int x, int y, char *str, Uint8 tcol);
 void draw_text_ex(int x, int y, char *str, Uint8 tcol, SDL_Surface *srf);
 
 extern int player_shield;
+extern int circuit_fillrate;
+extern int circuit_recoverrate;
 extern int shield_hp;
 extern int shield_recover;
 extern int player_hp;
