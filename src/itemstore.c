@@ -20,7 +20,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "itemstore.h"
+
+#include "itemdefs.h"
+#include "itemhandler.h"
 
 typedef struct itemStore
 {
@@ -57,12 +59,7 @@ t_itemTypes GetNextItem(t_itemStores store, char collect) {
     }
   }
 
-  if (thisStore->crystalFallback != 0) {
-    int randCrystals = rand() % 32;
-    if (randCrystals < 24) return T_CRYSTALS_500;
-    if (randCrystals < 31) return T_CRYSTALS_1000;
-    return T_CRYSTALS_2000;
-  }
+  if (thisStore->crystalFallback != 0) return MakeCrystals();
   return T_NOTHING;
 }
 // t_itemTypes GetNextItem(t_itemStores store) {
@@ -248,14 +245,7 @@ void LocalGenerateItemStores(int flags) {
   int crystalsPlaced = 0;
   for (int x = 0; x < 5; x++) {
     while (EmptySlotsInStore(x) > 0) {
-      int randCrystals = rand() % 32;
-      t_itemTypes putCrystals;
-
-      if (randCrystals < 24) putCrystals = T_CRYSTALS_500;
-      else if (randCrystals < 31) putCrystals = T_CRYSTALS_1000;
-      else putCrystals = T_CRYSTALS_2000;
-
-      stores[x].items[GetEmptyPosInStore(x, 0)] = putCrystals;
+      stores[x].items[GetEmptyPosInStore(x, 0)] = MakeCrystals();
       crystalsPlaced++;
     }
   }
