@@ -20,58 +20,7 @@
 #ifndef ITEMSTORE_H
 #define ITEMSTORE_H
 
-typedef enum itemTypes {
-  T_NOTHING,
-  T_REFLECT_SHIELD,
-  T_CIRCUIT_CHARGE,
-  T_CIRCUIT_REFILL,
-  T_MAP,
-  T_SHIELD_BOOST,
-  T_CRYSTAL_EFFICIENCY,
-  T_CIRCUIT_BOOSTER,
-  T_METABOLISM,
-  T_DODGE_ENHANCER,
-  T_ETHEREAL_MONOCLE,
-  T_CRYSTAL_GATHERER,
-  T_PSI_KEY_1,
-  T_PSI_KEY_2,
-  T_PSI_KEY_3,
-  T_CURSED_SEAL,
-  T_AGATE_KNIFE,
-  T_EVOLUTION_TRAP,
-  T_CRYSTALS_500,
-  T_CRYSTALS_1000,
-  T_CRYSTALS_2000,
-
-  T_MAX
-} t_itemTypes;
-
-typedef enum itemStores {
-  IS_ALPHA,
-  IS_BETA,
-  IS_GAMMA,
-  IS_CHESTS,
-  IS_SPECIAL,
-
-  IS_MAX
-} t_itemStores;
-
-typedef enum specialStore {
-  SS_PSI_KEY_1,
-  SS_PSI_KEY_2,
-  SS_PSI_KEY_3,
-  SS_BOSS_PRIZE_1,
-  SS_BOSS_PRIZE_2,
-  SS_BOSS_PRIZE_3,
-  SS_CURSED_SEAL,
-  SS_AGATE_KNIFE,
-
-  SS_MAX
-} t_specialStore;
-
-typedef enum genFlags {
-  GF_INCLUDE_TRAPS = 0x01
-} t_genFlags;
+#include "itemdefs.h"
 
 void CreateItemStores();
 void DestroyItemStores();
