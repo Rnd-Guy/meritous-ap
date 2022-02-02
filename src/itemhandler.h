@@ -18,7 +18,15 @@
 #ifndef ITEMHANDLER_H
 #define ITEMHANDLER_H
 
+#include "itemdefs.h"
+
 void InitStores();
-void DeinitStores();
+void DestroyStores();
+
+t_itemTypes MakeCrystals();
+
+int CostFactor(t_itemStores store);
+void CollectItem(t_itemStores store);
+void CollectSpecialItem(t_specialStore item);
 
 #endif
