@@ -41,6 +41,8 @@ void TryHurtBoss(int x, int y, int range, int power);
 
 void InitBossVars();
 
+void Curse();
+
 void DrawBossHP(int bar_length);
 
 int PDist(int x1, int y1, int x2, int y2);
