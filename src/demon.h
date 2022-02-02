@@ -32,7 +32,7 @@ void HurtEnemies(int x, int y, int range, int power);
 void CircuitBullets(int x, int y, int r);
 void CreateGem(int x, int y, int r, int v);
 
-extern int total_enemies, killed_enemies, total_gems;
+extern int total_enemies, killed_enemies, total_gems, enemy_evolutions;
 
 void WriteCreatureData();
 void WriteEnemyData();

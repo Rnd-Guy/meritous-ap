@@ -150,6 +150,7 @@ int killed_enemies = 0;
 int total_bullets = 0;
 int active_enemies = 0;
 int total_gems = 0;
+int enemy_evolutions = 0;
 
 struct enemy *enemy_stack = NULL;
 struct bullet *bullet_stack = NULL;
@@ -332,6 +333,7 @@ void WriteEnemyData()
 		}
 		ptr = ptr->next;
 	}
+	FWInt(enemy_evolutions);
 }
 
 void WriteGemData()
@@ -391,6 +393,7 @@ void ReadEnemyData()
 			LoadingScreen(2, (float)i / (float)n);
 		}
 	}
+	enemy_evolutions = FRInt();
 	LoadingScreen(2, 1);
 }
 
@@ -2546,6 +2549,7 @@ void SoupUpEnemies()
 		}
 		e = e->next;
 	}
+	enemy_evolutions++;
 }
 
 void CurseSingleEnemy(struct enemy *e)
