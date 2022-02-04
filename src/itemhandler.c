@@ -117,7 +117,7 @@ void ProcessItem(t_itemTypes item) {
     case T_CRYSTALS_2000:
       if (item >= T_CRYSTALS_1000) basemod *= 2;
       if (item == T_CRYSTALS_2000) basemod *= 2;
-      player_gems += rand()%((1 << (explored / 7)) * basemod);
+      player_gems += rand()%((1 << (explored / 300)) * basemod);
       specialmessage = 20;
       specialmessagetimer = 30;
       noise = 1;
@@ -139,6 +139,14 @@ void ProcessItem(t_itemTypes item) {
 
   if (noise == 1) SND_Pos("dat/a/tone.wav", 128, 0);
   else if (noise == 2) SND_Pos("dat/a/crystal.wav", 128, 0);
+}
+
+void KillPlayer() {
+  if (player_dying <= 0 && player_hp > 0) {
+    player_hp = 0;
+    player_dying = 1;
+    SND_Pos("dat/a/playerhurt.wav", 128, 0);
+  }
 }
 
 void CollectItem(t_itemStores store) {
