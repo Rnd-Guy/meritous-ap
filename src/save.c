@@ -30,6 +30,7 @@
 #include "mapgen.h"
 #include "demon.h"
 #include "tiles.h"
+#include "itemhandler.h"
 
 gzFile Filefp;
 int game_load = 0;
