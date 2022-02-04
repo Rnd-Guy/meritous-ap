@@ -150,9 +150,19 @@ void KillPlayer() {
 }
 
 void CollectItem(t_itemStores store) {
-
+  t_itemTypes item = GetNextItem(store, 1);
+  if (item != T_NOTHING) ProcessItem(item);
 }
 
 void CollectSpecialItem(t_specialStore item) {
+  t_itemTypes item = GetItemByIndex(IS_SPECIAL, item, 1);
+  if (item != T_NOTHING) ProcessItem(item);
+}
 
+void WriteStoreData() {
+  SaveStores();
+}
+
+void ReadStoreData() {
+  LoadStores();
 }

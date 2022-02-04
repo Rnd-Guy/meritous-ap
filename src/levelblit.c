@@ -687,7 +687,7 @@ void LoadingScreen(int part, float progress)
 {
 	float t_parts;
 
-	if (game_load) t_parts = 5.0;
+	if (game_load) t_parts = 6.0;
 	else t_parts = 3.0;
 
 	ProgressBarScreen(part, progress, "Loading... please wait", t_parts);
@@ -696,7 +696,7 @@ void LoadingScreen(int part, float progress)
 
 void SavingScreen(int part, float progress)
 {
-	ProgressBarScreen(part, progress, "Saving... please wait", 4.0);
+	ProgressBarScreen(part, progress, "Saving... please wait", 5.0);
 	ClearInput();
 }
 
@@ -777,6 +777,7 @@ int DungeonPlay(char *fname)
 	if (game_load) {
 		first_game = 0;
 		ReadPlayerData();
+		ReadStoreData();
 		//Paint(rooms[0].x+1, rooms[0].y+1, rooms[0].w-2, rooms[0].h-2, "dat/d/fbossroom.loc");
 	} else {
 		player_x = map.w * 32 / 2 - PLAYERW/2;

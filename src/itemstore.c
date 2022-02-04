@@ -23,6 +23,8 @@
 
 #include "itemdefs.h"
 #include "itemhandler.h"
+#include "levelblit.h"
+#include "save.h"
 
 typedef struct itemStore
 {
@@ -281,4 +283,31 @@ char VerifyItemStores() {
     }
 
   return retval;
+}
+
+void SaveStores() {
+  for (int x = 0; x < IS_MAX; x++) {
+    t_itemStore *thisStore = &stores[x];
+    FWInt(thisStore->length);
+    for (int y = 0; y < thisStore->length; y++) {
+      FWInt(thisStore->items[y]);
+      FWChar(thisStore->collected[y]);
+    }
+    FWChar(thisStore->crystalFallback);
+    SavingScreen(4, (float)(x + 1) / IS_MAX);
+  }
+}
+
+void LoadStores() {
+  CreateItemStores();
+  for (int x = 0; x < IS_MAX; x++) {
+    t_itemStore *thisStore = &stores[x];
+    thisStore->length = FRInt();
+    for (int y = 0; y < thisStore->length; y++) {
+      thisStore->items[y] = FRInt();
+      thisStore->collected[y] = FRChar();
+    }
+    thisStore->crystalFallback = FRChar();
+    LoadingScreen(5, (float)(x + 1) / IS_MAX);
+  }
 }

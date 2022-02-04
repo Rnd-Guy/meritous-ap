@@ -39,4 +39,7 @@ void LocalGenerateItemStores(int flags);
 
 char VerifyItemStores();
 
+void SaveStores();
+void LoadStores();
+
 #endif

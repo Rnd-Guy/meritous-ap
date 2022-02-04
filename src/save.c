@@ -128,6 +128,7 @@ void SaveGame(char *filename)
 	WriteMapData();
 	WriteCreatureData();
 	WritePlayerData();
+	WriteStoreData();
 
 	gzclose(Filefp);
 }
