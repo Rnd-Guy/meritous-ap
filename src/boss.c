@@ -33,6 +33,7 @@
 #include "demon.h"
 #include "gamemap.h"
 #include "audio.h"
+#include "itemhandler.h"
 
 char *boss_names[] = {	"MERIDIAN",
 						"ATARAXIA",
@@ -510,7 +511,7 @@ void DrawPowerObject()
 	float ddir;
 	int dmag;
 
-	if (place_of_power == player_room) p_obj = 3;
+	if (place_of_power == player_room) p_obj = SS_CURSED_SEAL;
 
 	n_artifacts = current_boss + artifacts[8] + artifacts[9] + artifacts[10];
 
@@ -545,14 +546,8 @@ void DrawPowerObject()
 						if (collect > 100) {
 							collect = 0;
 							rooms[player_room].room_type = 4;
-							// TODO: decouple this (PSI Keys/cursed seal)
-							artifacts[8 + p_obj] = 1;
-							specialmessage = 30 + p_obj;
-							specialmessagetimer = 120;
-
-							if (p_obj == 3) {
-								Curse();
-							}
+							// TODO: test this (PSI Keys/cursed seal)
+							CollectSpecialItem(p_obj);
 						}
 					}
 				}
@@ -1592,9 +1587,9 @@ void BC_BossDying()
 			}
 		}
 
-		// TODO: decouple this (Evo traps)
+		// TODO: test this (Evo traps)
 		if (current_boss > 0) {
-			SoupUpEnemies();
+			CollectSpecialItem(current_boss + SS_BOSS_PRIZE_1 - 1);
 		}
 	} else {
 		if (boss_fight_mode == 3) {

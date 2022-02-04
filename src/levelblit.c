@@ -954,16 +954,9 @@ int DungeonPlay(char *fname)
 					ypos = (int)((cos(agate_t * 0.7)*0.5+0.5) * (float)room_h) + room_y;
 
 					if (dist(player_x, player_y, xpos, ypos) < 20) {
-						// TODO: decouple this (Agate Knife)
+						// TODO: test this (Agate Knife)
 						agate_knife_loc = -1;
-						specialmessage = 50;
-						specialmessagetimer = 150;
-						SND_Pos("dat/a/crystal2.wav", 128, 0);
-
-						player_shield = 30;
-						circuit_fillrate = 30;
-						circuit_recoverrate = 30;
-						player_hp = 6;
+						CollectSpecialItem(SS_AGATE_KNIFE);
 					}
 					draw_to.x = xpos - 16 - scroll_x;
 					draw_to.y = ypos - 16 - scroll_y;
@@ -2077,82 +2070,10 @@ void ST_Teleport()
 
 int UpgradePrice(int t)
 {
-	// TODO: decouple this (upgrade prices)
-	int price = 0;
-	switch (t) {
-		case 0:
-			price = (100 - training*50) * player_shield + (5<<player_shield) * (5 - training*2);
-			break;
-		case 1:
-			price = (80 - training*40) * circuit_fillrate + (5<<circuit_fillrate) * (4 - training*2);
-			break;
-		case 2:
-			price = (80 - training*40) * circuit_recoverrate + (5<<circuit_recoverrate) * (4 - training*2);
-			break;
-		default:
-			price = 123;
-			break;
-	}
-
-	return price;
-}
-
-// TODO: decouple this (treasure boxes)
-void RoomTreasure(int room, int typ)
-{
-	int treasure;
-	int given_treasure = 0;
-
-	if (typ == 0) {
-		// Treasure
-		treasure = rooms[room].room_param;
-		artifacts[treasure] = 1;
-		specialmessage = treasure + 1;
-		specialmessagetimer = 30;
-		SND_Pos("dat/a/crystal2.wav", 128, 0);
-	}
-	if (typ == 1) {
-		// Reward
-		while (!given_treasure) {
-			treasure = rand() % 4;
-
-			switch (treasure) {
-				case 0:
-					specialmessage = 20;
-					player_gems += rand()%((1 << (rooms[room].s_dist / 7)) * 1500);
-					given_treasure = 1;
-					SND_Pos("dat/a/tone.wav", 128, 0);
-					break;
-				case 1:
-					if (player_shield < 25) {
-						specialmessage = 10;
-						player_shield += 1;
-						given_treasure = 1;
-						SND_Pos("dat/a/tone.wav", 128, 0);
-					}
-					break;
-				case 2:
-					if (circuit_fillrate < 25) {
-						specialmessage = 11;
-						circuit_fillrate += 1;
-						given_treasure = 1;
-						SND_Pos("dat/a/tone.wav", 128, 0);
-					}
-					break;
-				case 3:
-					if (circuit_recoverrate < 25) {
-						specialmessage = 12;
-						circuit_recoverrate += 1;
-						given_treasure = 1;
-						SND_Pos("dat/a/tone.wav", 128, 0);
-					}
-					break;
-				default:
-					break;
-			}
-		}
-		specialmessagetimer = 30;
-	}
+	// TODO: test this (upgrade prices)
+	int costFactor = CostFactor(t);
+	if (costFactor < 0) return 99999;
+	else return (80 - training*40) * costFactor + (5<<costFactor) * (4 - training*2);
 }
 
 int GetNearestCheckpoint(int nx, int ny)
@@ -2267,34 +2188,32 @@ void ActivateTile(unsigned char tile, int x, int y)
 
 			break;
 		case 26:
-			RoomTreasure(GetRoom(x, y), (x+y)%2);
+			// TODO: test this (treasure boxes)
+			CollectItem(IS_CHESTS);
 			Put(x, y, 27, GetRoom(x, y));
 			break;
 		case 28:
-			if (player_shield >= 24) return;
+			if (CostFactor(IS_ALPHA) < 0) return;
 			if (player_gems >= UpgradePrice(0)) {
 				player_gems -= UpgradePrice(0);
-				// TODO: decouple this (shield upgrade)
-				player_shield += 1;
-				SND_Pos("dat/a/crystal.wav", 128, 0);
+				// TODO: test this (shield upgrade)
+				CollectItem(IS_ALPHA);
 			}
 			break;
 		case 29:
-			if (circuit_fillrate >= 24) return;
+			if (CostFactor(IS_BETA) < 0) return;
 			if (player_gems >= UpgradePrice(1)) {
 				player_gems -= UpgradePrice(1);
-				// TODO: decouple this (fill rate upgrade)
-				circuit_fillrate += 1;
-				SND_Pos("dat/a/crystal.wav", 128, 0);
+				// TODO: test this (fill rate upgrade)
+				CollectItem(IS_BETA);
 			}
 			break;
 		case 30:
-			if (circuit_recoverrate >= 24) return;
+			if (CostFactor(IS_GAMMA) < 0) return;
 			if (player_gems >= UpgradePrice(2)) {
 				player_gems -= UpgradePrice(2);
-				// TODO: decouple this (recover upgrade)
-				circuit_recoverrate += 1;
-				SND_Pos("dat/a/crystal.wav", 128, 0);
+				// TODO: test this (recover upgrade)
+				CollectItem(IS_GAMMA);
 			}
 			break;
 		case 31:
@@ -2483,24 +2402,24 @@ void SpecialTile(int x, int y)
 			sprintf(message, "Press ENTER to open the storage chest");
 			break;
 		case 28:
-			if (player_shield >= 25) {
-				sprintf(message, "Your shield is already at full efficiency");
+			if (CostFactor(IS_ALPHA) < 0) {
+				sprintf(message, "Alpha cache is empty");
 			} else {
-				sprintf(message, "Press ENTER to upgrade shields (%d crystals)", UpgradePrice(0));
+				sprintf(message, "Press ENTER to loot Alpha cache (%d crystals)", UpgradePrice(0));
 			}
 			break;
 		case 29:
-			if (circuit_fillrate >= 25) {
-				sprintf(message, "Your circuit charge rate is already at its highest");
+			if (CostFactor(IS_BETA) < 0) {
+				sprintf(message, "Beta cache is empty");
 			} else {
-				sprintf(message, "Press ENTER to upgrade circuit charge (%d crystals)", UpgradePrice(1));
+				sprintf(message, "Press ENTER to loot Beta cache (%d crystals)", UpgradePrice(1));
 			}
 			break;
 		case 30:
-			if (circuit_recoverrate >= 25) {
-				sprintf(message, "Your circuit refill rate is already at its highest");
+			if (CostFactor(IS_GAMMA) < 0) {
+				sprintf(message, "Gamma cache is empty");
 			} else {
-				sprintf(message, "Press ENTER to upgrade circuit refill (%d crystals)", UpgradePrice(2));
+				sprintf(message, "Press ENTER to loot Gamma cache (%d crystals)", UpgradePrice(2));
 			}
 			break;
 		case 31:
