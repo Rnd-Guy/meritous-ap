@@ -149,7 +149,7 @@ int GetEmptyPosInStore(t_itemStores store, int index) {
 void LocalGenerateItemStores(int flags) {
   printf("Creating item store containers\n");
   CreateItemStores();
-  int leftToAdd[] = {24, 22, 21, 8, 0, 3};
+  int leftToAdd[] = {25, 23, 22, 8, 0, 3};
   int leftToFill[] = {24, 24, 24, 20, 3};
   t_itemStore *specialStore = &stores[(int)IS_SPECIAL];
 
@@ -267,7 +267,7 @@ char VerifyItemStores() {
   }
 
   int counts[T_MAX] = {0};
-  int correctCounts[T_MAX - 3] = {0, 24, 22, 21, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3};
+  int correctCounts[T_MAX - 3] = {0, 25, 23, 22, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3};
 
   for (int x = 0; x < IS_MAX; x++) {
     t_itemStore *thisStore = &stores[x];

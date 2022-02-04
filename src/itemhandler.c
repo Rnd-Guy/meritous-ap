@@ -52,11 +52,11 @@ char HasItem(t_itemTypes item) {
     case T_NOTHING:
       return 1;
     case T_REFLECT_SHIELD:
-      return player_shield >= 24;
+      return player_shield >= 25;
     case T_CIRCUIT_CHARGE:
-      return circuit_fillrate >= 24;
+      return circuit_fillrate >= 25;
     case T_CIRCUIT_REFILL:
-      return circuit_recoverrate >= 24;
+      return circuit_recoverrate >= 25;
     case T_AGATE_KNIFE:
       return player_shield == 30;
     case T_CRYSTALS_500:
