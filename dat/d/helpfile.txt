@@ -370,16 +370,20 @@ the same way that it would normally.
     Music:
      "Ambient Light"       Vogue of Triton
      "Battle of Ragnarok"  Frostbite
-    "Dragon Cave"         TICAZ
+     "Dragon Cave"         TICAZ
      cavern.xm             Unknown
      "Caverns Boss"        Alexis Janson
      "Forest Boss"         Alexis Janson
      "Catacombs Boss"      Alexis Janson
      "Fear 2"              Mick Rippon
-     "The Final Battle"    Goose/CéDA & iNVASiON
+     "The Final Battle"    Goose/Cï¿½DA & iNVASiON
      "Ice Frontier"        Skaven/FC
      "KnarkLoader 1.0"     Rapacious
      "RPG-Battle"          Cyn
      "Metallic Forest"     Joseph Fox
+
+    Patches:                    bart9h
+
+    Randomiser:                 KewlioMZX
 
 ?default?Return to top
