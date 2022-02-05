@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <SDL.h>
 
 #include "itemdefs.h"
 #include "itemhandler.h"
@@ -101,8 +102,9 @@ char HasItemByIndex(t_itemStores store, int index) {
   t_itemStore *thisStore = &stores[(int)store];
 
   if (index < 0 || index >= thisStore->length) return 0;
-  if (thisStore->collected[index] != 0) return 0;
-  return 1;
+  // if (thisStore->collected[index] != 0) return 0;
+  // return 1;
+  return (thisStore->collected[index] != 0);
 }
 
 int EmptySlotsInStore(t_itemStores store) {
@@ -123,7 +125,7 @@ int GetNextIndexInStore(t_itemStores store) {
   t_itemStore *thisStore = &stores[(int)store];
 
   for (int x = 0; x < thisStore->length; x++) {
-    if (thisStore->collected[x] != 0) return x;
+    if (thisStore->collected[x] == 0) return x;
   }
 
   return -1;
@@ -286,6 +288,7 @@ char VerifyItemStores() {
 }
 
 void SaveStores() {
+  if (stores == NULL) return;
   for (int x = 0; x < IS_MAX; x++) {
     t_itemStore *thisStore = &stores[x];
     FWInt(thisStore->length);
