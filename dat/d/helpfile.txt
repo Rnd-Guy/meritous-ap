@@ -384,6 +384,6 @@ the same way that it would normally.
 
     Patches:                    bart9h
 
-    Randomiser:                 KewlioMZX
+    Item randomizer:            KewlioMZX
 
 ?default?Return to top
