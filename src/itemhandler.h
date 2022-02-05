@@ -27,7 +27,7 @@ t_itemTypes MakeCrystals();
 
 int CostFactor(t_itemStores store);
 void CollectItem(t_itemStores store);
-void CollectSpecialItem(t_specialStore item);
+void CollectSpecialItem(t_specialStore itemIndex);
 
 void WriteStoreData();
 void ReadStoreData();

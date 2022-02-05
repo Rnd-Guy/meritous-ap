@@ -26,7 +26,7 @@
 #include "levelblit.h"
 
 void InitStores() {
-  CreateItemStores();
+  LocalGenerateItemStores(0);
 }
 
 void DestroyStores() {
@@ -34,10 +34,10 @@ void DestroyStores() {
 }
 
 int CostFactor(t_itemStores store) {
-  if (store >= 0 && store <= 2) {
+  if (store >= IS_ALPHA && store <= IS_GAMMA) {
     return GetNextIndexInStore(store);
   }
-  else return 0;
+  else return -1;
 }
 
 t_itemTypes MakeCrystals() {
@@ -154,8 +154,8 @@ void CollectItem(t_itemStores store) {
   if (item != T_NOTHING) ProcessItem(item);
 }
 
-void CollectSpecialItem(t_specialStore item) {
-  t_itemTypes item = GetItemByIndex(IS_SPECIAL, item, 1);
+void CollectSpecialItem(t_specialStore itemIndex) {
+  t_itemTypes item = GetItemByIndex(IS_SPECIAL, itemIndex, 1);
   if (item != T_NOTHING) ProcessItem(item);
 }
 
