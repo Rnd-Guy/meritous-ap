@@ -612,7 +612,7 @@ int main(int argc, char **argv)
 			SDL_FreeSurface(title);
 			SDL_FreeSurface(title_pr);
 			if ((option == 0) && can_continue) {
-				DungeonPlay("SaveFile.sav");
+				DungeonPlay("SaveAP.sav");
 			} else {
 				if (option == (0 + can_continue)) {
 					training = 0;

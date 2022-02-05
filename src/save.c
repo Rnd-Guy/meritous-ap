@@ -157,13 +157,13 @@ void CloseFile()
 void DoSaveGame()
 {
 	SavingScreen(0, 0.0);
-	SaveGame("SaveFile.sav");
+	SaveGame("SaveAP.sav");
 }
 
 int IsSaveFile()
 {
 	FILE *fp;
-	if ((fp = fopen("SaveFile.sav", "rb")) != NULL) {
+	if ((fp = fopen("SaveAP.sav", "rb")) != NULL) {
 		fclose(fp);
 		return 1;
 	}
