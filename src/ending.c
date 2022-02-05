@@ -293,20 +293,22 @@ char *credits[] = {
 	"Music:                      Various artists",
 	"Beta testing:               Quasar",
 	"Beta testing:               Terryn",
-	"Beta testing:               Wervyn"
-	 "\"Ambient Light\"       Vogue of Triton"
-	 "\"Battle of Ragnarok\"  Frostbite"
-	 "\"Dragon Cave\"         TICAZ"
-	 " cavern.xm             Unknown"
-	 "\"Caverns Boss\"        Alexis Janson"
-	 "\"Forest Boss\"         Alexis Janson"
-	 "\"Catacombs Boss\"      Alexis Janson"
-	 "\"Fear 2\"              Mick Rippon"
-	 "\"The Final Battle\"    Goose/CéDA & iNVASiON"
-	 "\"Ice Frontier\"        Skaven/FC"
-	 "\"KnarkLoader 1.0\"     Rapacious"
-	 "\"RPG-Battle\"          Cyn"
-	 "\"Metallic Forest\"     Joseph Fox"
+	"Beta testing:               Wervyn",
+	 "\"Ambient Light\"       Vogue of Triton",
+	 "\"Battle of Ragnarok\"  Frostbite",
+	 "\"Dragon Cave\"         TICAZ",
+	 " cavern.xm             Unknown",
+	 "\"Caverns Boss\"        Alexis Janson",
+	 "\"Forest Boss\"         Alexis Janson",
+	 "\"Catacombs Boss\"      Alexis Janson",
+	 "\"Fear 2\"              Mick Rippon",
+	 "\"The Final Battle\"    Goose/Cï¿½DA & iNVASiON",
+	 "\"Ice Frontier\"        Skaven/FC",
+	 "\"KnarkLoader 1.0\"     Rapacious",
+	 "\"RPG-Battle\"          Cyn",
+	 "\"Metallic Forest\"     Joseph Fox",
+	"Additional patches          bart9h",
+	"Item randomizer             KewlioMZX"
 };
 
 void DrawCredits()
