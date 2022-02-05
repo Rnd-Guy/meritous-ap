@@ -1638,6 +1638,7 @@ void BC_BossDying()
 							boss_fight_mode++;
 						}
 					} else {
+						AnnounceVictory(player_shield == 30);
 						if (endpics[0] == NULL) {
 							if (training) {
 								endpics[0] = IMG_Load("dat/i/wuss_ending.png");

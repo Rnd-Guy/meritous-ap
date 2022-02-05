@@ -804,6 +804,7 @@ int DungeonPlay(char *fname)
 				player_hp--;
 
 				if (player_hp <= 0) {
+					AnnounceDeath();
 					if (!training) player_lives--;
 					lost_gems = player_gems / 3;
 					player_gems -= lost_gems;

@@ -149,6 +149,14 @@ void KillPlayer() {
   }
 }
 
+void AnnounceDeath() {
+  // doesn't do anything for now; this is for AP DeathLink
+}
+
+void AnnounceVictory(char isFullVictory) {
+  // doesn't do anything for now; this is for AP
+}
+
 void CollectItem(t_itemStores store) {
   t_itemTypes item = GetNextItem(store, 1);
   if (item != T_NOTHING) ProcessItem(item);

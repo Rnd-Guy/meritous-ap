@@ -25,6 +25,9 @@ void DestroyStores();
 
 t_itemTypes MakeCrystals();
 
+void AnnounceDeath();
+void AnnounceVictory(char isFullVictory);
+
 int CostFactor(t_itemStores store);
 void CollectItem(t_itemStores store);
 void CollectSpecialItem(t_specialStore itemIndex);
