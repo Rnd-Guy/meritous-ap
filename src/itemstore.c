@@ -152,7 +152,7 @@ void LocalGenerateItemStores(int flags) {
   printf("Creating item store containers\n");
   CreateItemStores();
   int leftToAdd[] = {25, 23, 22, 8, 0, 3};
-  int leftToFill[] = {24, 24, 24, 20, 3};
+  int leftToFill[] = {24, 24, 24, 24, 3};
   t_itemStore *specialStore = &stores[(int)IS_SPECIAL];
 
   printf("Determining flags\n");
@@ -181,7 +181,7 @@ void LocalGenerateItemStores(int flags) {
   stores[(int)IS_ALPHA].length = 24;
   stores[(int)IS_BETA].length = 24;
   stores[(int)IS_GAMMA].length = 24;
-  stores[(int)IS_CHESTS].length = 20;
+  stores[(int)IS_CHESTS].length = 24;
   specialStore->length = 8;
 
   stores[(int)IS_CHESTS].crystalFallback = 1;
