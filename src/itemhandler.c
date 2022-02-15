@@ -26,6 +26,31 @@
 #include "levelblit.h"
 #include "stats.h"
 
+const char *itemNames[] = {
+  "Nothing",
+  "Reflect Shield upgrade",
+  "Circuit Charge upgrade",
+  "Circuit Refill upgrade",
+  "Map",
+  "Shield Boost",
+  "Crystal Efficiency",
+  "Circuit Booster",
+  "Metabolism",
+  "Dodge Enhancer",
+  "Ethereal Monocle",
+  "Crystal Gatherer",
+  "", // get these from artifact_names
+  "",
+  "",
+  "",
+  "Agate Knife",
+  "Evolution Trap",
+  "Some crystals",
+  "More crystals",
+  "Many crystals",
+  "Extra Life"
+};
+
 void InitStores() {
   LocalGenerateItemStores(0);
 }
@@ -71,53 +96,33 @@ char HasItem(t_itemTypes item) {
   }
 }
 
-void ProcessItem(t_itemTypes item, char *source) {
+void ProcessItem(t_itemTypes item, char *source, char isForfeit) {
   char noise = 0;
   int basemod = 500;
 
   if (HasItem(item)) item = MakeCrystals();
 
+  // Process the item effect
   switch (item) {
     case T_NOTHING:
-      PostMessage(60, 30, 1, source);
       break;
     case T_REFLECT_SHIELD:
-      PostMessage(10, 30, 1, source);
-      // specialmessage = 10;
-      // specialmessagetimer = 30;
       player_shield++;
-      noise = 1;
       break;
     case T_CIRCUIT_CHARGE:
-      PostMessage(11, 30, 1, source);
-      // specialmessage = 11;
-      // specialmessagetimer = 30;
       circuit_fillrate++;
-      noise = 1;
       break;
     case T_CIRCUIT_REFILL:
-      PostMessage(12, 30, 1, source);
-      // specialmessage = 12;
-      // specialmessagetimer = 30;
       circuit_recoverrate++;
-      noise = 1;
       break;
     case T_AGATE_KNIFE:
       add_int_stat(STAT_TIME_KNIFE, expired_ms);
-      PostMessage(50, 150, 0);
-      // specialmessage = 50;
-      // specialmessagetimer = 150;
-      noise = 2;
-
       player_shield = 30;
       circuit_fillrate = 30;
       circuit_recoverrate = 30;
       player_hp = 6;
       break;
     case T_EVOLUTION_TRAP:
-      PostMessage(25, 120, 1, source);
-      // specialmessage = 25;
-      // specialmessagetimer = 120;
       SoupUpEnemies();
       break;
     case T_CRYSTALS_500:
@@ -125,37 +130,64 @@ void ProcessItem(t_itemTypes item, char *source) {
     case T_CRYSTALS_2000:
       if (item >= T_CRYSTALS_1000) basemod *= 2;
       if (item == T_CRYSTALS_2000) basemod *= 2;
-      player_gems += rand()%((1 << (explored / 300)) * basemod);
+      int collect = rand()%((1 << (explored / 300)) * basemod);
+      add_int_stat(STAT_GEMS_COLLECTED, collect);
+      player_gems += collect;
+      break;
+    case T_1UP:
+      add_int_stat(STAT_LIVES_GAINED, 1);
+      player_lives++;
+      player_hp = 3 + (player_shield == 30)*3;
+      break;
+    default:
+      artifacts[item - T_MAP] = 1;
+      if (item == T_CURSED_SEAL) Curse();
+      break;
+  }
+
+  // Show the appropriate message
+  if (isForfeit) {
+    char kelka = item >= T_PSI_KEY_1 && item <= T_CURSED_SEAL;
+    PostMessage(71, 30, 2, source, kelka ? artifact_names[item - T_PSI_KEY_1] : itemNames[item]);
+  } else switch (item) {
+    case T_NOTHING:
+      PostMessage(60, 30, 1, source);
+      break;
+    case T_REFLECT_SHIELD:
+      PostMessage(10, 30, 1, source);
+      noise = 1;
+      break;
+    case T_CIRCUIT_CHARGE:
+      PostMessage(11, 30, 1, source);
+      noise = 1;
+      break;
+    case T_CIRCUIT_REFILL:
+      PostMessage(12, 30, 1, source);
+      noise = 1;
+      break;
+    case T_AGATE_KNIFE:
+      PostMessage(50, 150, 0);
+      noise = 2;
+      break;
+    case T_EVOLUTION_TRAP:
+      PostMessage(25, 120, 1, source);
+      break;
+    case T_CRYSTALS_500:
+    case T_CRYSTALS_1000:
+    case T_CRYSTALS_2000:
       PostMessage(20, 30, 1, source);
-      // specialmessage = 20;
-      // specialmessagetimer = 30;
       noise = 1;
       break;
     case T_1UP:
       PostMessage(61, 30, 1, source);
-      player_lives++;
-      player_hp = 3 + (player_shield == 30)*3;
       noise = 3;
       break;
     case T_CURSED_SEAL:
       PostMessage(33, 120, 0);
-      artifacts[item - T_MAP] = 1;
-      Curse();
       break;
     default:
-      if (item >= T_PSI_KEY_1) {
-        char artifact[30] = {0};
-        sprintf(artifact, artifact_names[item - T_PSI_KEY_1]);
-        PostMessage(34, 120, 2, source, artifact);
-        // specialmessage = 30 + (item - T_PSI_KEY_1);
-        // specialmessagetimer = 120;
-      } else {
-        PostMessage(item - T_MAP + 1, 30, 1, source);
-        // specialmessage = item - T_MAP + 1;
-        // specialmessagetimer = 30;
-      }
-      artifacts[item - T_MAP] = 1;
-
+      if (item >= T_PSI_KEY_1) PostMessage(34, 120, 2, source, artifact_names[item - T_PSI_KEY_1]);
+      else PostMessage(item - T_MAP + 1, 30, 1, source);
       noise = 2;
       break;
   }
@@ -192,7 +224,7 @@ void CollectItem(t_itemStores store) {
     case IS_CHESTS: sprintf(source, "the chest"); break;
     default: sprintf(source, "nowhere"); break;
   }
-  ProcessItem(item, source);
+  ProcessItem(item, source, 0);
 }
 
 void CollectSpecialItem(t_specialStore itemIndex) {
@@ -210,7 +242,16 @@ void CollectSpecialItem(t_specialStore itemIndex) {
     default: sprintf(source, "somewhere");
   }
 
-  ProcessItem(item, source);
+  ProcessItem(item, source, 0);
+}
+
+char IsArchipelago() {
+  // TODO: when we implement the AP client, this will return whether the current game is AP or local rando
+  return 1;
+}
+
+void ForceCollectItem(char *player, char *itemName, char *waswere) {
+  PostMessage(72, 30, 2, itemName, waswere, player);
 }
 
 void WriteStoreData() {

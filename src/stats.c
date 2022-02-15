@@ -54,12 +54,12 @@ void add_float_stat(t_statType stat, float addval) {
 }
 
 int get_int_stat(t_statType stat) {
-  if (stat < 0 || stat >= STAT_INTMAX) return;
+  if (stat < 0 || stat >= STAT_INTMAX) return -1;
   return istats[stat];
 }
 
 float get_float_stat(t_statType stat) {
-  if (stat < STAT_INTMAX || stat >= STAT_FLOATMAX) return;
+  if (stat < STAT_INTMAX || stat >= STAT_FLOATMAX) return -1.f;
   return fstats[stat - STAT_INTMAX];
 }
 
