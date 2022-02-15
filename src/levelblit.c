@@ -2502,58 +2502,58 @@ void SpecialTile(int x, int y)
     switch (msgqueue->msgid) {
       case 1:
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage1, "reveals the labyrinth within the Atlas Dome");
+        sprintf(specialmessage2, "reveals the labyrinth within the Atlas Dome");
         break;
       case 2:
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage1, "enhances Virtue's shield");
+        sprintf(specialmessage2, "enhances Virtue's shield");
         break;
       case 3:
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage1, "enriches all crystals within the Dome");
+        sprintf(specialmessage2, "enriches all crystals within the Dome");
         break;
       case 4:
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage1, "bolsters Virtue's PSI Circuit");
+        sprintf(specialmessage2, "bolsters Virtue's PSI Circuit");
         break;
       case 5:
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage1, "hastens Virtue's pace");
+        sprintf(specialmessage2, "hastens Virtue's pace");
         break;
       case 6:
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage1, "sharpens Virtue's reflexes");
+        sprintf(specialmessage2, "sharpens Virtue's reflexes");
         break;
       case 7:
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage1, "reveals nearby threats");
+        sprintf(specialmessage2, "reveals nearby threats");
         break;
       case 8:
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage1, "draws crystals toward Virtue");
+        sprintf(specialmessage2, "draws crystals toward Virtue");
         break;
 
       case 10:
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage1, "strengthens Virtue's shield");
+        sprintf(specialmessage2, "strengthens Virtue's shield");
         break;
       case 11:
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage1, "strengthens Virtue's PSI Circuit");
+        sprintf(specialmessage2, "strengthens Virtue's PSI Circuit");
         break;
       case 12:
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage1, "hastens Virtue's PSI Circuit");
+        sprintf(specialmessage2, "hastens Virtue's PSI Circuit");
         break;
 
       case 20:
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage1, "showers Virtue with PSI crystals");
+        sprintf(specialmessage2, "showers Virtue with PSI crystals");
         break;
 
       case 25:
         sprintf(specialmessage1, "A disruption from %s", msgqueue->params[0]);
-        sprintf(specialmessage1, "makes the Atlas Dome more dangerous");
+        sprintf(specialmessage2, "makes the Atlas Dome more dangerous");
         break;
 
       case 30:
@@ -2566,7 +2566,8 @@ void SpecialTile(int x, int y)
         sprintf(specialmessage1, "Divine Bow 'Gandiva' answers your call");
         break;
       case 33:
-        sprintf(specialmessage1, "You capture the cursed seal. Return to the entrance");
+        sprintf(specialmessage1, "You capture the cursed seal. Return to the entrance.");
+        sprintf(specialmessage2, "A threatening aura surrounds you. Run.");
         break;
       case 34:
         sprintf(specialmessage1, "A surge from %s", msgqueue->params[0]);
@@ -2621,12 +2622,12 @@ void SpecialTile(int x, int y)
   if (specialmessage1[0] != 0) {
     if (specialmessage2[0] == 0) sprintf(specialmessage2, "test");
     int longermsg = (int)__max(strlen(specialmessage1), strlen(specialmessage2));
-    DrawRect(320 - longermsg*8 / 2 - 20, 332, longermsg*8+40, 48, 200);
-    DrawRect(320 - longermsg*8 / 2 - 15, 337, longermsg*8+30, 38, 32);
-    DrawRect(320 - longermsg*8 / 2 - 10, 342, longermsg*8+20, 28, 64);
+    DrawRect(320 - longermsg*8 / 2 - 20, 325, longermsg*8+40, 55, 200);
+    DrawRect(320 - longermsg*8 / 2 - 15, 330, longermsg*8+30, 45, 32);
+    DrawRect(320 - longermsg*8 / 2 - 10, 335, longermsg*8+20, 35, 64);
 
-    draw_text(320 - strlen(specialmessage1)*8 / 2, 352, specialmessage1, t%16<8 ? 255 : 192);
-    draw_text(320 - strlen(specialmessage2)*8 / 2, 352, specialmessage2, t%16<8 ? 255 : 192);
+    draw_text(320 - strlen(specialmessage1)*8 / 2, 344, specialmessage1, t%16<8 ? 255 : 192);
+    draw_text(320 - strlen(specialmessage2)*8 / 2, 354, specialmessage2, t%16<8 ? 255 : 192);
   }
 
   t++;
