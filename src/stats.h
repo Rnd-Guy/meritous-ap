@@ -65,4 +65,7 @@ void add_float_stat(t_statType stat, float newval);
 int get_int_stat(t_statType stat);
 float get_float_stat(t_statType stat);
 
+void WriteStatsData();
+void ReadStatsData();
+
 #endif

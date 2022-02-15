@@ -31,6 +31,7 @@
 #include "demon.h"
 #include "tiles.h"
 #include "itemhandler.h"
+#include "stats.h"
 
 gzFile Filefp;
 int game_load = 0;
@@ -130,6 +131,7 @@ void SaveGame(char *filename)
 	WriteCreatureData();
 	WritePlayerData();
 	WriteStoreData();
+	WriteStatsData();
 
 	gzclose(Filefp);
 }

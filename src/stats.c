@@ -17,9 +17,11 @@
  * along with Meritous-AP.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "stats.h"
-
 #include <memory.h>
+#include <SDL.h>
+
+#include "stats.h"
+#include "save.h"
 
 enum { FLOATCOUNT = STAT_FLOATMAX - STAT_INTMAX };
 
@@ -61,3 +63,13 @@ float get_float_stat(t_statType stat) {
   return fstats[stat - STAT_INTMAX];
 }
 
+
+void WriteStatsData() {
+  for (int x = 0; x < STAT_INTMAX; x++) FWInt(istats[x]);
+  for (int x = 0; x < FLOATCOUNT; x++) FWFloat(fstats[x]);
+}
+
+void ReadStatsData() {
+  for (int x = 0; x < STAT_INTMAX; x++) istats[x] = FRInt();
+  for (int x = 0; x < FLOATCOUNT; x++) fstats[x] = FRFloat();
+}

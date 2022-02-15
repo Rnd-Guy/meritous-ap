@@ -796,6 +796,7 @@ int DungeonPlay(char *fname)
     first_game = 0;
     ReadPlayerData();
     ReadStoreData();
+    ReadStatsData();
     //Paint(rooms[0].x+1, rooms[0].y+1, rooms[0].w-2, rooms[0].h-2, "dat/d/fbossroom.loc");
   } else {
     player_x = map.w * 32 / 2 - PLAYERW/2;
