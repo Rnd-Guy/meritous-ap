@@ -37,7 +37,7 @@ extern SDL_Surface *screen;
 extern int player_x, player_y;
 extern int scroll_x, scroll_y;
 extern int player_room;
-extern int prv_player_room;
+// extern int prv_player_room;
 extern int explored;
 
 extern int magic_circuit;
@@ -55,11 +55,11 @@ extern int player_shield;
 extern int circuit_fillrate;
 extern int circuit_recoverrate;
 extern int shield_hp;
-extern int shield_recover;
+// extern int shield_recover;
 extern int player_hp;
 extern int player_lives;
 extern int player_lives_part;
-extern int enter_room_x, enter_room_y;
+// extern int enter_room_x, enter_room_y;
 
 extern int player_dying;
 
@@ -68,8 +68,8 @@ extern int checkpoint_y;
 
 extern int player_gems;
 
-extern int specialmessage;
-extern int specialmessagetimer;
+// extern int specialmessage;
+// extern int specialmessagetimer;
 
 extern int tele_select;
 
@@ -81,7 +81,7 @@ extern int artifacts[];
 void LoadingScreen(int part, float progress);
 void SavingScreen(int part, float progress);
 
-void ThinLine(SDL_Surface *scr, int x1, int y1, int x2, int y2, Uint8 col);
+// void ThinLine(SDL_Surface *scr, int x1, int y1, int x2, int y2, Uint8 col);
 float RandomDir();
 
 void Arc(SDL_Surface *s, int x, int y, int r, float dir);
