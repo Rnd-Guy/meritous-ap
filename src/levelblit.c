@@ -143,8 +143,8 @@ int map_enabled;
 
 int prv_player_room;
 
-int specialmessage;
-int specialmessagetimer;
+// int specialmessage;
+// int specialmessagetimer;
 
 int timer_ps = 0;
 int timer_v[10];
@@ -166,6 +166,8 @@ float RandomDir()
 }
 
 int UpgradePrice(int t);
+
+void DisposeFrontMessage();
 
 void PlayerDefaultStats()
 {
@@ -206,8 +208,8 @@ void PlayerDefaultStats()
 
   prv_player_room = -1;
 
-  specialmessage = 0;
-  specialmessagetimer = 0;
+  // specialmessage = 0;
+  // specialmessagetimer = 0;
 
   opening_door_i = 0;
 
@@ -216,6 +218,8 @@ void PlayerDefaultStats()
   for (i = 0; i < 12; i++) {
     artifacts[i] = 0;
   }
+
+  while (msgqueue != NULL) DisposeFrontMessage();
 
   #ifdef DEBUG_STATS
 
@@ -2420,6 +2424,16 @@ void PostMessage(int msgid, int duration, int paramcount, ...)
   }
 }
 
+void DisposeFrontMessage() {
+  t_queued_message *delmsg = msgqueue;
+  msgqueue = msgqueue->next;
+  if (delmsg->params != NULL) {
+    for (int x = 0; x < delmsg->paramcount; x++) free(delmsg->params[x]);
+    free(delmsg->params);
+  }
+  free(delmsg);
+}
+
 void SpecialTile(int x, int y)
 {
   static int otext = 0;
@@ -2556,13 +2570,13 @@ void SpecialTile(int x, int y)
         sprintf(specialmessage2, "makes the Atlas Dome more dangerous");
         break;
 
-      case 30:
+      case 30: // deprecated
         sprintf(specialmessage1, "Holy Sword 'Balmung' answers your call");
         break;
-      case 31:
+      case 31: // deprecated
         sprintf(specialmessage1, "Mystic Halberd 'Amenonuhoko' answers your call");
         break;
-      case 32:
+      case 32: // deprecated
         sprintf(specialmessage1, "Divine Bow 'Gandiva' answers your call");
         break;
       case 33:
@@ -2571,7 +2585,7 @@ void SpecialTile(int x, int y)
         break;
       case 34:
         sprintf(specialmessage1, "A surge from %s", msgqueue->params[0]);
-        sprintf(specialmessage2, "beckons the %s to VIRTUE's aid", msgqueue->params[1]);
+        sprintf(specialmessage2, "beckons the %s to Virtue's aid", msgqueue->params[1]);
 
       case 40:
         sprintf(specialmessage1, "Balmung will remain here,");
@@ -2591,24 +2605,33 @@ void SpecialTile(int x, int y)
         sprintf(specialmessage2, "retrieved 'Agate Knife'");
         break;
 
-      case 60:
+      case 60: // "Nothing" item
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
         sprintf(specialmessage2, "dissipates and does nothing");
+        break;
+
+      case 70: // Check goes to other player
+        sprintf(specialmessage1, "Looting %s restores %s's", msgqueue->params[0], msgqueue->params[1]);
+        sprintf(specialmessage2, msgqueue->params[3]);
+        break;
+      case 71: // Forfeit received
+        sprintf(specialmessage1, "As %s's world stabilizes, Virtue receives", msgqueue->params[0]);
+        sprintf(specialmessage2, msgqueue->params[1]);
+        break;
+      case 72: // Collect received
+        sprintf(specialmessage1, msgqueue->params[0]);
+        sprintf(specialmessage2, "%s restored to %s's world", msgqueue->params[1], msgqueue->params[2]);
+        break;
+      case 73: // DeathLink
+        sprintf(specialmessage1, "A disruption from %s's world", msgqueue->params[0]);
+        sprintf(specialmessage2, "results in Virtue's demise");
         break;
 
       default: sprintf(specialmessage1, "ERROR: NO/INVALID MESSAGE VALUE GIVEN"); break;
     }
     msgqueue->duration--;
     if (msgqueue->duration > 20 && msgqueue->next != NULL) msgqueue->duration--;
-    if (msgqueue->duration <= 0) {
-      t_queued_message *delmsg = msgqueue;
-      msgqueue = msgqueue->next;
-      if (delmsg->params != NULL) {
-        for (int x = 0; x < delmsg->paramcount; x++) free(delmsg->params[x]);
-        free(delmsg->params);
-      }
-      free(delmsg);
-    }
+    if (msgqueue->duration <= 0) DisposeFrontMessage();
   }
 
   if (message[0] != 0) {
