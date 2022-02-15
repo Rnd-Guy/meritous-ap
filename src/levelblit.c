@@ -790,6 +790,7 @@ int DungeonPlay(char *fname)
   InitBossVars();
 
   PlayerDefaultStats();
+  init_stats();
   while (msgqueue != NULL) DisposeFrontMessage();
 
   if (game_load) {
