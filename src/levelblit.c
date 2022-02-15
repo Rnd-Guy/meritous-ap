@@ -2199,6 +2199,7 @@ void ActivateTile(unsigned char tile, int x, int y)
       c_room = GetNearestCheckpoint(c_scroll_x, c_scroll_y);
       if (tele_select) {
         if (c_room != -1) {
+          add_int_stat(STAT_CHECKPOINT_WARPS, 1);
           if (c_room == player_room) {
             TeleportPlayerToNextRoom();
           } else {

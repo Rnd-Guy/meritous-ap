@@ -122,6 +122,8 @@ float FRFloat()
 
 void SaveGame(char *filename)
 {
+	add_int_stat(STAT_SAVES, 1);
+
 	lchar = 0x7c;
 	fpos = 0;
 

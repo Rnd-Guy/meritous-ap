@@ -25,13 +25,17 @@ typedef enum statType {
   STAT_KILLS, // ✔️
   STAT_RESISTS, // ✔️
   STAT_WHIFFS, // ✔️
+
   STAT_HEARTS_GATHERED, // ✔️
   STAT_SHIELD_HITS, // ✔️
   STAT_DAMAGE_TAKEN, // ✔️
   STAT_LIVES_GAINED, // ✔️
   STAT_LIVES_LOST, // ✔️
+
   STAT_PURCHASES, // ✔️
   STAT_CHESTS, // ✔️
+  STAT_CHECKPOINT_WARPS,
+  STAT_SAVES,
 
   STAT_TRIES_BOSS1, // ✔️
   STAT_TRIES_BOSS2, // ✔️
