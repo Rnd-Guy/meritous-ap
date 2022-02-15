@@ -870,6 +870,7 @@ int DungeonPlay(char *fname)
     player_room = GetRoom(player_x/32, player_y/32);
 
     if (player_room != prv_player_room) {
+      add_int_stat(STAT_ROOM_TRANSITIONS, 1);
       SetTonedPalette((float)rooms[player_room].s_dist / (float)max_dist);
       prv_player_room = player_room;
       RecordRoom(player_room);

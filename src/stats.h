@@ -37,6 +37,7 @@ typedef enum statType {
   STAT_GEMS_LOST_ON_DEATH, // ✔️
   STAT_PURCHASES, // ✔️
   STAT_CHESTS, // ✔️
+  STAT_ROOM_TRANSITIONS, // ✔️
   STAT_CHECKPOINT_WARPS, // ✔️
   STAT_SAVES, // ✔️
 
