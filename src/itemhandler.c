@@ -51,7 +51,10 @@ t_itemTypes MakeCrystals() {
 char HasItem(t_itemTypes item) {
   switch (item) {
     case T_NOTHING:
-      return 1;
+    case T_CRYSTALS_500:
+    case T_CRYSTALS_1000:
+    case T_CRYSTALS_2000:
+      return 0;
     case T_REFLECT_SHIELD:
       return player_shield >= 25;
     case T_CIRCUIT_CHARGE:
@@ -60,10 +63,6 @@ char HasItem(t_itemTypes item) {
       return circuit_recoverrate >= 25;
     case T_AGATE_KNIFE:
       return player_shield == 30;
-    case T_CRYSTALS_500:
-    case T_CRYSTALS_1000:
-    case T_CRYSTALS_2000:
-      return 0;
     case T_EVOLUTION_TRAP:
       return enemy_evolutions >= 3;
     default:
@@ -71,7 +70,7 @@ char HasItem(t_itemTypes item) {
   }
 }
 
-void ProcessItem(t_itemTypes item) {
+void ProcessItem(t_itemTypes item, char *source) {
   char noise = 0;
   int basemod = 500;
 
@@ -79,28 +78,33 @@ void ProcessItem(t_itemTypes item) {
 
   switch (item) {
     case T_NOTHING:
+      PostMessage(60, 30, 1, source);
       break;
     case T_REFLECT_SHIELD:
-      specialmessage = 10;
-      specialmessagetimer = 30;
+      PostMessage(10, 30, 1, source);
+      // specialmessage = 10;
+      // specialmessagetimer = 30;
       player_shield++;
       noise = 1;
       break;
     case T_CIRCUIT_CHARGE:
-      specialmessage = 11;
-      specialmessagetimer = 30;
+      PostMessage(11, 30, 1, source);
+      // specialmessage = 11;
+      // specialmessagetimer = 30;
       circuit_fillrate++;
       noise = 1;
       break;
     case T_CIRCUIT_REFILL:
-      specialmessage = 12;
-      specialmessagetimer = 30;
+      PostMessage(12, 30, 1, source);
+      // specialmessage = 12;
+      // specialmessagetimer = 30;
       circuit_recoverrate++;
       noise = 1;
       break;
     case T_AGATE_KNIFE:
-      specialmessage = 50;
-      specialmessagetimer = 150;
+      PostMessage(50, 150, 0);
+      // specialmessage = 50;
+      // specialmessagetimer = 150;
       noise = 2;
 
       player_shield = 30;
@@ -109,8 +113,9 @@ void ProcessItem(t_itemTypes item) {
       player_hp = 6;
       break;
     case T_EVOLUTION_TRAP:
-      specialmessage = 25;
-      specialmessagetimer = 120;
+      PostMessage(25, 120, 1, source);
+      // specialmessage = 25;
+      // specialmessagetimer = 120;
       SoupUpEnemies();
       break;
     case T_CRYSTALS_500:
@@ -119,22 +124,35 @@ void ProcessItem(t_itemTypes item) {
       if (item >= T_CRYSTALS_1000) basemod *= 2;
       if (item == T_CRYSTALS_2000) basemod *= 2;
       player_gems += rand()%((1 << (explored / 300)) * basemod);
-      specialmessage = 20;
-      specialmessagetimer = 30;
+      PostMessage(20, 30, 1, source);
+      // specialmessage = 20;
+      // specialmessagetimer = 30;
       noise = 1;
+      break;
+    case T_CURSED_SEAL:
+      PostMessage(33, 120, 0);
+      artifacts[item - T_MAP] = 1;
+      Curse();
       break;
     default:
       if (item >= T_PSI_KEY_1) {
-        specialmessage = 30 + (item - T_PSI_KEY_1);
-        specialmessagetimer = 120;
+        char artifact[30] = {0};
+        switch (item) {
+          case T_PSI_KEY_1: sprintf(artifact, "Holy Sword 'Balmung'");
+          case T_PSI_KEY_2: sprintf(artifact, "Mystic Halberd 'Amenonuhoko'");
+          case T_PSI_KEY_3: sprintf(artifact, "Divine Bow 'Gandiva'");
+        }
+        PostMessage(30 + (item - T_PSI_KEY_1), 120, 2, source, artifact);
+        // specialmessage = 30 + (item - T_PSI_KEY_1);
+        // specialmessagetimer = 120;
       } else {
-        specialmessage = item - T_MAP + 1;
-        specialmessagetimer = 30;
+        PostMessage(item - T_MAP + 1, 30, 1, source);
+        // specialmessage = item - T_MAP + 1;
+        // specialmessagetimer = 30;
       }
       artifacts[item - T_MAP] = 1;
 
-      if (item == T_CURSED_SEAL) Curse();
-      else noise = 2;
+      noise = 2;
       break;
   }
 
@@ -160,12 +178,34 @@ void AnnounceVictory(char isFullVictory) {
 
 void CollectItem(t_itemStores store) {
   t_itemTypes item = GetNextItem(store, 1);
-  if (item != T_NOTHING) ProcessItem(item);
+  char source[12] = {0};
+
+  switch (store) {
+    case IS_ALPHA: sprintf(source, "Alpha store"); break;
+    case IS_BETA: sprintf(source, "Beta store"); break;
+    case IS_GAMMA: sprintf(source, "Gamma store"); break;
+    case IS_CHESTS: sprintf(source, "the chest"); break;
+    default: sprintf(source, "nowhere"); break;
+  }
+  ProcessItem(item, source);
 }
 
 void CollectSpecialItem(t_specialStore itemIndex) {
   t_itemTypes item = GetItemByIndex(IS_SPECIAL, itemIndex, 1);
-  if (item != T_NOTHING) ProcessItem(item);
+  char source[16] = {0};
+
+  switch (itemIndex) {
+    case SS_PSI_KEY_1: case SS_PSI_KEY_2: case SS_PSI_KEY_3:
+      sprintf(source, "the pedestal"); break;
+
+    case SS_BOSS_PRIZE_1: sprintf(source, "Meridian's soul"); break;
+    case SS_BOSS_PRIZE_2: sprintf(source, "Ataraxia's soul"); break;
+    case SS_BOSS_PRIZE_3: sprintf(source, "Merodach's soul"); break;
+
+    default: sprintf(source, "somewhere");
+  }
+
+  ProcessItem(item, source);
 }
 
 void WriteStoreData() {

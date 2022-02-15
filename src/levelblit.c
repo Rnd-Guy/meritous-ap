@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <math.h>
 #include <time.h>
@@ -148,74 +149,85 @@ int specialmessagetimer;
 int timer_ps = 0;
 int timer_v[10];
 
+typedef struct queued_message t_queued_message;
+struct queued_message {
+  int msgid;
+  int duration;
+  int paramcount;
+  char **params;
+  t_queued_message *next;
+};
+
+t_queued_message *msgqueue = NULL;
+
 float RandomDir()
 {
-	return (float)(rand()%256)*M_PI*2.0/256.0;
+  return (float)(rand()%256)*M_PI*2.0/256.0;
 }
 
 int UpgradePrice(int t);
 
 void PlayerDefaultStats()
 {
-	int i;
+  int i;
 
-	player_dying = 0;
-	magic_circuit = 0;
-	circuit_range = 100;
-	release_range = 100;
-	shield_hp = 0;
-	shield_recover = 0;
-	player_gems = 0;
-	checkpoints_found = 0;
-	circuit_size = 1000;
-	first_game = 1;
-	player_hp = 3;
+  player_dying = 0;
+  magic_circuit = 0;
+  circuit_range = 100;
+  release_range = 100;
+  shield_hp = 0;
+  shield_recover = 0;
+  player_gems = 0;
+  checkpoints_found = 0;
+  circuit_size = 1000;
+  first_game = 1;
+  player_hp = 3;
 
-	explored = 0;
+  explored = 0;
 
-	voluntary_exit = 0;
-	player_room = 0;
-	player_dir = 0;
-	player_wlk = 0;
-	player_walk_speed = 5;
-	player_lives = 5;
-	player_lives_part = 0;
-	wlk_wait = 8;
-	circuit_release = 0;
-	scroll_home = 0;
-	enter_pressed = 0;
-	show_ending = 0;
+  voluntary_exit = 0;
+  player_room = 0;
+  player_dir = 0;
+  player_wlk = 0;
+  player_walk_speed = 5;
+  player_lives = 5;
+  player_lives_part = 0;
+  wlk_wait = 8;
+  circuit_release = 0;
+  scroll_home = 0;
+  enter_pressed = 0;
+  show_ending = 0;
 
-	game_paused = 0;
+  game_paused = 0;
 
-	player_shield = 0;
-	circuit_fillrate = 2;
-	circuit_recoverrate = 3;
+  player_shield = 0;
+  circuit_fillrate = 2;
+  circuit_recoverrate = 3;
 
-	prv_player_room = -1;
+  prv_player_room = -1;
 
-	specialmessage = 0;
-	specialmessagetimer = 0;
+  specialmessage = 0;
+  specialmessagetimer = 0;
 
-	opening_door_i = 0;
+  opening_door_i = 0;
 
-	map_enabled = 0;
+  map_enabled = 0;
 
-	for (i = 0; i < 12; i++) {
-		artifacts[i] = 0;
-	}
+  for (i = 0; i < 12; i++) {
+    artifacts[i] = 0;
+  }
 
-	#ifdef DEBUG_STATS
+  #ifdef DEBUG_STATS
 
-	player_shield = 24;
-	circuit_fillrate = 24;
-	circuit_recoverrate = 24;
+  player_shield = 24;
+  circuit_fillrate = 24;
+  circuit_recoverrate = 24;
 
-	for (i = 0; i < 12; i++) {
-		artifacts[i] = 1;
-	}
+  for (i = 0; i < 12; i++) {
+    artifacts[i] = 1;
+  }
 
-	#endif
+  #endif
 }
 
 
@@ -246,2364 +258,2479 @@ void LockDoors(int r);
 
 void VideoUpdate()
 {
-	static int bmp = 0;
-	char bmp_name[256];
+  static int bmp = 0;
+  char bmp_name[256];
 
-	SDL_UpdateRect(screen, 0, 0, 0, 0);
-	if (WriteBitmaps) {
-		if ((bmp >= WB_StartRange)&&(bmp < WB_EndRange)) {
-			sprintf(bmp_name, "v/bmp%d.bmp", bmp);
-			SDL_SaveBMP(screen, bmp_name);
-		}
-		bmp++;
-	}
+  SDL_UpdateRect(screen, 0, 0, 0, 0);
+  if (WriteBitmaps) {
+    if ((bmp >= WB_StartRange)&&(bmp < WB_EndRange)) {
+      sprintf(bmp_name, "v/bmp%d.bmp", bmp);
+      SDL_SaveBMP(screen, bmp_name);
+    }
+    bmp++;
+  }
 }
 
 void EndCycle(int n)
 {
-	static int last_ticks;
-	int tick_delta;
-	tick_delta = SDL_GetTicks() - last_ticks;
+  static int last_ticks;
+  int tick_delta;
+  tick_delta = SDL_GetTicks() - last_ticks;
 
-	if (n == 0) n = frame_len;
+  if (n == 0) n = frame_len;
 
-	if (tick_delta < n) {
-		SDL_Delay(n-tick_delta);
-	}
+  if (tick_delta < n) {
+    SDL_Delay(n-tick_delta);
+  }
 
-	if (!game_paused) expired_ms += n;
+  if (!game_paused) expired_ms += n;
 
-	last_ticks = SDL_GetTicks();
+  last_ticks = SDL_GetTicks();
 }
 
 void WritePlayerData()
 {
-	int i;
+  int i;
 
-	FWInt(expired_ms);
-	FWInt(checkpoint_x);
-	FWInt(checkpoint_y);
-	FWInt(scroll_x);
-	FWInt(scroll_y);
-	FWInt(magic_circuit);
-	FWInt(checkpoint_x);
-	FWInt(checkpoint_y);
-	FWInt(player_walk_speed);
-	FWInt(wlk_wait);
-	FWInt(circuit_fillrate);
-	FWInt(circuit_recoverrate);
-	FWInt(explored);
-	FWInt(player_shield);
-	FWInt(shield_recover);
-	FWInt(shield_hp);
-	FWInt(player_gems);
-	FWInt(checkpoints_found);
-	FWInt(player_hp);
-	FWInt(player_lives);
-	FWInt(player_lives_part);
-	FWInt(current_boss);
-	FWInt(training);
-	FWInt(agate_knife_loc);
+  FWInt(expired_ms);
+  FWInt(checkpoint_x);
+  FWInt(checkpoint_y);
+  FWInt(scroll_x);
+  FWInt(scroll_y);
+  FWInt(magic_circuit);
+  FWInt(checkpoint_x);
+  FWInt(checkpoint_y);
+  FWInt(player_walk_speed);
+  FWInt(wlk_wait);
+  FWInt(circuit_fillrate);
+  FWInt(circuit_recoverrate);
+  FWInt(explored);
+  FWInt(player_shield);
+  FWInt(shield_recover);
+  FWInt(shield_hp);
+  FWInt(player_gems);
+  FWInt(checkpoints_found);
+  FWInt(player_hp);
+  FWInt(player_lives);
+  FWInt(player_lives_part);
+  FWInt(current_boss);
+  FWInt(training);
+  FWInt(agate_knife_loc);
 
-	for (i = 0; i < 12; i++) {
-		FWChar(artifacts[i]);
-	}
+  for (i = 0; i < 12; i++) {
+    FWChar(artifacts[i]);
+  }
 }
 
 void ReadPlayerData()
 {
-	int i;
+  int i;
 
-	expired_ms = FRInt();
-	player_x = FRInt();
-	player_y = FRInt();
-	scroll_x = FRInt();
-	scroll_y = FRInt();
-	magic_circuit = FRInt();
-	checkpoint_x = FRInt();
-	checkpoint_y = FRInt();
-	player_walk_speed = FRInt();
-	wlk_wait = FRInt();
-	circuit_fillrate = FRInt();
-	circuit_recoverrate = FRInt();
-	explored = FRInt();
-	player_shield = FRInt();
-	shield_recover = FRInt();
-	shield_hp = FRInt();
-	player_gems = FRInt();
-	checkpoints_found = FRInt();
-	player_hp = FRInt();
-	player_lives = FRInt();
-	player_lives_part = FRInt();
-	current_boss = FRInt();
-	training = FRInt();
+  expired_ms = FRInt();
+  player_x = FRInt();
+  player_y = FRInt();
+  scroll_x = FRInt();
+  scroll_y = FRInt();
+  magic_circuit = FRInt();
+  checkpoint_x = FRInt();
+  checkpoint_y = FRInt();
+  player_walk_speed = FRInt();
+  wlk_wait = FRInt();
+  circuit_fillrate = FRInt();
+  circuit_recoverrate = FRInt();
+  explored = FRInt();
+  player_shield = FRInt();
+  shield_recover = FRInt();
+  shield_hp = FRInt();
+  player_gems = FRInt();
+  checkpoints_found = FRInt();
+  player_hp = FRInt();
+  player_lives = FRInt();
+  player_lives_part = FRInt();
+  current_boss = FRInt();
+  training = FRInt();
 
-	agate_knife_loc = FRInt();
+  agate_knife_loc = FRInt();
 
-	for (i = 0; i < 12; i++) {
-		artifacts[i] = FRChar();
-	}
+  for (i = 0; i < 12; i++) {
+    artifacts[i] = FRChar();
+  }
 }
 
 int min(int x, int y)
 {
-	if (x<y) return x;
-	return y;
+  if (x<y) return x;
+  return y;
 }
 
 void DummyEventPoll()
 {
-	SDL_Event e;
-	SDL_PollEvent(&e);
+  SDL_Event e;
+  SDL_PollEvent(&e);
 }
 
 int DungeonPlay(char *fname);
 
 Uint8 Uint8_Bound(int c)
 {
-	if (c<0) return 0;
-	if (c>255) return 255;
-	return c;
+  if (c<0) return 0;
+  if (c>255) return 255;
+  return c;
 }
 
 int dist(int x1, int y1, int x2, int y2)
 {
-	int dx, dy;
-	dx = x2 - x1;
-	dy = y2 - y1;
+  int dx, dy;
+  dx = x2 - x1;
+  dy = y2 - y1;
 
-	return sqrt((dx*dx)+(dy*dy));
+  return sqrt((dx*dx)+(dy*dy));
 }
 
 void ClearInput()
 {
-	key_held[K_SP] = 0;
-	key_held[K_UP] = 0;
-	key_held[K_DN] = 0;
-	key_held[K_LT] = 0;
-	key_held[K_RT] = 0;
+  key_held[K_SP] = 0;
+  key_held[K_UP] = 0;
+  key_held[K_DN] = 0;
+  key_held[K_LT] = 0;
+  key_held[K_RT] = 0;
 }
 
 int main(int argc, char **argv)
 {
-	int on_title = 1;
-	int executable_running = 1;
-	SDL_Surface *title, *title_pr, *asceai;
-	SDL_Surface *wm_icon;
-	Uint8 *src_p, *col_p;
-	Uint8 wm_mask[128];
-	int i;
-	int light = 0;
-	int x, y;
-	int pulse[SCREEN_W * SCREEN_H];
-	int precalc_sine[400];
-	int tick = 10000000;
-	int option = 0;
-	int can_continue = 0;
-	int maxoptions;
+  int on_title = 1;
+  int executable_running = 1;
+  SDL_Surface *title, *title_pr, *asceai;
+  SDL_Surface *wm_icon;
+  Uint8 *src_p, *col_p;
+  Uint8 wm_mask[128];
+  int i;
+  int light = 0;
+  int x, y;
+  int pulse[SCREEN_W * SCREEN_H];
+  int precalc_sine[400];
+  int tick = 10000000;
+  int option = 0;
+  int can_continue = 0;
+  int maxoptions;
 
-	int last_key = 0;
+  int last_key = 0;
 
-	int fullscreen = 0;
-	int ticker_tick = 0;
-	unsigned int stime = 0;
+  int fullscreen = 0;
+  int ticker_tick = 0;
+  unsigned int stime = 0;
 
-	FILE *wm_mask_file;
+  FILE *wm_mask_file;
 
-	if (argc > 1) {
-		for (i = 1; i < argc; i++) {
-			if (!strcasecmp(argv[i], "fullscreen")) {
-				fullscreen = 1;
-			}
+  if (argc > 1) {
+    for (i = 1; i < argc; i++) {
+      if (!strcasecmp(argv[i], "fullscreen")) {
+        fullscreen = 1;
+      }
 /*			if (!strcasecmp(argv[i], "record")) {
-				RECORDING = 1;
-				strcpy(record_filename, argv[i+1]);
-			}
-			if (!strcasecmp(argv[i], "play")) {
-				PLAYBACK = 1;
-				strcpy(record_filename, argv[i+1]);
-			}
-			if (!strcasecmp(argv[i], "framedelay")) {
-				frame_len = atoi(argv[i+1]);
-			}
-			if (!strcasecmp(argv[i], "bmpwrite")) {
-				WriteBitmaps = 1;
-			}
-			if (!strcasecmp(argv[i], "bmpstart")) {
-				WB_StartRange = atoi(argv[i+1]);
-			}
-			if (!strcasecmp(argv[i], "bmpend")) {
-				WB_EndRange = atoi(argv[i+1]);
-			} */
-		}
-	}
+        RECORDING = 1;
+        strcpy(record_filename, argv[i+1]);
+      }
+      if (!strcasecmp(argv[i], "play")) {
+        PLAYBACK = 1;
+        strcpy(record_filename, argv[i+1]);
+      }
+      if (!strcasecmp(argv[i], "framedelay")) {
+        frame_len = atoi(argv[i+1]);
+      }
+      if (!strcasecmp(argv[i], "bmpwrite")) {
+        WriteBitmaps = 1;
+      }
+      if (!strcasecmp(argv[i], "bmpstart")) {
+        WB_StartRange = atoi(argv[i+1]);
+      }
+      if (!strcasecmp(argv[i], "bmpend")) {
+        WB_EndRange = atoi(argv[i+1]);
+      } */
+    }
+  }
 
-	if ((RECORDING) && (PLAYBACK)) {
-		exit(1);
-	}
-	srand(time(NULL));
-	if (RECORDING) {
-		record_file = fopen(record_filename, "wb");
-		if (record_file == NULL) {
-			perror(record_filename);
-		}
-		else {
-			stime = time(NULL);
+  if ((RECORDING) && (PLAYBACK)) {
+    exit(1);
+  }
+  srand(time(NULL));
+  if (RECORDING) {
+    record_file = fopen(record_filename, "wb");
+    if (record_file == NULL) {
+      perror(record_filename);
+    }
+    else {
+      stime = time(NULL);
 
-			fputc(stime & 0x000000FF, record_file);
-			fputc((stime & 0x0000FF00) >> 8, record_file);
-			fputc((stime & 0x00FF0000) >> 16, record_file);
-			fputc((stime & 0xFF000000) >> 24, record_file);
+      fputc(stime & 0x000000FF, record_file);
+      fputc((stime & 0x0000FF00) >> 8, record_file);
+      fputc((stime & 0x00FF0000) >> 16, record_file);
+      fputc((stime & 0xFF000000) >> 24, record_file);
 
-			srand(stime);
-		}
-	}
-	if (PLAYBACK) {
-		record_file = fopen(record_filename, "rb");
-		if (record_file == NULL) {
-			perror(record_filename);
-		}
-		else {
-			stime = fgetc(record_file);
-			stime |= fgetc(record_file) << 8;
-			stime |= fgetc(record_file) << 16;
-			stime |= fgetc(record_file) << 24;
+      srand(stime);
+    }
+  }
+  if (PLAYBACK) {
+    record_file = fopen(record_filename, "rb");
+    if (record_file == NULL) {
+      perror(record_filename);
+    }
+    else {
+      stime = fgetc(record_file);
+      stime |= fgetc(record_file) << 8;
+      stime |= fgetc(record_file) << 16;
+      stime |= fgetc(record_file) << 24;
 
-			srand(stime);
-		}
-	}
+      srand(stime);
+    }
+  }
 
-	asceai = IMG_Load("dat/i/asceai.png");
-	wm_icon = IMG_Load("dat/i/icon.png");
+  asceai = IMG_Load("dat/i/asceai.png");
+  wm_icon = IMG_Load("dat/i/icon.png");
 
-	screen = SDL_SetVideoMode(SCREEN_W, SCREEN_H, 8, SDL_SWSURFACE | (SDL_FULLSCREEN * fullscreen));
+  screen = SDL_SetVideoMode(SCREEN_W, SCREEN_H, 8, SDL_SWSURFACE | (SDL_FULLSCREEN * fullscreen));
 
-	const char* icon_filename = "dat/d/icon_bitmask.dat";
-	wm_mask_file = fopen(icon_filename, "rb");
-	if (wm_mask_file == NULL) {
-		perror (icon_filename);
-		exit(1);
-	}
-	int wm_mask_ok = fread(wm_mask, 1, 128, wm_mask_file);
-	fclose(wm_mask_file);
-	SDL_WM_SetCaption("~ m e r i t o u s ~", "MT");
-	if (wm_mask_ok)
-		SDL_WM_SetIcon(wm_icon, wm_mask);
-	SDL_ShowCursor(SDL_DISABLE);
-	InitAudio();
+  const char* icon_filename = "dat/d/icon_bitmask.dat";
+  wm_mask_file = fopen(icon_filename, "rb");
+  if (wm_mask_file == NULL) {
+    perror (icon_filename);
+    exit(1);
+  }
+  int wm_mask_ok = fread(wm_mask, 1, 128, wm_mask_file);
+  fclose(wm_mask_file);
+  SDL_WM_SetCaption("~ m e r i t o u s ~", "MT");
+  if (wm_mask_ok)
+    SDL_WM_SetIcon(wm_icon, wm_mask);
+  SDL_ShowCursor(SDL_DISABLE);
+  InitAudio();
 
-	text_init();
-	for (i = 0; i < 400; i++) {
-		precalc_sine[i] = sin((float)i / 400 * M_PI * 2)*24+24;
-	}
+  text_init();
+  for (i = 0; i < 400; i++) {
+    precalc_sine[i] = sin((float)i / 400 * M_PI * 2)*24+24;
+  }
 
 
-	for (i = 0; i < screen->w * screen->h; i++) {
-		x = i % SCREEN_W;
-		y = i / SCREEN_W;
+  for (i = 0; i < screen->w * screen->h; i++) {
+    x = i % SCREEN_W;
+    y = i / SCREEN_W;
 
-		pulse[i] = dist(x, y, SCREEN_W / 2, SCREEN_H / 2);
-	}
-	SetGreyscalePalette();
+    pulse[i] = dist(x, y, SCREEN_W / 2, SCREEN_H / 2);
+  }
+  SetGreyscalePalette();
 
-	// asceai logo
-	SDL_BlitSurface(asceai, NULL, screen, NULL);
+  // asceai logo
+  SDL_BlitSurface(asceai, NULL, screen, NULL);
 
-	for (i = 0; i < 75; i++) {
-		SetTitlePalette(i * 5 - 375, i * 5 - 120);
-		VideoUpdate();
-		DummyEventPoll();
-		EndCycle(20);
-	}
-	SDL_Delay(500);
-	for (i = 0; i < 50; i++) {
-		SetTitlePalette(i * 5, 255 - (i * 5));
-		VideoUpdate();
-		DummyEventPoll();
-		EndCycle(20);
-	}
-	SDL_Delay(500);
-	for (i = 0; i < 50; i++) {
-		SetTitlePalette(255, (i * 5)+5);
-		VideoUpdate();
-		DummyEventPoll();
-		EndCycle(20);
-	}
+  for (i = 0; i < 75; i++) {
+    SetTitlePalette(i * 5 - 375, i * 5 - 120);
+    VideoUpdate();
+    DummyEventPoll();
+    EndCycle(20);
+  }
+  SDL_Delay(500);
+  for (i = 0; i < 50; i++) {
+    SetTitlePalette(i * 5, 255 - (i * 5));
+    VideoUpdate();
+    DummyEventPoll();
+    EndCycle(20);
+  }
+  SDL_Delay(500);
+  for (i = 0; i < 50; i++) {
+    SetTitlePalette(255, (i * 5)+5);
+    VideoUpdate();
+    DummyEventPoll();
+    EndCycle(20);
+  }
 
-	while (executable_running) {
-		ticker_tick = 0;
-		TitleScreenMusic();
+  while (executable_running) {
+    ticker_tick = 0;
+    TitleScreenMusic();
 
-		if (IsSaveFile()) {
-			can_continue = 1;
-		} else {
-			can_continue = 0;
-		}
+    if (IsSaveFile()) {
+      can_continue = 1;
+    } else {
+      can_continue = 0;
+    }
 
-		maxoptions = 2 + can_continue;
+    maxoptions = 2 + can_continue;
 
-		title = IMG_Load("dat/i/title.png");
-		title_pr = IMG_Load("dat/i/title.png");
+    title = IMG_Load("dat/i/title.png");
+    title_pr = IMG_Load("dat/i/title.png");
 
-		while (on_title) {
-			SetTitlePalette2(ticker_tick);
-			col_p = (Uint8 *)title_pr->pixels;
-			src_p = (Uint8 *)title->pixels;
-			if ((tick % 10) == 0) {
-				for (i = 0; i < 640*480; i++) {
-					*(col_p++) = Uint8_Bound(*(src_p++)+precalc_sine[(pulse[i]+tick)%400]);
-				}
-			}
-			SDL_BlitSurface(title_pr, NULL, screen, NULL);
+    while (on_title) {
+      SetTitlePalette2(ticker_tick);
+      col_p = (Uint8 *)title_pr->pixels;
+      src_p = (Uint8 *)title->pixels;
+      if ((tick % 10) == 0) {
+        for (i = 0; i < 640*480; i++) {
+          *(col_p++) = Uint8_Bound(*(src_p++)+precalc_sine[(pulse[i]+tick)%400]);
+        }
+      }
+      SDL_BlitSurface(title_pr, NULL, screen, NULL);
 
-			draw_text(17, 156, MERITOUS_VERSION, 225 + sin((float)ticker_tick / 15)*30);
-			if (can_continue) draw_text((SCREEN_W - 14*8)/2, 310, "Continue", 255);
-			draw_text((SCREEN_W - 14*8)/2, 310 + can_continue*10, "New Game", 255);
-			draw_text((SCREEN_W - 14*8)/2, 320 + can_continue*10, "New Game (Wuss mode)", 255);
+      draw_text(17, 156, MERITOUS_VERSION, 225 + sin((float)ticker_tick / 15)*30);
+      if (can_continue) draw_text((SCREEN_W - 14*8)/2, 310, "Continue", 255);
+      draw_text((SCREEN_W - 14*8)/2, 310 + can_continue*10, "New Game", 255);
+      draw_text((SCREEN_W - 14*8)/2, 320 + can_continue*10, "New Game (Wuss mode)", 255);
 
-			if (ticker_tick >= 30) {
-				draw_text((SCREEN_W - 14*8)/2 - 17, 310 + option * 10, "-", 205 + sin((float)ticker_tick / 5.0)*24);
-				draw_text((SCREEN_W - 14*8)/2 - 20, 310 + option * 10, " >", 205 + sin((float)ticker_tick / 5.0)*24);
-				draw_text((SCREEN_W - 14*8)/2 - 19, 310 + option * 10, " >", 190 + sin((float)ticker_tick / 5.0)*24);
-				draw_text((SCREEN_W - 14*8)/2 - 21, 310 + option * 10, " >", 190 + sin((float)ticker_tick / 5.0)*24);
-				draw_text((SCREEN_W - 14*8)/2 - 18, 310 + option * 10, " >", 165 + sin((float)ticker_tick / 5.0)*24);
-				draw_text((SCREEN_W - 14*8)/2 - 22, 310 + option * 10, " >", 165 + sin((float)ticker_tick / 5.0)*24);
-			}
+      if (ticker_tick >= 30) {
+        draw_text((SCREEN_W - 14*8)/2 - 17, 310 + option * 10, "-", 205 + sin((float)ticker_tick / 5.0)*24);
+        draw_text((SCREEN_W - 14*8)/2 - 20, 310 + option * 10, " >", 205 + sin((float)ticker_tick / 5.0)*24);
+        draw_text((SCREEN_W - 14*8)/2 - 19, 310 + option * 10, " >", 190 + sin((float)ticker_tick / 5.0)*24);
+        draw_text((SCREEN_W - 14*8)/2 - 21, 310 + option * 10, " >", 190 + sin((float)ticker_tick / 5.0)*24);
+        draw_text((SCREEN_W - 14*8)/2 - 18, 310 + option * 10, " >", 165 + sin((float)ticker_tick / 5.0)*24);
+        draw_text((SCREEN_W - 14*8)/2 - 22, 310 + option * 10, " >", 165 + sin((float)ticker_tick / 5.0)*24);
+      }
 
-			VideoUpdate();
+      VideoUpdate();
 
-			if (ticker_tick++ > 30) {
-				HandleEvents();
+      if (ticker_tick++ > 30) {
+        HandleEvents();
 
-				if (key_held[K_UP]) {
-					if (last_key != 1)
-						if (option > 0) option--;
-					last_key = 1;
-				} else {
-					if (key_held[K_DN]) {
-						if (last_key != 2)
-							if (option < maxoptions-1) option++;
-						last_key = 2;
-					} else {
-						last_key = 0;
-						if (key_held[K_SP] || enter_pressed) {
-							on_title = 0;
-						}
-					}
-				}
+        if (key_held[K_UP]) {
+          if (last_key != 1)
+            if (option > 0) option--;
+          last_key = 1;
+        } else {
+          if (key_held[K_DN]) {
+            if (last_key != 2)
+              if (option < maxoptions-1) option++;
+            last_key = 2;
+          } else {
+            last_key = 0;
+            if (key_held[K_SP] || enter_pressed) {
+              on_title = 0;
+            }
+          }
+        }
 
-				if (voluntary_exit) {
-					executable_running = 0;
-					on_title = 0;
-					SDL_Quit();
-					exit(0);
-				}
-			}
+        if (voluntary_exit) {
+          executable_running = 0;
+          on_title = 0;
+          SDL_Quit();
+          exit(0);
+        }
+      }
 
-			EndCycle(10);
+      EndCycle(10);
 
-			light = 0;
-			tick -= 2;
-		}
+      light = 0;
+      tick -= 2;
+    }
 
-		ClearInput();
+    ClearInput();
 
-		if (executable_running == 1) {
-			SDL_FreeSurface(title);
-			SDL_FreeSurface(title_pr);
-			if ((option == 0) && can_continue) {
-				DungeonPlay("SaveAP.sav");
-			} else {
-				if (option == (0 + can_continue)) {
-					training = 0;
-					DungeonPlay("");
-				} else {
-					training = 1;
-					DungeonPlay("");
-				}
-			}
-			// clean up
-			ClearInput();
-			DestroyDungeon();
-			DestroyThings();
-			DestroyStores();
-			on_title = 1;
-			game_load = 0;
+    if (executable_running == 1) {
+      SDL_FreeSurface(title);
+      SDL_FreeSurface(title_pr);
+      if ((option == 0) && can_continue) {
+        DungeonPlay("SaveAP.sav");
+      } else {
+        if (option == (0 + can_continue)) {
+          training = 0;
+          DungeonPlay("");
+        } else {
+          training = 1;
+          DungeonPlay("");
+        }
+      }
+      // clean up
+      ClearInput();
+      DestroyDungeon();
+      DestroyThings();
+      DestroyStores();
+      on_title = 1;
+      game_load = 0;
 
-			game_running = 1;
-		}
-	}
+      game_running = 1;
+    }
+  }
 
 //	if (argc >= 2) DungeonPlay(argv[1]);
 //	else DungeonPlay("");
 
-	SDL_Quit();
-	return 0;
+  SDL_Quit();
+  return 0;
 }
 
 void DrawMeter(int x, int y, int n)
 {
-	static SDL_Surface *meter = NULL;
-	SDL_Rect drawfrom, drawto;
-	if (meter == NULL) {
-		meter = IMG_Load("dat/i/meter.png");
-		SDL_SetColorKey(meter, SDL_SRCCOLORKEY | SDL_RLEACCEL, 0);
-	}
+  static SDL_Surface *meter = NULL;
+  SDL_Rect drawfrom, drawto;
+  if (meter == NULL) {
+    meter = IMG_Load("dat/i/meter.png");
+    SDL_SetColorKey(meter, SDL_SRCCOLORKEY | SDL_RLEACCEL, 0);
+  }
 
-	drawfrom.x = 0;
-	drawfrom.y = 6;
-	drawfrom.w = 150;
-	drawfrom.h = 6;
+  drawfrom.x = 0;
+  drawfrom.y = 6;
+  drawfrom.w = 150;
+  drawfrom.h = 6;
 
-	drawto.x = x;
-	drawto.y = y;
+  drawto.x = x;
+  drawto.y = y;
 
-	SDL_BlitSurface(meter, &drawfrom, screen, &drawto);
+  SDL_BlitSurface(meter, &drawfrom, screen, &drawto);
 
-	drawfrom.w = n*6;
-	drawfrom.y = 0;
+  drawfrom.w = n*6;
+  drawfrom.y = 0;
 
-	SDL_BlitSurface(meter, &drawfrom, screen, &drawto);
+  SDL_BlitSurface(meter, &drawfrom, screen, &drawto);
 }
 
 void ProgressBarScreen(int part, float progress, char *message, float t_parts)
 {
-	memset(screen->pixels, 0, 640*480);
+  memset(screen->pixels, 0, 640*480);
 
-	DrawRect(200, 217, 240, 50, 80);
-	DrawRect(202, 219, 236, 46, 20);
-	draw_text(232, 228, message, 255);
-	DrawRect(232, 244, 176, 12, 128);
-	DrawRect(234, 246, 172, 8, 0);
+  DrawRect(200, 217, 240, 50, 80);
+  DrawRect(202, 219, 236, 46, 20);
+  draw_text(232, 228, message, 255);
+  DrawRect(232, 244, 176, 12, 128);
+  DrawRect(234, 246, 172, 8, 0);
 
-	if ((int)(172.0 * progress / t_parts + (172.0 / t_parts * part)) > 0) {
-		DrawRect(234, 246, (int)(172.0 * progress / t_parts + (172.0 / t_parts * part)), 8, 200);
-	}
-	VideoUpdate();
-	DummyEventPoll();
+  if ((int)(172.0 * progress / t_parts + (172.0 / t_parts * part)) > 0) {
+    DrawRect(234, 246, (int)(172.0 * progress / t_parts + (172.0 / t_parts * part)), 8, 200);
+  }
+  VideoUpdate();
+  DummyEventPoll();
 }
 
 void LoadingScreen(int part, float progress)
 {
-	float t_parts;
+  float t_parts;
 
-	if (game_load) t_parts = 6.0;
-	else t_parts = 3.0;
+  if (game_load) t_parts = 6.0;
+  else t_parts = 3.0;
 
-	ProgressBarScreen(part, progress, "Loading... please wait", t_parts);
-	ClearInput();
+  ProgressBarScreen(part, progress, "Loading... please wait", t_parts);
+  ClearInput();
 }
 
 void SavingScreen(int part, float progress)
 {
-	ProgressBarScreen(part, progress, "Saving... please wait", 5.0);
-	ClearInput();
+  ProgressBarScreen(part, progress, "Saving... please wait", 5.0);
+  ClearInput();
 }
 
 void Arc(SDL_Surface *s, int x, int y, int r, float dir)
 {
-	int bright;
-	int i, c;
-	float pdir, cdir, ndir;
+  int bright;
+  int i, c;
+  float pdir, cdir, ndir;
 
-	int l_x = x, l_y = y;
-	int cx, cy, c1x, c1y, c2x, c2y;
+  int l_x = x, l_y = y;
+  int cx, cy, c1x, c1y, c2x, c2y;
 
-	bright = rand()%128+63;
-	i = 0;
-	while (i < r) {
-		i += rand()%5+25;
-		pdir = dir + (float)(rand()%16)/16.0*2.0*(M_PI / 15.0);
-		ndir = dir - (float)(rand()%16)/16.0*2.0*(M_PI / 15.0);
-		cdir = dir + (float)(rand()%16)/16.0*2.0*(M_PI / 20.0) - (float)(rand()%16)/16.0*2.0*(M_PI / 20.0);
+  bright = rand()%128+63;
+  i = 0;
+  while (i < r) {
+    i += rand()%5+25;
+    pdir = dir + (float)(rand()%16)/16.0*2.0*(M_PI / 15.0);
+    ndir = dir - (float)(rand()%16)/16.0*2.0*(M_PI / 15.0);
+    cdir = dir + (float)(rand()%16)/16.0*2.0*(M_PI / 20.0) - (float)(rand()%16)/16.0*2.0*(M_PI / 20.0);
 
-		bright += rand()%30;
-		bright -= rand()%30;
+    bright += rand()%30;
+    bright -= rand()%30;
 
-		if (bright < 0) bright = 0;
-		if (bright > 255) bright = 255;
+    if (bright < 0) bright = 0;
+    if (bright > 255) bright = 255;
 
-		c1x = x + cos(pdir) * i;
-		c1y = y + sin(pdir) * i;
-		ThinLine(s, l_x, l_y, c1x, c1y, bright);
-		c2x = x + cos(ndir) * i;
-		c2y = y + sin(ndir) * i;
-		ThinLine(s, l_x, l_y, c2x, c2y, bright);
+    c1x = x + cos(pdir) * i;
+    c1y = y + sin(pdir) * i;
+    ThinLine(s, l_x, l_y, c1x, c1y, bright);
+    c2x = x + cos(ndir) * i;
+    c2y = y + sin(ndir) * i;
+    ThinLine(s, l_x, l_y, c2x, c2y, bright);
 
-		for (c = 0; c < 5; c++) {
-			DrawRect(x + cos(dir - (M_PI / 10.0) + (float)(rand()%16)/16.0*2.0*(M_PI / 10.0)) * i, y + sin(dir - (M_PI / 10.0) +
-					  (float)(rand()%16)/16.0*2.0*(M_PI / 10.0)) * i, 1, 1, rand()%128+63);
-		}
+    for (c = 0; c < 5; c++) {
+      DrawRect(x + cos(dir - (M_PI / 10.0) + (float)(rand()%16)/16.0*2.0*(M_PI / 10.0)) * i, y + sin(dir - (M_PI / 10.0) +
+            (float)(rand()%16)/16.0*2.0*(M_PI / 10.0)) * i, 1, 1, rand()%128+63);
+    }
 
-		i += rand()%5+25;
-		cx = x + cos(cdir) * i;
-		cy = y + sin(cdir) * i;
-		ThinLine(s, c1x, c1y, cx, cy, bright);
-		ThinLine(s, c2x, c2y, cx, cy, bright);
-		l_x = cx;
-		l_y = cy;
-	}
+    i += rand()%5+25;
+    cx = x + cos(cdir) * i;
+    cy = y + sin(cdir) * i;
+    ThinLine(s, c1x, c1y, cx, cy, bright);
+    ThinLine(s, c2x, c2y, cx, cy, bright);
+    l_x = cx;
+    l_y = cy;
+  }
 
 }
 
 int DungeonPlay(char *fname)
 {
-	int ix,  iy;
-	int off_x, off_y;
-	int t = 0;
-	int i, j;
-	int lost_gems;
-	int rg_x, rg_y, rg_v;
-	int max_dist;
-	int last_killed = 0;
-	int n_arcs = 0;
-	int can_move;
-
-	float arcdir;
-
-	char buf[50];
-
-	expired_ms = 0;
-	LoadingScreen(0, 0.0);
-	if (fname[0] != 0) {
-		LoadGame(fname);
-	}
-
-	RandomGenerateMap();
-	InitEnemies();
-	InitBossVars();
-
-	PlayerDefaultStats();
-	if (game_load) {
-		first_game = 0;
-		ReadPlayerData();
-		ReadStoreData();
-		//Paint(rooms[0].x+1, rooms[0].y+1, rooms[0].w-2, rooms[0].h-2, "dat/d/fbossroom.loc");
-	} else {
-		player_x = map.w * 32 / 2 - PLAYERW/2;
-		player_y = map.h * 32 / 2 - PLAYERH/2;
-	}
-
-	InitAutomap();
-
-	if (game_load) CloseFile();
-
-	max_dist = 0;
-	for (i = 0; i < 3000; i++) {
-		if (rooms[i].s_dist > max_dist) {
-			max_dist = rooms[i].s_dist;
-		}
-	}
-
-	game_running = 1;
-	while (game_running) {
-		//sprintf(buf, "X: %d  Y: %d", (player_x + PLAYERW/2)/32*32 + PLAYERW/2, (player_y + PLAYERH/2)/32*32 + PLAYERH/2);
-		//SDL_WM_SetCaption(buf, "MT");
-		if (!game_paused) {
-			if (player_dying > 30) {
-				player_hp--;
-
-				if (player_hp <= 0) {
-					AnnounceDeath();
-					if (!training) player_lives--;
-					lost_gems = player_gems / 3;
-					player_gems -= lost_gems;
-
-					lost_gems = lost_gems * 95 / 100;
-					while (lost_gems > 0) {
-						rg_x = rooms[player_room].x * 32 + 32 + rand()%(rooms[player_room].w*32-64);
-						rg_y = rooms[player_room].y * 32 + 32 + rand()%(rooms[player_room].h*32-64);
-						rg_v = rand() % (lost_gems / 4 + 2);
-						CreateGem(rg_x, rg_y, player_room, rg_v);
-						lost_gems -= rg_v;
-					}
-
-					player_dying = 0;
-					shield_hp = 0;
-
-					if ( (current_boss == 3) && (boss_fight_mode != 0) ) {
-						player_x = enter_room_x;
-						player_y = enter_room_y;
-						prv_player_room = 1;
-					} else {
-						player_x = checkpoint_x;
-						player_y = checkpoint_y;
-					}
-					scroll_home = 1;
-					CircuitBullets(player_x, player_y, 100);
-					player_hp = 3 + (player_shield == 30)*3;
-				} else {
-					player_dying = 0;
-				}
-			}
-		}
-
-		circuit_size = 250 + 50*(circuit_fillrate + circuit_recoverrate);
-
-		if (magic_circuit > 0) {
-			circuit_range = (sqrt(magic_circuit + 1) * 6 + min(magic_circuit / 2, 50))*1.66;
-			if (artifacts[3]) circuit_range += circuit_range / 2.4;
-		} else circuit_range = -1;
-		player_room = GetRoom(player_x/32, player_y/32);
-
-		if (player_room != prv_player_room) {
-			SetTonedPalette((float)rooms[player_room].s_dist / (float)max_dist);
-			prv_player_room = player_room;
-			RecordRoom(player_room);
-
-			enter_room_x = player_x;
-			enter_room_y = player_y;
-
-			if (rooms[player_room].room_type == 2) {
-				// lock the doors
-				LockDoors(player_room);
-				// it's a boss room
-				BossRoom(player_room);
-			}
-			if (((rooms[player_room].checkpoint)||(player_room==0))&&(!artifacts[11])) {
-				checkpoint_x = rooms[player_room].x * 32 + (rooms[player_room].w / 2 * 32) + 8;
-				checkpoint_y = rooms[player_room].y * 32 + (rooms[player_room].h / 2 * 32) + 4;
-			}
-			if (rooms[player_room].visited == 0) {
-				rooms[player_room].visited = 1;
-				explored++;
-
-				if (explored == 3000) {
-					agate_knife_loc = player_room;
-				}
-
-				ActivateRoom(player_room);
-			}
-		}
-
-		if (last_killed != killed_enemies) {
-			SetTonedPalette((float)rooms[player_room].s_dist / (float)max_dist);
-			last_killed = killed_enemies;
-		} else {
-			if ((player_room == 0)&&(artifacts[11] == 1)) {
-				SetTonedPalette(0);
-			}
-		}
-
-		if (!map_enabled) {
-			ScrollTo(player_x + PLAYERW/2 - 320, player_y + PLAYERH/2 - 240);
-			DrawLevel(scroll_x, scroll_y, 1, 1);
-			//DrawLevel(player_x + 8 - 320, player_y + 12 - 240);
-
-			if (player_dying == 0) {
-				DrawShield();
-
-				if (magic_circuit > 0) {
-					if (player_dying == 0) {
-						if (circuit_release == 0) {
-							arcdir = RandomDir();
-							n_arcs = 1 + (circuit_size / 200 + 2) * magic_circuit / circuit_size;
-							for (i = 0; i < n_arcs; i++) {
-								Arc(screen, player_x - scroll_x + PLAYERW/2, player_y - scroll_y + PLAYERH/2, circuit_range, arcdir);
-								arcdir += (float)(rand()%16) / 16.0 * (M_PI*2/(float)n_arcs);
-							}
-						}
-					}
-				}
-
-				DrawPlayer(312, 228, player_dir, player_wlk / wlk_wait);
-			} else {
-				if (t % 2 == 0) DrawPlayer(312, 228, player_dir, player_wlk / wlk_wait);
-
-				if (!game_paused)
-					player_dying++;
-			}
-			t++;
-			if ((boss_fight_mode != 0)&&(boss_fight_mode < 23)&&(!game_paused)) {
-				BossControl();
-			}
-			DrawEntities();
-			if (!game_paused) MoveEntities();
-
-			if (boss_fight_mode == 2) {
-				DrawBossHP(100);
-			}
-
-			if (rooms[player_room].room_type == 5) {
-				DrawPowerObject();
-			}
-			if ( (rooms[player_room].room_type == 6) && (current_boss == 3) ) {
-				DrawPowerObject();
-			}
-			if ((rooms[player_room].room_type == 4) && ((player_room % 1000) == 999)) {
-				DrawPowerObject();
-			}
-			if (player_room == agate_knife_loc) {
-				{
-					static float agate_t = 0.0;
-					static SDL_Surface *agate_knife = NULL;
-					int xpos, ypos;
-					int room_w, room_h;
-					int room_x, room_y;
-
-					room_x = rooms[player_room].x * 32 + 32;
-					room_y = rooms[player_room].y * 32 + 32;
-					room_w = rooms[player_room].w * 32 - 64;
-					room_h = rooms[player_room].h * 32 - 64;
-
-					SDL_Rect draw_to;
-					if (agate_knife == NULL) {
-						agate_knife = IMG_Load("dat/i/agate.png");
-						SDL_SetColorKey(agate_knife, SDL_SRCCOLORKEY | SDL_RLEACCEL, 0);
-					}
-					xpos = (int)((sin(agate_t * 1.33)*0.5+0.5) * (float)room_w) + room_x;
-					ypos = (int)((cos(agate_t * 0.7)*0.5+0.5) * (float)room_h) + room_y;
-
-					if (dist(player_x, player_y, xpos, ypos) < 20) {
-						// TODO: test this (Agate Knife)
-						agate_knife_loc = -1;
-						CollectSpecialItem(SS_AGATE_KNIFE);
-					}
-					draw_to.x = xpos - 16 - scroll_x;
-					draw_to.y = ypos - 16 - scroll_y;
-
-					SDL_BlitSurface(agate_knife, NULL, screen, &draw_to);
-
-					agate_t += 0.05;
-				}
-			}
-
-			if (opening_door_i > 0) {
-				DrawArtifactOverhead(opening_door_n);
-				for (i = 0; i < 5; i++) {
-					j = i * 50 - 250 + (opening_door_i * 5);
-					if (j > 0) {
-						DrawCircle(player_x - scroll_x, player_y - scroll_y, j, 255);
-					}
-				}
-
-				if (!game_paused) {
-					opening_door_i++;
-					if (opening_door_i >= 100) {
-						opening_door_i = 0;
-						Put(opening_door_x, opening_door_y, Get(opening_door_x, opening_door_y) - 38 + 13, GetRoom(opening_door_x, opening_door_y));
-					}
-				}
-			}
-
-			if (circuit_release > 0) {
-				DrawCircle(release_x - player_x + 320, release_y - player_y + 240, circuit_release * release_range / 20, sin((float)circuit_release / 20.0)*127+127);
-				if (!game_paused) {
-					CircuitBullets(release_x, release_y, circuit_release * release_range / 20);
-					//HurtEnemies(release_x, release_y, circuit_release * release_range / 20, release_str);
-					circuit_release+=2;
-
-					if (circuit_release > 24) {
-						circuit_release = 0;
-						HurtEnemies(release_x, release_y, release_range, release_str);
-						if (boss_fight_mode == 2) TryHurtBoss(release_x, release_y, release_range, release_str);
-					}
-				}
-			}
-
-			if (!game_paused) {
-				if (shield_hp < player_shield) {
-					shield_recover += player_shield * 3 / (3 - training - (player_shield == 30));
-					if (artifacts[1]) shield_recover += player_shield * 3 / (3 - training - (player_shield == 30));
-					if (shield_recover >= 50) {
-						shield_hp++;
-						shield_recover -= 50 - (player_shield == 30)*25;
-					}
-				}
-			}
-		}
-
-		DrawRect(0, 0, 640, 29, 0);
-		DrawRect(1, 1, 638, 27, 32);
-		DrawRect(2, 2, 636, 25, 64);
-
-		if (!tele_select) {
-			sprintf(buf, "Psi Crystals: %d", player_gems);
-			draw_text(3, 3, buf, 200);
-			sprintf(buf, "Explored: %.1f%% (%d/%d rooms)", (float)explored/30.0, explored, 3000);
-			draw_text(3, 11, buf, 200);
-			sprintf(buf, "Cleared: %.1f%% (%d/%d monsters)", (float)killed_enemies/(float)total_enemies*100.0, killed_enemies, total_enemies);
-			draw_text(3, 19, buf, 200);
-
-			draw_text(316, 3, "Reflect shield", (player_gems >= UpgradePrice(0))&&(player_shield!=30) ? (231 + (t%13)*2) : 200);
-			DrawMeter(434, 3, player_shield);
-
-			draw_text(316, 11, "Circuit charge", (player_gems >= UpgradePrice(1))&&(circuit_fillrate!=30) ? (231 + (t%13)*2) : 200);
-			DrawMeter(434, 11, circuit_fillrate);
-
-			draw_text(316, 19, "Circuit refill", (player_gems >= UpgradePrice(2))&&(circuit_recoverrate!=30) ? (231 + (t%13)*2) : 200);
-			DrawMeter(434, 19, circuit_recoverrate);
-
-		} else {
-			draw_text(80, 11-6, "Use the movement keys to locate a checkpoint. Press ENTER to", 240);
-			draw_text(52, 11+6, "teleport to this checkpoint. Press ESCAPE or TAB once you are done.", 240);
-		}
-
-		if (!training) {
-			buf[0] = 30;
-
-			if (player_lives <= 99) {
-				if (player_lives < 10) {
-					sprintf(buf+1, " %d", player_lives);
-				} else {
-					sprintf(buf+1, "%d", player_lives);
-				}
-			} else {
-				sprintf(buf+1, "**");
-			}
-
-			draw_text(615, 4, buf, 200);
-
-			DrawRect(615, 13, 24, 4, 240);
-			DrawRect(616, 14, 22, 2, 0);
-			i = (player_lives_part * 22 / 88);
-			if (i > 0) {
-				DrawRect(616, 14, i, 2, 160 + (t % 40));
-			}
-		}
-
-		if (player_shield != 30) {
-			for (i = 0; i < player_hp; i++) {
-				buf[i] = 3;
-			}
-			buf[player_hp]=0;
-		} else {
-			for (i = 0; i < (player_hp / 2); i++) {
-				buf[i] = 3;
-			}
-			if ((player_hp % 2) == 1) {
-				buf[(player_hp + 1) / 2 - 1] = 2;
-			}
-			buf[(player_hp+1)/2]=0;
-		}
-
-		draw_text(615, 18 - (5*training), buf, 200);
-
-		DrawRect(0, 466, 640, 14, 0);
-		DrawRect(1, 467, 638, 12, 32);
-		DrawRect(2, 468, 636, 10, 64);
-
-		DrawCircuit();
-		DrawArtifacts();
-
-		SpecialTile((player_x+PLAYERW/2)/32, (player_y+PLAYERH/2)/32);
-
-		if (map_enabled) DisplayAutomap();
-
-		if ((boss_fight_mode != 0)&&(boss_fight_mode == 23)&&(!game_paused)) {
-			BossControl();
-		}
-		if ( (boss_dlg != 0) && (!game_paused)) {
-			BossDialog();
-		}
-
-		if (game_paused && (!map_enabled) && (!voluntary_exit)) {
-			for (i = 0; i < 10; i++) {
-				DrawRect((640 - 6 * 8) / 2 - i, (480 - 8) / 2 - i, 6*8 + 2*i, 8 + 2*i, 64 - i*5);
-			}
-			draw_text((640 - 6 * 8) / 2, (480 - 8) / 2, "Paused", 255);
-
-			{
-				int t_days;
-				int t_hours;
-				int t_minutes;
-				int t_seconds;
-
-				t_seconds = (expired_ms / 1000) % 60;
-				t_minutes = ((expired_ms / 1000) / 60) % 60;
-				t_hours = (((expired_ms / 1000) / 60) / 60) % 24;
-				t_days = (((expired_ms / 1000) / 60) / 60) / 24;
-
-				if (t_days > 0) {
-					sprintf(buf, "%dd %dh %dm %ds", t_days, t_hours, t_minutes, t_seconds);
-				} else {
-					if (t_hours > 0) {
-						sprintf(buf, "%dh %dm %ds", t_hours, t_minutes, t_seconds);
-					} else {
-						sprintf(buf, "%dm %ds", t_minutes, t_seconds);
-					}
-				}
-				draw_text(636 - strlen(buf)*8, 470, buf, 255);
-			}
-		}
-
-		if (voluntary_exit) {
-			DrawRect(152, 200, 336, 80, 128);
-			DrawRect(160, 208, 320, 64, 64);
-			draw_text((640 - 30 * 8) / 2, (480 - 8) / 2 - 4, "Are you sure you want to quit?", 255);
-			draw_text((640 - 23 * 8) / 2, (480 - 8) / 2 + 4, "Press enter to confirm.", 255);
-		}
-
-		VideoUpdate();
-
-		MusicUpdate();
-
-		EndCycle(0);
-
-		can_move = 1;
-
-		if ((player_dying != 0) && (player_hp <= 1)) can_move = 0;
-		if (rooms[player_room].room_type == 5)
-			if (CanGetArtifact())
-				if (Get((player_x+PLAYERW/2)/32, (player_y+PLAYERH/2)/32)==42)
-					if (rooms[player_room].enemies == 0)
-						can_move = 0;
-
-		if (rooms[player_room].room_type == 6)
-			if (CanGetArtifact())
-				if (PlayerDist(rooms[player_room].w * 16 + rooms[player_room].x * 32,
-							rooms[player_room].h * 16 + rooms[player_room].y * 32) < 32)
-					if (rooms[player_room].enemies == 0)
-						if (current_boss == 3)
-							can_move = 0;
-
-		if (scroll_home != 0) can_move = 0;
-		if (boss_fight_mode == 1) can_move = 0;
-		if (boss_fight_mode >= 3) can_move = 0;
-		if (opening_door_i != 0) can_move = 0;
-		if (game_paused) can_move = 0;
-
-		HandleEvents();
-		if (map_enabled) {
-			game_paused = 1;
-		}
-
-		if (can_move) {
-
-			ix = player_x;
-			iy = player_y;
-			off_x = 0;
-			off_y = 0;
-			if (key_held[K_UP] && !key_held[K_DN]) {
-				iy -= player_walk_speed * (artifacts[4]?1.4:1);
-				player_dir = 0;
-			}
-			if (key_held[K_DN] && !key_held[K_UP]) {
-				iy += player_walk_speed * (artifacts[4]?1.4:1);;
-				player_dir = 1;
-				off_y = 24;
-			}
-			if (key_held[K_LT] && !key_held[K_RT]) {
-				ix -= player_walk_speed * (artifacts[4]?1.4:1);;
-				if (!(key_held[K_UP] || key_held[K_DN])) {
-					player_dir = 3;
-				}
-			}
-			if (key_held[K_RT] && !key_held[K_LT]) {
-				off_x = 16;
-				ix += player_walk_speed * (artifacts[4]?1.4:1);;
-				if (!(key_held[K_UP] || key_held[K_DN])) {
-					player_dir = 2;
-
-				}
-			}
-			if ((key_held[K_SP])&&(magic_circuit >= 0)) {
-				magic_circuit += (circuit_fillrate * (3+training+(circuit_fillrate==30))/3);
-			} else {
-				if (magic_circuit < 0) {
-					magic_circuit += (circuit_recoverrate * (3+training+(circuit_recoverrate==30))/3);
-					if (magic_circuit > 0) magic_circuit = 0;
-				} else {
-					if (magic_circuit > 0) {
-						ReleaseCircuit();
-					}
-				}
-			}
-
-			if (magic_circuit > circuit_size) magic_circuit = circuit_size;
-
-			if ((ix!=player_x)||(iy!=player_y)) {
-				// Are we changing to a new square?
-				if (((player_x / 32)!=((ix+off_x) / 32)) || ((player_y / 32)!=((iy+off_y) / 32))) {
-					//printf("%d\n", tile);
-					if (TouchTile(ix, iy)) {
-						player_wlk = (player_wlk + 1 + artifacts[4]*3) % (4*wlk_wait);
-					} else {
-						if (TouchTile(player_x, iy)) {
-							player_wlk = (player_wlk + 1 + artifacts[4]*3) % (4*wlk_wait);
-						} else {
-							if (TouchTile(ix, player_y)) {
-								player_wlk = (player_wlk + 1 + artifacts[4]*3) % (4*wlk_wait);
-								if (off_x > 0) player_dir = 2;
-								else player_dir = 3;
-							}
-						}
-
-					}
-				} else {
-					player_x = ix;
-					player_y = iy;
-
-					player_wlk = (player_wlk + 1 + artifacts[4]*3) % (4*wlk_wait);
-				}
-			}
-		}
-
-		if ((t % (33 * 10))==(33 * 10 - 1)) {
-			ActivateRand();
-		}
-
-		if (voluntary_exit && enter_pressed) {
-			voluntary_exit = 0;
-			game_running = 0;
-			game_paused = 0;
-		}
-
-		if ((player_lives == 0) && (!training)) {
-			break;
-		}
-		if (show_ending) {
-			break;
-		}
-	}
-
-	if (show_ending) {
-		show_ending = 0;
-		ShowEnding();
-	}
-
-	if ((player_lives == 0) && (!training)) {
-		SDL_FillRect(screen, NULL, 0);
-		draw_text(252, 236, "G A M E   O V E R", 255);
-		VideoUpdate();
-		SDL_Delay(2000);
-	}
-
-	return 0;
+  int ix,  iy;
+  int off_x, off_y;
+  int t = 0;
+  int i, j;
+  int lost_gems;
+  int rg_x, rg_y, rg_v;
+  int max_dist;
+  int last_killed = 0;
+  int n_arcs = 0;
+  int can_move;
+
+  float arcdir;
+
+  char buf[50];
+
+  expired_ms = 0;
+  LoadingScreen(0, 0.0);
+  if (fname[0] != 0) {
+    LoadGame(fname);
+  }
+
+  RandomGenerateMap();
+  InitEnemies();
+  InitBossVars();
+
+  PlayerDefaultStats();
+  if (game_load) {
+    first_game = 0;
+    ReadPlayerData();
+    ReadStoreData();
+    //Paint(rooms[0].x+1, rooms[0].y+1, rooms[0].w-2, rooms[0].h-2, "dat/d/fbossroom.loc");
+  } else {
+    player_x = map.w * 32 / 2 - PLAYERW/2;
+    player_y = map.h * 32 / 2 - PLAYERH/2;
+  }
+
+  InitAutomap();
+
+  if (game_load) CloseFile();
+
+  max_dist = 0;
+  for (i = 0; i < 3000; i++) {
+    if (rooms[i].s_dist > max_dist) {
+      max_dist = rooms[i].s_dist;
+    }
+  }
+
+  game_running = 1;
+  while (game_running) {
+    //sprintf(buf, "X: %d  Y: %d", (player_x + PLAYERW/2)/32*32 + PLAYERW/2, (player_y + PLAYERH/2)/32*32 + PLAYERH/2);
+    //SDL_WM_SetCaption(buf, "MT");
+    if (!game_paused) {
+      if (player_dying > 30) {
+        player_hp--;
+
+        if (player_hp <= 0) {
+          AnnounceDeath();
+          if (!training) player_lives--;
+          lost_gems = player_gems / 3;
+          player_gems -= lost_gems;
+
+          lost_gems = lost_gems * 95 / 100;
+          while (lost_gems > 0) {
+            rg_x = rooms[player_room].x * 32 + 32 + rand()%(rooms[player_room].w*32-64);
+            rg_y = rooms[player_room].y * 32 + 32 + rand()%(rooms[player_room].h*32-64);
+            rg_v = rand() % (lost_gems / 4 + 2);
+            CreateGem(rg_x, rg_y, player_room, rg_v);
+            lost_gems -= rg_v;
+          }
+
+          player_dying = 0;
+          shield_hp = 0;
+
+          if ( (current_boss == 3) && (boss_fight_mode != 0) ) {
+            player_x = enter_room_x;
+            player_y = enter_room_y;
+            prv_player_room = 1;
+          } else {
+            player_x = checkpoint_x;
+            player_y = checkpoint_y;
+          }
+          scroll_home = 1;
+          CircuitBullets(player_x, player_y, 100);
+          player_hp = 3 + (player_shield == 30)*3;
+        } else {
+          player_dying = 0;
+        }
+      }
+    }
+
+    circuit_size = 250 + 50*(circuit_fillrate + circuit_recoverrate);
+
+    if (magic_circuit > 0) {
+      circuit_range = (sqrt(magic_circuit + 1) * 6 + min(magic_circuit / 2, 50))*1.66;
+      if (artifacts[3]) circuit_range += circuit_range / 2.4;
+    } else circuit_range = -1;
+    player_room = GetRoom(player_x/32, player_y/32);
+
+    if (player_room != prv_player_room) {
+      SetTonedPalette((float)rooms[player_room].s_dist / (float)max_dist);
+      prv_player_room = player_room;
+      RecordRoom(player_room);
+
+      enter_room_x = player_x;
+      enter_room_y = player_y;
+
+      if (rooms[player_room].room_type == 2) {
+        // lock the doors
+        LockDoors(player_room);
+        // it's a boss room
+        BossRoom(player_room);
+      }
+      if (((rooms[player_room].checkpoint)||(player_room==0))&&(!artifacts[11])) {
+        checkpoint_x = rooms[player_room].x * 32 + (rooms[player_room].w / 2 * 32) + 8;
+        checkpoint_y = rooms[player_room].y * 32 + (rooms[player_room].h / 2 * 32) + 4;
+      }
+      if (rooms[player_room].visited == 0) {
+        rooms[player_room].visited = 1;
+        explored++;
+
+        if (explored == 3000) {
+          agate_knife_loc = player_room;
+        }
+
+        ActivateRoom(player_room);
+      }
+    }
+
+    if (last_killed != killed_enemies) {
+      SetTonedPalette((float)rooms[player_room].s_dist / (float)max_dist);
+      last_killed = killed_enemies;
+    } else {
+      if ((player_room == 0)&&(artifacts[11] == 1)) {
+        SetTonedPalette(0);
+      }
+    }
+
+    if (!map_enabled) {
+      ScrollTo(player_x + PLAYERW/2 - 320, player_y + PLAYERH/2 - 240);
+      DrawLevel(scroll_x, scroll_y, 1, 1);
+      //DrawLevel(player_x + 8 - 320, player_y + 12 - 240);
+
+      if (player_dying == 0) {
+        DrawShield();
+
+        if (magic_circuit > 0) {
+          if (player_dying == 0) {
+            if (circuit_release == 0) {
+              arcdir = RandomDir();
+              n_arcs = 1 + (circuit_size / 200 + 2) * magic_circuit / circuit_size;
+              for (i = 0; i < n_arcs; i++) {
+                Arc(screen, player_x - scroll_x + PLAYERW/2, player_y - scroll_y + PLAYERH/2, circuit_range, arcdir);
+                arcdir += (float)(rand()%16) / 16.0 * (M_PI*2/(float)n_arcs);
+              }
+            }
+          }
+        }
+
+        DrawPlayer(312, 228, player_dir, player_wlk / wlk_wait);
+      } else {
+        if (t % 2 == 0) DrawPlayer(312, 228, player_dir, player_wlk / wlk_wait);
+
+        if (!game_paused)
+          player_dying++;
+      }
+      t++;
+      if ((boss_fight_mode != 0)&&(boss_fight_mode < 23)&&(!game_paused)) {
+        BossControl();
+      }
+      DrawEntities();
+      if (!game_paused) MoveEntities();
+
+      if (boss_fight_mode == 2) {
+        DrawBossHP(100);
+      }
+
+      if (rooms[player_room].room_type == 5) {
+        DrawPowerObject();
+      }
+      if ( (rooms[player_room].room_type == 6) && (current_boss == 3) ) {
+        DrawPowerObject();
+      }
+      if ((rooms[player_room].room_type == 4) && ((player_room % 1000) == 999)) {
+        DrawPowerObject();
+      }
+      if (player_room == agate_knife_loc) {
+        {
+          static float agate_t = 0.0;
+          static SDL_Surface *agate_knife = NULL;
+          int xpos, ypos;
+          int room_w, room_h;
+          int room_x, room_y;
+
+          room_x = rooms[player_room].x * 32 + 32;
+          room_y = rooms[player_room].y * 32 + 32;
+          room_w = rooms[player_room].w * 32 - 64;
+          room_h = rooms[player_room].h * 32 - 64;
+
+          SDL_Rect draw_to;
+          if (agate_knife == NULL) {
+            agate_knife = IMG_Load("dat/i/agate.png");
+            SDL_SetColorKey(agate_knife, SDL_SRCCOLORKEY | SDL_RLEACCEL, 0);
+          }
+          xpos = (int)((sin(agate_t * 1.33)*0.5+0.5) * (float)room_w) + room_x;
+          ypos = (int)((cos(agate_t * 0.7)*0.5+0.5) * (float)room_h) + room_y;
+
+          if (dist(player_x, player_y, xpos, ypos) < 20) {
+            // NOTE: Agate Knife
+            agate_knife_loc = -1;
+            CollectSpecialItem(SS_AGATE_KNIFE);
+          }
+          draw_to.x = xpos - 16 - scroll_x;
+          draw_to.y = ypos - 16 - scroll_y;
+
+          SDL_BlitSurface(agate_knife, NULL, screen, &draw_to);
+
+          agate_t += 0.05;
+        }
+      }
+
+      if (opening_door_i > 0) {
+        DrawArtifactOverhead(opening_door_n);
+        for (i = 0; i < 5; i++) {
+          j = i * 50 - 250 + (opening_door_i * 5);
+          if (j > 0) {
+            DrawCircle(player_x - scroll_x, player_y - scroll_y, j, 255);
+          }
+        }
+
+        if (!game_paused) {
+          opening_door_i++;
+          if (opening_door_i >= 100) {
+            opening_door_i = 0;
+            Put(opening_door_x, opening_door_y, Get(opening_door_x, opening_door_y) - 38 + 13, GetRoom(opening_door_x, opening_door_y));
+          }
+        }
+      }
+
+      if (circuit_release > 0) {
+        DrawCircle(release_x - player_x + 320, release_y - player_y + 240, circuit_release * release_range / 20, sin((float)circuit_release / 20.0)*127+127);
+        if (!game_paused) {
+          CircuitBullets(release_x, release_y, circuit_release * release_range / 20);
+          //HurtEnemies(release_x, release_y, circuit_release * release_range / 20, release_str);
+          circuit_release+=2;
+
+          if (circuit_release > 24) {
+            circuit_release = 0;
+            HurtEnemies(release_x, release_y, release_range, release_str);
+            if (boss_fight_mode == 2) TryHurtBoss(release_x, release_y, release_range, release_str);
+          }
+        }
+      }
+
+      if (!game_paused) {
+        if (shield_hp < player_shield) {
+          shield_recover += player_shield * 3 / (3 - training - (player_shield == 30));
+          if (artifacts[1]) shield_recover += player_shield * 3 / (3 - training - (player_shield == 30));
+          if (shield_recover >= 50) {
+            shield_hp++;
+            shield_recover -= 50 - (player_shield == 30)*25;
+          }
+        }
+      }
+    }
+
+    DrawRect(0, 0, 640, 29, 0);
+    DrawRect(1, 1, 638, 27, 32);
+    DrawRect(2, 2, 636, 25, 64);
+
+    if (!tele_select) {
+      sprintf(buf, "Psi Crystals: %d", player_gems);
+      draw_text(3, 3, buf, 200);
+      sprintf(buf, "Explored: %.1f%% (%d/%d rooms)", (float)explored/30.0, explored, 3000);
+      draw_text(3, 11, buf, 200);
+      sprintf(buf, "Cleared: %.1f%% (%d/%d monsters)", (float)killed_enemies/(float)total_enemies*100.0, killed_enemies, total_enemies);
+      draw_text(3, 19, buf, 200);
+
+      draw_text(316, 3, "Reflect shield", (player_gems >= UpgradePrice(0))&&(player_shield!=30) ? (231 + (t%13)*2) : 200);
+      DrawMeter(434, 3, player_shield);
+
+      draw_text(316, 11, "Circuit charge", (player_gems >= UpgradePrice(1))&&(circuit_fillrate!=30) ? (231 + (t%13)*2) : 200);
+      DrawMeter(434, 11, circuit_fillrate);
+
+      draw_text(316, 19, "Circuit refill", (player_gems >= UpgradePrice(2))&&(circuit_recoverrate!=30) ? (231 + (t%13)*2) : 200);
+      DrawMeter(434, 19, circuit_recoverrate);
+
+    } else {
+      draw_text(80, 11-6, "Use the movement keys to locate a checkpoint. Press ENTER to", 240);
+      draw_text(52, 11+6, "teleport to this checkpoint. Press ESCAPE or TAB once you are done.", 240);
+    }
+
+    if (!training) {
+      buf[0] = 30;
+
+      if (player_lives <= 99) {
+        if (player_lives < 10) {
+          sprintf(buf+1, " %d", player_lives);
+        } else {
+          sprintf(buf+1, "%d", player_lives);
+        }
+      } else {
+        sprintf(buf+1, "**");
+      }
+
+      draw_text(615, 4, buf, 200);
+
+      DrawRect(615, 13, 24, 4, 240);
+      DrawRect(616, 14, 22, 2, 0);
+      i = (player_lives_part * 22 / 88);
+      if (i > 0) {
+        DrawRect(616, 14, i, 2, 160 + (t % 40));
+      }
+    }
+
+    if (player_shield != 30) {
+      for (i = 0; i < player_hp; i++) {
+        buf[i] = 3;
+      }
+      buf[player_hp]=0;
+    } else {
+      for (i = 0; i < (player_hp / 2); i++) {
+        buf[i] = 3;
+      }
+      if ((player_hp % 2) == 1) {
+        buf[(player_hp + 1) / 2 - 1] = 2;
+      }
+      buf[(player_hp+1)/2]=0;
+    }
+
+    draw_text(615, 18 - (5*training), buf, 200);
+
+    DrawRect(0, 466, 640, 14, 0);
+    DrawRect(1, 467, 638, 12, 32);
+    DrawRect(2, 468, 636, 10, 64);
+
+    DrawCircuit();
+    DrawArtifacts();
+
+    SpecialTile((player_x+PLAYERW/2)/32, (player_y+PLAYERH/2)/32);
+
+    if (map_enabled) DisplayAutomap();
+
+    if ((boss_fight_mode != 0)&&(boss_fight_mode == 23)&&(!game_paused)) {
+      BossControl();
+    }
+    if ( (boss_dlg != 0) && (!game_paused)) {
+      BossDialog();
+    }
+
+    if (game_paused && (!map_enabled) && (!voluntary_exit)) {
+      for (i = 0; i < 10; i++) {
+        DrawRect((640 - 6 * 8) / 2 - i, (480 - 8) / 2 - i, 6*8 + 2*i, 8 + 2*i, 64 - i*5);
+      }
+      draw_text((640 - 6 * 8) / 2, (480 - 8) / 2, "Paused", 255);
+
+      {
+        int t_days;
+        int t_hours;
+        int t_minutes;
+        int t_seconds;
+
+        t_seconds = (expired_ms / 1000) % 60;
+        t_minutes = ((expired_ms / 1000) / 60) % 60;
+        t_hours = (((expired_ms / 1000) / 60) / 60) % 24;
+        t_days = (((expired_ms / 1000) / 60) / 60) / 24;
+
+        if (t_days > 0) {
+          sprintf(buf, "%dd %dh %dm %ds", t_days, t_hours, t_minutes, t_seconds);
+        } else {
+          if (t_hours > 0) {
+            sprintf(buf, "%dh %dm %ds", t_hours, t_minutes, t_seconds);
+          } else {
+            sprintf(buf, "%dm %ds", t_minutes, t_seconds);
+          }
+        }
+        draw_text(636 - strlen(buf)*8, 470, buf, 255);
+      }
+    }
+
+    if (voluntary_exit) {
+      DrawRect(152, 200, 336, 80, 128);
+      DrawRect(160, 208, 320, 64, 64);
+      draw_text((640 - 30 * 8) / 2, (480 - 8) / 2 - 4, "Are you sure you want to quit?", 255);
+      draw_text((640 - 23 * 8) / 2, (480 - 8) / 2 + 4, "Press enter to confirm.", 255);
+    }
+
+    VideoUpdate();
+
+    MusicUpdate();
+
+    EndCycle(0);
+
+    can_move = 1;
+
+    if ((player_dying != 0) && (player_hp <= 1)) can_move = 0;
+    if (rooms[player_room].room_type == 5)
+      if (CanGetArtifact())
+        if (Get((player_x+PLAYERW/2)/32, (player_y+PLAYERH/2)/32)==42)
+          if (rooms[player_room].enemies == 0)
+            can_move = 0;
+
+    if (rooms[player_room].room_type == 6)
+      if (CanGetArtifact())
+        if (PlayerDist(rooms[player_room].w * 16 + rooms[player_room].x * 32,
+              rooms[player_room].h * 16 + rooms[player_room].y * 32) < 32)
+          if (rooms[player_room].enemies == 0)
+            if (current_boss == 3)
+              can_move = 0;
+
+    if (scroll_home != 0) can_move = 0;
+    if (boss_fight_mode == 1) can_move = 0;
+    if (boss_fight_mode >= 3) can_move = 0;
+    if (opening_door_i != 0) can_move = 0;
+    if (game_paused) can_move = 0;
+
+    HandleEvents();
+    if (map_enabled) {
+      game_paused = 1;
+    }
+
+    if (can_move) {
+
+      ix = player_x;
+      iy = player_y;
+      off_x = 0;
+      off_y = 0;
+      if (key_held[K_UP] && !key_held[K_DN]) {
+        iy -= player_walk_speed * (artifacts[4]?1.4:1);
+        player_dir = 0;
+      }
+      if (key_held[K_DN] && !key_held[K_UP]) {
+        iy += player_walk_speed * (artifacts[4]?1.4:1);;
+        player_dir = 1;
+        off_y = 24;
+      }
+      if (key_held[K_LT] && !key_held[K_RT]) {
+        ix -= player_walk_speed * (artifacts[4]?1.4:1);;
+        if (!(key_held[K_UP] || key_held[K_DN])) {
+          player_dir = 3;
+        }
+      }
+      if (key_held[K_RT] && !key_held[K_LT]) {
+        off_x = 16;
+        ix += player_walk_speed * (artifacts[4]?1.4:1);;
+        if (!(key_held[K_UP] || key_held[K_DN])) {
+          player_dir = 2;
+
+        }
+      }
+      if ((key_held[K_SP])&&(magic_circuit >= 0)) {
+        magic_circuit += (circuit_fillrate * (3+training+(circuit_fillrate==30))/3);
+      } else {
+        if (magic_circuit < 0) {
+          magic_circuit += (circuit_recoverrate * (3+training+(circuit_recoverrate==30))/3);
+          if (magic_circuit > 0) magic_circuit = 0;
+        } else {
+          if (magic_circuit > 0) {
+            ReleaseCircuit();
+          }
+        }
+      }
+
+      if (magic_circuit > circuit_size) magic_circuit = circuit_size;
+
+      if ((ix!=player_x)||(iy!=player_y)) {
+        // Are we changing to a new square?
+        if (((player_x / 32)!=((ix+off_x) / 32)) || ((player_y / 32)!=((iy+off_y) / 32))) {
+          //printf("%d\n", tile);
+          if (TouchTile(ix, iy)) {
+            player_wlk = (player_wlk + 1 + artifacts[4]*3) % (4*wlk_wait);
+          } else {
+            if (TouchTile(player_x, iy)) {
+              player_wlk = (player_wlk + 1 + artifacts[4]*3) % (4*wlk_wait);
+            } else {
+              if (TouchTile(ix, player_y)) {
+                player_wlk = (player_wlk + 1 + artifacts[4]*3) % (4*wlk_wait);
+                if (off_x > 0) player_dir = 2;
+                else player_dir = 3;
+              }
+            }
+
+          }
+        } else {
+          player_x = ix;
+          player_y = iy;
+
+          player_wlk = (player_wlk + 1 + artifacts[4]*3) % (4*wlk_wait);
+        }
+      }
+    }
+
+    if ((t % (33 * 10))==(33 * 10 - 1)) {
+      ActivateRand();
+    }
+
+    if (voluntary_exit && enter_pressed) {
+      voluntary_exit = 0;
+      game_running = 0;
+      game_paused = 0;
+    }
+
+    if ((player_lives == 0) && (!training)) {
+      break;
+    }
+    if (show_ending) {
+      break;
+    }
+  }
+
+  if (show_ending) {
+    show_ending = 0;
+    ShowEnding();
+  }
+
+  if ((player_lives == 0) && (!training)) {
+    SDL_FillRect(screen, NULL, 0);
+    draw_text(252, 236, "G A M E   O V E R", 255);
+    VideoUpdate();
+    SDL_Delay(2000);
+  }
+
+  return 0;
 }
 
 void UpRoom()
 {
-	int i, nd;
+  int i, nd;
 
-	nd = rooms[player_room].s_dist + 1;
+  nd = rooms[player_room].s_dist + 1;
 
-	for (i = 0; i < 3000; i++) {
-		if (rooms[i].s_dist == nd) {
-			player_x = rooms[i].x * 32 + 64;
-			player_y = rooms[i].y * 32 + 64;
-		}
-	}
+  for (i = 0; i < 3000; i++) {
+    if (rooms[i].s_dist == nd) {
+      player_x = rooms[i].x * 32 + 64;
+      player_y = rooms[i].y * 32 + 64;
+    }
+  }
 }
 
 void CancelVoluntaryExit()
 {
-	if (voluntary_exit) {
-		voluntary_exit = 0;
-		game_paused = 0;
-	}
+  if (voluntary_exit) {
+    voluntary_exit = 0;
+    game_paused = 0;
+  }
 }
 
 void HandleEvents()
 {
-	unsigned short db;
-	static SDL_Event event;
-	int pressed_tab = 0;
+  unsigned short db;
+  static SDL_Event event;
+  int pressed_tab = 0;
 
-	if (PLAYBACK) {
-		db = fgetc(record_file);
-		db |= fgetc(record_file) << 8;
+  if (PLAYBACK) {
+    db = fgetc(record_file);
+    db |= fgetc(record_file) << 8;
 
-		key_held[K_UP] = (db & 0x0001)>0;
-		key_held[K_DN] = (db & 0x0002)>0;
-		key_held[K_LT] = (db & 0x0004)>0;
-		key_held[K_RT] = (db & 0x0008)>0;
-		key_held[K_SP] = (db & 0x0010)>0;
-		enter_pressed  = (db & 0x0020)>0;
-		map_enabled    = (db & 0x0040)>0;
-		game_running   = (db & 0x0080)>0;
-		game_paused    = (db & 0x0100)>0;
-		voluntary_exit = (db & 0x0200)>0;
-		pressed_tab    = (db & 0x0400)>0;
-		tele_select    = (db & 0x0800)>0;
+    key_held[K_UP] = (db & 0x0001)>0;
+    key_held[K_DN] = (db & 0x0002)>0;
+    key_held[K_LT] = (db & 0x0004)>0;
+    key_held[K_RT] = (db & 0x0008)>0;
+    key_held[K_SP] = (db & 0x0010)>0;
+    enter_pressed  = (db & 0x0020)>0;
+    map_enabled    = (db & 0x0040)>0;
+    game_running   = (db & 0x0080)>0;
+    game_paused    = (db & 0x0100)>0;
+    voluntary_exit = (db & 0x0200)>0;
+    pressed_tab    = (db & 0x0400)>0;
+    tele_select    = (db & 0x0800)>0;
 
-		return;
-	}
+    return;
+  }
 
-	if (pressed_tab) {
-		c_scroll_x = player_x;
-		c_scroll_y = player_y;
-	}
+  if (pressed_tab) {
+    c_scroll_x = player_x;
+    c_scroll_y = player_y;
+  }
 
-	enter_pressed = 0;
-		while (SDL_PollEvent(&event)) {
-			if (event.type == SDL_KEYDOWN) {
-				switch (event.key.keysym.sym) {
-					case SDLK_w:
-					case SDLK_UP:
-						key_held[K_UP] = 1;
-						CancelVoluntaryExit();
-						break;
-					case SDLK_s:
-					case SDLK_DOWN:
-						key_held[K_DN] = 1;
-						CancelVoluntaryExit();
-						break;
-					case SDLK_a:
-					case SDLK_LEFT:
-						key_held[K_LT] = 1;
-						CancelVoluntaryExit();
-						break;
-					case SDLK_d:
-					case SDLK_RIGHT:
-						key_held[K_RT] = 1;
-						CancelVoluntaryExit();
-						break;
-					case SDLK_SPACE:
-						key_held[K_SP] = 1;
-						CancelVoluntaryExit();
-						break;
-					case SDLK_RETURN:
-						enter_pressed = 1;
-						break;
-					case SDLK_ESCAPE:
-						if (map_enabled) {
-							map_enabled = 0;
-							game_paused = 0;
-							tele_select = 0;
-						} else {
-							voluntary_exit ^= 1;
-							game_paused = voluntary_exit;
-						}
-						break;
-					case SDLK_TAB:
-						if (tele_select) {
-							map_enabled = 0;
-							game_paused = 0;
-							tele_select = 0;
-						} else {
-							pressed_tab = 1;
-							map_enabled ^= 1;
-							game_paused = map_enabled;
-							c_scroll_x = player_x;
-							c_scroll_y = player_y;
-						}
-						CancelVoluntaryExit();
-						break;
-					case SDLK_h:
-						CancelVoluntaryExit();
-						ShowHelp();
-						break;
-					case SDLK_p:
-						game_paused ^= 1;
-						CancelVoluntaryExit();
-						break;
+  enter_pressed = 0;
+    while (SDL_PollEvent(&event)) {
+      if (event.type == SDL_KEYDOWN) {
+        switch (event.key.keysym.sym) {
+          case SDLK_w:
+          case SDLK_UP:
+            key_held[K_UP] = 1;
+            CancelVoluntaryExit();
+            break;
+          case SDLK_s:
+          case SDLK_DOWN:
+            key_held[K_DN] = 1;
+            CancelVoluntaryExit();
+            break;
+          case SDLK_a:
+          case SDLK_LEFT:
+            key_held[K_LT] = 1;
+            CancelVoluntaryExit();
+            break;
+          case SDLK_d:
+          case SDLK_RIGHT:
+            key_held[K_RT] = 1;
+            CancelVoluntaryExit();
+            break;
+          case SDLK_SPACE:
+            key_held[K_SP] = 1;
+            CancelVoluntaryExit();
+            break;
+          case SDLK_RETURN:
+            enter_pressed = 1;
+            break;
+          case SDLK_ESCAPE:
+            if (map_enabled) {
+              map_enabled = 0;
+              game_paused = 0;
+              tele_select = 0;
+            } else {
+              voluntary_exit ^= 1;
+              game_paused = voluntary_exit;
+            }
+            break;
+          case SDLK_TAB:
+            if (tele_select) {
+              map_enabled = 0;
+              game_paused = 0;
+              tele_select = 0;
+            } else {
+              pressed_tab = 1;
+              map_enabled ^= 1;
+              game_paused = map_enabled;
+              c_scroll_x = player_x;
+              c_scroll_y = player_y;
+            }
+            CancelVoluntaryExit();
+            break;
+          case SDLK_h:
+            CancelVoluntaryExit();
+            ShowHelp();
+            break;
+          case SDLK_p:
+            game_paused ^= 1;
+            CancelVoluntaryExit();
+            break;
 
 #ifdef DEBUG_KEYS
-					case SDLK_j:
-						{
-							player_shield = 20;
-							circuit_recoverrate = 20;
-							circuit_fillrate = 20;
-						}
-						break;
-					case SDLK_k:
-						{
-							int i, n, j;
-							for (j = 0; j < 1; j++) {
-								for (i = 0; i < 50000; i++) {
-									n = rand()%3000;
-									if (rooms[n].visited == 0) {
-										player_x = rooms[n].x * 32 + rooms[n].w * 16;
-										player_y = rooms[n].y * 32 + rooms[n].h * 16;
-										rooms[n].visited = 1;
-										explored++;
-										break;
-									}
-								}
-							}
-						}
-						break;
+          case SDLK_j:
+            {
+              player_shield = 20;
+              circuit_recoverrate = 20;
+              circuit_fillrate = 20;
+            }
+            break;
+          case SDLK_k:
+            {
+              int i, n, j;
+              for (j = 0; j < 1; j++) {
+                for (i = 0; i < 50000; i++) {
+                  n = rand()%3000;
+                  if (rooms[n].visited == 0) {
+                    player_x = rooms[n].x * 32 + rooms[n].w * 16;
+                    player_y = rooms[n].y * 32 + rooms[n].h * 16;
+                    rooms[n].visited = 1;
+                    explored++;
+                    break;
+                  }
+                }
+              }
+            }
+            break;
 
-					case SDLK_m:
-						{
-							int i;
-							for (i = 0; i < 8; i++) {
-								artifacts[i] = 1;
-							}
-							for (i = 8; i < 11; i++) {
-								artifacts[i] = 0;
-							}
-							artifacts[11] = 0;
-						}
-						break;
+          case SDLK_m:
+            {
+              int i;
+              for (i = 0; i < 8; i++) {
+                artifacts[i] = 1;
+              }
+              for (i = 8; i < 11; i++) {
+                artifacts[i] = 0;
+              }
+              artifacts[11] = 0;
+            }
+            break;
 
-					case SDLK_n:
-						{
-							current_boss = 3;
-							expired_ms = 1000000;
-						}
-						break;
+          case SDLK_n:
+            {
+              current_boss = 3;
+              expired_ms = 1000000;
+            }
+            break;
 #endif
 
-					default:
-						break;
-				}
-			}
-			if (event.type == SDL_KEYUP) {
-				switch (event.key.keysym.sym) {
-					case SDLK_w:
-					case SDLK_UP:
-						key_held[K_UP] = 0;
-						break;
-					case SDLK_s:
-					case SDLK_DOWN:
-						key_held[K_DN] = 0;
-						break;
-					case SDLK_a:
-					case SDLK_LEFT:
-						key_held[K_LT] = 0;
-						break;
-					case SDLK_d:
-					case SDLK_RIGHT:
-						key_held[K_RT] = 0;
-						break;
-					case SDLK_SPACE:
-						key_held[K_SP] = 0;
-						break;
-					default:
-						break;
-				}
-			}
-			if (event.type == SDL_QUIT) {
-				voluntary_exit = 1;
-			}
-		}
+          default:
+            break;
+        }
+      }
+      if (event.type == SDL_KEYUP) {
+        switch (event.key.keysym.sym) {
+          case SDLK_w:
+          case SDLK_UP:
+            key_held[K_UP] = 0;
+            break;
+          case SDLK_s:
+          case SDLK_DOWN:
+            key_held[K_DN] = 0;
+            break;
+          case SDLK_a:
+          case SDLK_LEFT:
+            key_held[K_LT] = 0;
+            break;
+          case SDLK_d:
+          case SDLK_RIGHT:
+            key_held[K_RT] = 0;
+            break;
+          case SDLK_SPACE:
+            key_held[K_SP] = 0;
+            break;
+          default:
+            break;
+        }
+      }
+      if (event.type == SDL_QUIT) {
+        voluntary_exit = 1;
+      }
+    }
 
-	HandleGamepad (key_held);
+  HandleGamepad (key_held);
 
-	if (RECORDING) {
-		db = 0;
+  if (RECORDING) {
+    db = 0;
 
-		db |= 0x0001 * key_held[K_UP];
-		db |= 0x0002 * key_held[K_DN];
-		db |= 0x0004 * key_held[K_LT];
-		db |= 0x0008 * key_held[K_RT];
-		db |= 0x0010 * key_held[K_SP];
-		db |= 0x0020 * enter_pressed;
-		db |= 0x0040 * map_enabled;
-		db |= 0x0080 * game_running;
-		db |= 0x0100 * game_paused;
-		db |= 0x0200 * voluntary_exit;
-		db |= 0x0400 * pressed_tab;
-		db |= 0x0800 * tele_select;
+    db |= 0x0001 * key_held[K_UP];
+    db |= 0x0002 * key_held[K_DN];
+    db |= 0x0004 * key_held[K_LT];
+    db |= 0x0008 * key_held[K_RT];
+    db |= 0x0010 * key_held[K_SP];
+    db |= 0x0020 * enter_pressed;
+    db |= 0x0040 * map_enabled;
+    db |= 0x0080 * game_running;
+    db |= 0x0100 * game_paused;
+    db |= 0x0200 * voluntary_exit;
+    db |= 0x0400 * pressed_tab;
+    db |= 0x0800 * tele_select;
 
-		fputc(db & 0x00FF, record_file);
-		fputc((db & 0xFF00)>>8, record_file);
-		return;
-	}
+    fputc(db & 0x00FF, record_file);
+    fputc((db & 0xFF00)>>8, record_file);
+    return;
+  }
 
 }
 
 void DrawLevel(int off_x, int off_y, int hide_not_visited, int fog_of_war)
 {
-	static SDL_Surface *tiles = NULL;
-	static SDL_Surface *fog = NULL;
-	Uint8 *pp;
-	SDL_Rect tilerec, screenrec;
-	int x, y, i;
-	int resolve_x, resolve_y;
+  static SDL_Surface *tiles = NULL;
+  static SDL_Surface *fog = NULL;
+  Uint8 *pp;
+  SDL_Rect tilerec, screenrec;
+  int x, y, i;
+  int resolve_x, resolve_y;
 
-	DrawRect(0, 0, 640, 480, 255);
+  DrawRect(0, 0, 640, 480, 255);
 
-	if (tiles == NULL) {
-		tiles = IMG_Load("dat/i/tileset.png");
-		fog = IMG_Load("dat/i/tileset.png");
+  if (tiles == NULL) {
+    tiles = IMG_Load("dat/i/tileset.png");
+    fog = IMG_Load("dat/i/tileset.png");
 
-		pp = fog->pixels;
+    pp = fog->pixels;
 
-		for (i = 0; i < fog->w*fog->h; i++) {
-			*pp = *pp / 2 + 128;
-			pp++;
-		}
-	}
-	for (y = 0; y < 16; y++) {
-		for (x = 0; x < 21; x++) {
-			resolve_x = x + (off_x/32);
-			resolve_y = y + (off_y/32);
+    for (i = 0; i < fog->w*fog->h; i++) {
+      *pp = *pp / 2 + 128;
+      pp++;
+    }
+  }
+  for (y = 0; y < 16; y++) {
+    for (x = 0; x < 21; x++) {
+      resolve_x = x + (off_x/32);
+      resolve_y = y + (off_y/32);
 
-			if ((GetVisited(resolve_x, resolve_y) == 0)&&(player_room != GetRoom(resolve_x, resolve_y))&&(hide_not_visited)) {
-				tilerec.x = 17 * 32;
-			} else {
-				tilerec.x = Get(resolve_x, resolve_y) * 32;
-			}
-			tilerec.y = 0;
-			tilerec.w = 32;
-			tilerec.h = 32;
+      if ((GetVisited(resolve_x, resolve_y) == 0)&&(player_room != GetRoom(resolve_x, resolve_y))&&(hide_not_visited)) {
+        tilerec.x = 17 * 32;
+      } else {
+        tilerec.x = Get(resolve_x, resolve_y) * 32;
+      }
+      tilerec.y = 0;
+      tilerec.w = 32;
+      tilerec.h = 32;
 
-			screenrec.x = x*32 - ( (off_x) %32);
-			screenrec.y = y*32 - ( (off_y) %32);
+      screenrec.x = x*32 - ( (off_x) %32);
+      screenrec.y = y*32 - ( (off_y) %32);
 
-			if ((player_room != GetRoom(resolve_x, resolve_y))&&(fog_of_war)) {
-				SDL_BlitSurface(fog, &tilerec, screen, &screenrec);
-			} else {
-				SDL_BlitSurface(tiles, &tilerec, screen, &screenrec);
-			}
-		}
-	}
+      if ((player_room != GetRoom(resolve_x, resolve_y))&&(fog_of_war)) {
+        SDL_BlitSurface(fog, &tilerec, screen, &screenrec);
+      } else {
+        SDL_BlitSurface(tiles, &tilerec, screen, &screenrec);
+      }
+    }
+  }
 }
 
 void DrawPlayer(int x, int y, int pl_dir, int pl_frm)
 {
-	static SDL_Surface *playersprite = NULL;
-	SDL_Rect playerrec, screenrec;
+  static SDL_Surface *playersprite = NULL;
+  SDL_Rect playerrec, screenrec;
 
-	if (playersprite == NULL) {
-		playersprite = IMG_Load("dat/i/player.png");
-		SDL_SetColorKey(playersprite, SDL_SRCCOLORKEY | SDL_RLEACCEL, 0);
-	}
+  if (playersprite == NULL) {
+    playersprite = IMG_Load("dat/i/player.png");
+    SDL_SetColorKey(playersprite, SDL_SRCCOLORKEY | SDL_RLEACCEL, 0);
+  }
 
-	playerrec.x = pl_frm * 16;
-	playerrec.y = pl_dir * 24;
-	playerrec.w = 16;
-	playerrec.h = 24;
+  playerrec.x = pl_frm * 16;
+  playerrec.y = pl_dir * 24;
+  playerrec.w = 16;
+  playerrec.h = 24;
 
-	screenrec.x = x;
-	screenrec.y = y;
+  screenrec.x = x;
+  screenrec.y = y;
 
-	SDL_BlitSurface(playersprite, &playerrec, screen, &screenrec);
+  SDL_BlitSurface(playersprite, &playerrec, screen, &screenrec);
 }
 
 void SetGreyscalePalette()
 {
-	SDL_Color grey[256];
-	SDL_Color pal[256];
-	int i;
+  SDL_Color grey[256];
+  SDL_Color pal[256];
+  int i;
 
-	float ip;
+  float ip;
 
-	for (i = 0; i < 256; i++) {
-		grey[i].r = grey[i].g = grey[i].b = i;
-	}
+  for (i = 0; i < 256; i++) {
+    grey[i].r = grey[i].g = grey[i].b = i;
+  }
 
-	for (i = 0; i < 256; i++) {
-		ip = (float)i / 255.0;
-		pal[i].r = (cos(ip * M_PI / 2.0 + M_PI) + 1.0) * 255;
-		pal[i].g = (sin(ip * M_PI / 2.0) * 255 + i) / 2;
-		pal[i].b = sin(ip * M_PI / 2.0) * 255;
-	}
+  for (i = 0; i < 256; i++) {
+    ip = (float)i / 255.0;
+    pal[i].r = (cos(ip * M_PI / 2.0 + M_PI) + 1.0) * 255;
+    pal[i].g = (sin(ip * M_PI / 2.0) * 255 + i) / 2;
+    pal[i].b = sin(ip * M_PI / 2.0) * 255;
+  }
 
-	SDL_SetPalette(screen, SDL_LOGPAL, grey, 0, 256);
-	SDL_SetPalette(screen, SDL_PHYSPAL, pal, 0, 256);
+  SDL_SetPalette(screen, SDL_LOGPAL, grey, 0, 256);
+  SDL_SetPalette(screen, SDL_PHYSPAL, pal, 0, 256);
 }
 
 void SetTonedPalette(float dct)
 {
-	SDL_Color pal[256];
-	float pct = 1.0 - dct;
-	float rp_dct, rp_pct;
-	float ip;
-	int ec;
-	int i;
-	static int tk = 0;
+  SDL_Color pal[256];
+  float pct = 1.0 - dct;
+  float rp_dct, rp_pct;
+  float ip;
+  int ec;
+  int i;
+  static int tk = 0;
 
-	ec = rooms[player_room].enemies;
+  ec = rooms[player_room].enemies;
 
-	if (ec < 50) {
-		rp_dct = (float)ec / 50.0;
-	} else {
-		rp_dct = 1.0;
-	}
-	rp_pct = 1.0 - rp_dct;
+  if (ec < 50) {
+    rp_dct = (float)ec / 50.0;
+  } else {
+    rp_dct = 1.0;
+  }
+  rp_pct = 1.0 - rp_dct;
 
-	if ( (player_room == 0) && (current_boss == 3) && (boss_fight_mode >= 3) ) {
-		if (boss_fight_mode == 23) {
-			for (i = 0; i < 256; i++) {
-				pal[i].r = i;
-				pal[i].g = i;
-				pal[i].b = i;
-			}
-		} else {
-			tk++;
-			pct = sin((float)tk / 20.0 * M_PI) * (0.5 - (float)(boss_fight_mode-3)*0.025) + (0.5 - (float)(boss_fight_mode-3)*0.025);
+  if ( (player_room == 0) && (current_boss == 3) && (boss_fight_mode >= 3) ) {
+    if (boss_fight_mode == 23) {
+      for (i = 0; i < 256; i++) {
+        pal[i].r = i;
+        pal[i].g = i;
+        pal[i].b = i;
+      }
+    } else {
+      tk++;
+      pct = sin((float)tk / 20.0 * M_PI) * (0.5 - (float)(boss_fight_mode-3)*0.025) + (0.5 - (float)(boss_fight_mode-3)*0.025);
 
-			if (magic_circuit < 0.1) pct = 1.0;
+      if (magic_circuit < 0.1) pct = 1.0;
 
-			for (i = 0; i < 256; i++) {
-				ip = (float)i / 255.0;
-				pal[i].r = 255 - (255 - (cos(ip * M_PI / 2.0 + M_PI) + 1.0) * 255)*pct;
-				pal[i].g = 255 - (255 - i)*pct;
-				pal[i].b = 255 - (255 - sin(ip * M_PI / 2.0) * 255) * pct;
-			}
+      for (i = 0; i < 256; i++) {
+        ip = (float)i / 255.0;
+        pal[i].r = 255 - (255 - (cos(ip * M_PI / 2.0 + M_PI) + 1.0) * 255)*pct;
+        pal[i].g = 255 - (255 - i)*pct;
+        pal[i].b = 255 - (255 - sin(ip * M_PI / 2.0) * 255) * pct;
+      }
 
 
-			pal[1].r = 0;
-			pal[1].g = 0;
-			pal[1].b = 0;
-		}
-	} else {
-		if (artifacts[11]) {
-			if (player_room == 0) {
-				tk++;
-				pct = sin((float)tk / 33.0 * M_PI) * 0.5 + 0.5;
-				for (i = 0; i < 256; i++) {
-					pal[i].r = i;
-					pal[i].g = (i / 3)*pct;
-					pal[i].b = (i * 2 / 3)*pct;
-				}
-			} else {
-				for (i = 0; i < 256; i++) {
-					ip = (float)i / 255.0;
-					pal[i].r = i;
-					pal[i].g = i * dct;
-					pal[i].b = (cos(ip * M_PI / 2.0 + M_PI) + 1.0) * 255 * dct;
-				}
-			}
+      pal[1].r = 0;
+      pal[1].g = 0;
+      pal[1].b = 0;
+    }
+  } else {
+    if (artifacts[11]) {
+      if (player_room == 0) {
+        tk++;
+        pct = sin((float)tk / 33.0 * M_PI) * 0.5 + 0.5;
+        for (i = 0; i < 256; i++) {
+          pal[i].r = i;
+          pal[i].g = (i / 3)*pct;
+          pal[i].b = (i * 2 / 3)*pct;
+        }
+      } else {
+        for (i = 0; i < 256; i++) {
+          ip = (float)i / 255.0;
+          pal[i].r = i;
+          pal[i].g = i * dct;
+          pal[i].b = (cos(ip * M_PI / 2.0 + M_PI) + 1.0) * 255 * dct;
+        }
+      }
 
-			if ( (current_boss == 3) && (player_shield == 30) && (player_room == 0)) {
-				if (boss_lives <= 1) {
-					tk++;
-					for (i = 0; i < 256; i++) {
-						pct = sin((float) (tk + i) / 24.0 * M_PI) * 0.5 + 0.5;
+      if ( (current_boss == 3) && (player_shield == 30) && (player_room == 0)) {
+        if (boss_lives <= 1) {
+          tk++;
+          for (i = 0; i < 256; i++) {
+            pct = sin((float) (tk + i) / 24.0 * M_PI) * 0.5 + 0.5;
 
-						pal[i].r = (i * 0.5 + 128)*pct;
-						pal[i].g = i * 0.5 + 128;
-						pal[i].b = (i * 0.5 + 128)*pct;
-					}
-				}
-			}
-		} else {
-			for (i = 0; i < 256; i++) {
-				ip = (float)i / 255.0;
-				pal[i].r = (((cos(ip * M_PI / 2.0 + M_PI) + 1.0) * 255)*pct + i*dct)*rp_pct + (sin(ip * M_PI / 2.0) * 207 + 48)*rp_dct;
-				pal[i].g = (i)*rp_pct + ((cos(ip * M_PI / 2.0 + M_PI) + 1.0) * 255)*rp_dct;
-				pal[i].b = ((sin(ip * M_PI / 2.0) * 255 * pct)+((cos(ip * M_PI / 2.0 + M_PI) + 1.0) * 255 * dct))*rp_pct + ((cos(ip * M_PI / 2.0 + M_PI) + 1.0) * 255)*rp_dct;
-			}
-		}
-	}
+            pal[i].r = (i * 0.5 + 128)*pct;
+            pal[i].g = i * 0.5 + 128;
+            pal[i].b = (i * 0.5 + 128)*pct;
+          }
+        }
+      }
+    } else {
+      for (i = 0; i < 256; i++) {
+        ip = (float)i / 255.0;
+        pal[i].r = (((cos(ip * M_PI / 2.0 + M_PI) + 1.0) * 255)*pct + i*dct)*rp_pct + (sin(ip * M_PI / 2.0) * 207 + 48)*rp_dct;
+        pal[i].g = (i)*rp_pct + ((cos(ip * M_PI / 2.0 + M_PI) + 1.0) * 255)*rp_dct;
+        pal[i].b = ((sin(ip * M_PI / 2.0) * 255 * pct)+((cos(ip * M_PI / 2.0 + M_PI) + 1.0) * 255 * dct))*rp_pct + ((cos(ip * M_PI / 2.0 + M_PI) + 1.0) * 255)*rp_dct;
+      }
+    }
+  }
 
-	SDL_SetPalette(screen, SDL_PHYSPAL, pal, 0, 256);
+  SDL_SetPalette(screen, SDL_PHYSPAL, pal, 0, 256);
 }
 
 void SetTitlePalette(int curve_start, int curve_end)
 {
-	SDL_Color pal[256];
-	int ec;
-	int i;
+  SDL_Color pal[256];
+  int ec;
+  int i;
 
-	for (i = 0; i < 256; i++) {
-		ec = (i - curve_start) * 255 / (curve_end-curve_start);
-		if (ec < 0) ec = 0;
-		if (ec > 255) ec = 255;
+  for (i = 0; i < 256; i++) {
+    ec = (i - curve_start) * 255 / (curve_end-curve_start);
+    if (ec < 0) ec = 0;
+    if (ec > 255) ec = 255;
 
-		pal[i].r = ec;
-		pal[i].g = ec;
-		pal[i].b = ec;
-	}
+    pal[i].r = ec;
+    pal[i].g = ec;
+    pal[i].b = ec;
+  }
 
-	SDL_SetPalette(screen, SDL_PHYSPAL, pal, 0, 256);
+  SDL_SetPalette(screen, SDL_PHYSPAL, pal, 0, 256);
 }
 
 void SetTitlePalette2(int t)
 {
-	SDL_Color pal[256];
-	int i;
+  SDL_Color pal[256];
+  int i;
 
-	float ip;
-	float bright;
-	float b_coeff;
+  float ip;
+  float bright;
+  float b_coeff;
 
-	bright = 1 - ((float)t / 30.0);
-	if (bright < 0.0) bright = 0.0;
-	b_coeff = 1 - bright;
+  bright = 1 - ((float)t / 30.0);
+  if (bright < 0.0) bright = 0.0;
+  b_coeff = 1 - bright;
 
-	for (i = 0; i < 256; i++) {
-		ip = (float)i / 255.0;
-		pal[i].r = (cos(ip * M_PI / 2.0 + M_PI) + 1.0) * 255 * b_coeff + 255*bright;
-		pal[i].g = (sin(ip * M_PI / 2.0) * 255 + i) / 2 * b_coeff + 255*bright;
-		pal[i].b = sin(ip * M_PI / 2.0) * 255 * b_coeff + 255*bright;
-	}
+  for (i = 0; i < 256; i++) {
+    ip = (float)i / 255.0;
+    pal[i].r = (cos(ip * M_PI / 2.0 + M_PI) + 1.0) * 255 * b_coeff + 255*bright;
+    pal[i].g = (sin(ip * M_PI / 2.0) * 255 + i) / 2 * b_coeff + 255*bright;
+    pal[i].b = sin(ip * M_PI / 2.0) * 255 * b_coeff + 255*bright;
+  }
 
-	SDL_SetPalette(screen, SDL_PHYSPAL, pal, 0, 256);
+  SDL_SetPalette(screen, SDL_PHYSPAL, pal, 0, 256);
 }
 
 int IsSolid(unsigned char tile)
 {
-	return TileData[tile].Is_Solid;
+  return TileData[tile].Is_Solid;
 }
 
 void ActivateBossDoor(int x, int y)
 {
-	static int bd_timer = 0;
-	int bx = x, by = y;
+  static int bd_timer = 0;
+  int bx = x, by = y;
 
-	// find boss room
-	if (rooms[GetRoom(x+1, y)].room_type == 2) {
-		bx += 1;
-	} else
-		if (rooms[GetRoom(x-1, y)].room_type == 2) {
-		bx -= 1;
-	} else
-		if (rooms[GetRoom(x, y+1)].room_type == 2) {
-		by += 1;
-	} else
-		if (rooms[GetRoom(x, y-1)].room_type == 2) {
-		by -= 1;
-	} else
-		return;
+  // find boss room
+  if (rooms[GetRoom(x+1, y)].room_type == 2) {
+    bx += 1;
+  } else
+    if (rooms[GetRoom(x-1, y)].room_type == 2) {
+    bx -= 1;
+  } else
+    if (rooms[GetRoom(x, y+1)].room_type == 2) {
+    by += 1;
+  } else
+    if (rooms[GetRoom(x, y-1)].room_type == 2) {
+    by -= 1;
+  } else
+    return;
 
-	if (artifacts[8 + rooms[GetRoom(bx, by)].room_param]) {
-		opening_door_x = x;
-		opening_door_y = y;
-		opening_door_i = 1;
-		opening_door_n = rooms[GetRoom(bx, by)].room_param;
-		if ((SDL_GetTicks() - bd_timer) > 100) {
-			SND_Pos("dat/a/crystal2.wav", 100, 0);
-			bd_timer = SDL_GetTicks();
-		}
-	}
+  if (artifacts[8 + rooms[GetRoom(bx, by)].room_param]) {
+    opening_door_x = x;
+    opening_door_y = y;
+    opening_door_i = 1;
+    opening_door_n = rooms[GetRoom(bx, by)].room_param;
+    if ((SDL_GetTicks() - bd_timer) > 100) {
+      SND_Pos("dat/a/crystal2.wav", 100, 0);
+      bd_timer = SDL_GetTicks();
+    }
+  }
 }
 
 int TouchTile(int ix, int iy)
 {
-		int i;
-		int off_x, off_y;
-		int ret = 1;
-		unsigned char tile;
+    int i;
+    int off_x, off_y;
+    int ret = 1;
+    unsigned char tile;
 
-		for (i = 0; i < 4; i++) {
-			off_x = 15*(i%2);
-			off_y = 23*(i/2);
+    for (i = 0; i < 4; i++) {
+      off_x = 15*(i%2);
+      off_y = 23*(i/2);
 
-			tile = Get((ix+off_x)/32, (iy+off_y)/32);
-			switch (tile) {
-				case 38:
-				case 39:
-				case 40:
-				case 41:
-					ActivateBossDoor((ix+off_x)/32, (iy+off_y)/32);
-					ret = 0;
-					break;
-				case 13:
-					player_x = (ix + off_x) / 32 * 32 + 8;
-					player_y = (iy/32 + 2)*32 + 32;
-					return 1;
-					break;
-				case 14:
-					player_x = (ix + off_x) / 32 * 32 + 8;
-					player_y = (iy/32 - 2)*32 + 8;
-					return 1;
-					break;
-				case 15:
-					player_x = (ix/32 + 2)*32 + 32;
-					player_y = (iy + off_y) / 32 * 32 + 4;
-					return 1;
-					break;
-				case 16:
-					player_x = (ix/32 - 2)*32 + 16;
-					player_y = (iy + off_y) / 32 * 32 + 4;
-					return 1;
-					break;
-				default:
-					if (TileData[tile].Is_Solid) ret = 0;
-					//ret = 0;
-					break;
-			}
-		}
-		if (ret == 1) {
-			player_x = ix;
-			player_y = iy;
-		}
-		return ret;
+      tile = Get((ix+off_x)/32, (iy+off_y)/32);
+      switch (tile) {
+        case 38:
+        case 39:
+        case 40:
+        case 41:
+          ActivateBossDoor((ix+off_x)/32, (iy+off_y)/32);
+          ret = 0;
+          break;
+        case 13:
+          player_x = (ix + off_x) / 32 * 32 + 8;
+          player_y = (iy/32 + 2)*32 + 32;
+          return 1;
+          break;
+        case 14:
+          player_x = (ix + off_x) / 32 * 32 + 8;
+          player_y = (iy/32 - 2)*32 + 8;
+          return 1;
+          break;
+        case 15:
+          player_x = (ix/32 + 2)*32 + 32;
+          player_y = (iy + off_y) / 32 * 32 + 4;
+          return 1;
+          break;
+        case 16:
+          player_x = (ix/32 - 2)*32 + 16;
+          player_y = (iy + off_y) / 32 * 32 + 4;
+          return 1;
+          break;
+        default:
+          if (TileData[tile].Is_Solid) ret = 0;
+          //ret = 0;
+          break;
+      }
+    }
+    if (ret == 1) {
+      player_x = ix;
+      player_y = iy;
+    }
+    return ret;
 }
 
 void text_init()
 {
-	FILE *font_data_file;
-	int chr, x, y;
-	const char* font_data_filename = "dat/d/font.dat";
-	font_data_file = fopen(font_data_filename, "rb");
-	if (font_data_file == NULL) {
-		perror(font_data_filename);
-		exit(1);
-	}
+  FILE *font_data_file;
+  int chr, x, y;
+  const char* font_data_filename = "dat/d/font.dat";
+  font_data_file = fopen(font_data_filename, "rb");
+  if (font_data_file == NULL) {
+    perror(font_data_filename);
+    exit(1);
+  }
 
-	for (chr = 0; chr < 128; chr++) {
-		for (y = 0; y < 8; y++) {
-			for (x = 0; x < 8; x++) {
-				font_data[chr][x][y] = fgetc(font_data_file);
-			}
-		}
-	}
+  for (chr = 0; chr < 128; chr++) {
+    for (y = 0; y < 8; y++) {
+      for (x = 0; x < 8; x++) {
+        font_data[chr][x][y] = fgetc(font_data_file);
+      }
+    }
+  }
 
-	fclose(font_data_file);
+  fclose(font_data_file);
 }
 
 void draw_char(int cur_x, int cur_y, int c, Uint8 tcol)
 {
-	int px, py;
-	Uint8 *pix;
+  int px, py;
+  Uint8 *pix;
 
-	for (py = 0; py < 8; py++) {
-		pix = (Uint8 *)screen->pixels;
-		pix += (py+cur_y)*screen->w;
-		pix += cur_x;
+  for (py = 0; py < 8; py++) {
+    pix = (Uint8 *)screen->pixels;
+    pix += (py+cur_y)*screen->w;
+    pix += cur_x;
 
-		if ((cur_x >= 0)&&(py+cur_y >= 0)&&(cur_x < screen->w-8)&&(py+cur_y < screen->h)) {
-			for (px = 0; px < 8; px++) {
-				if (font_data[c][px][py] == 255) {
-					*pix = tcol;
-				}
-				if ((font_data[c][px][py] < 255)&&(font_data[c][px][py] > 0)) {
-					*pix = ((int)tcol * font_data[c][px][py] / 256) + ((int)*pix * (256-font_data[c][px][py]) / 256);
-				}
-				pix++;
-			}
-		}
-	}
+    if ((cur_x >= 0)&&(py+cur_y >= 0)&&(cur_x < screen->w-8)&&(py+cur_y < screen->h)) {
+      for (px = 0; px < 8; px++) {
+        if (font_data[c][px][py] == 255) {
+          *pix = tcol;
+        }
+        if ((font_data[c][px][py] < 255)&&(font_data[c][px][py] > 0)) {
+          *pix = ((int)tcol * font_data[c][px][py] / 256) + ((int)*pix * (256-font_data[c][px][py]) / 256);
+        }
+        pix++;
+      }
+    }
+  }
 }
 
 void draw_text(int x, int y, char *str, Uint8 tcol)
 {
-	int c, cur_x, cur_y;
+  int c, cur_x, cur_y;
 
-	cur_x = x;
-	cur_y = y;
+  cur_x = x;
+  cur_y = y;
 
-	while (*str != 0) {
-		c = *(str++);
-		if (c == '\n') {
-			cur_x = x;
-			cur_y+=10;
-		} else {
-			draw_char(cur_x, cur_y, c, tcol);
-			cur_x+=8;
-		}
-	}
+  while (*str != 0) {
+    c = *(str++);
+    if (c == '\n') {
+      cur_x = x;
+      cur_y+=10;
+    } else {
+      draw_char(cur_x, cur_y, c, tcol);
+      cur_x+=8;
+    }
+  }
 }
 
 void draw_text_ex(int x, int y, char *str, Uint8 tcol, SDL_Surface *srf)
 {
-	Uint8 *pix;
-	int c, cur_x, cur_y, px, py;
+  Uint8 *pix;
+  int c, cur_x, cur_y, px, py;
 
-	cur_x = x;
-	cur_y = y;
+  cur_x = x;
+  cur_y = y;
 
-	while (*str != 0) {
-		c = *(str++);
-		if (c == '\n') {
-			cur_x = x;
-			cur_y+=8;
-		} else {
-			for (py = 0; py < 8; py++) {
-				pix = (Uint8 *)srf->pixels;
-				pix += (py+cur_y)*srf->w;
-				pix += cur_x;
-				for (px = 0; px < 8; px++) {
-					if (font_data[c][px][py]) {
-						*pix = tcol;
-					}
-					pix++;
-				}
-			}
-			cur_x+=8;
-		}
-	}
+  while (*str != 0) {
+    c = *(str++);
+    if (c == '\n') {
+      cur_x = x;
+      cur_y+=8;
+    } else {
+      for (py = 0; py < 8; py++) {
+        pix = (Uint8 *)srf->pixels;
+        pix += (py+cur_y)*srf->w;
+        pix += cur_x;
+        for (px = 0; px < 8; px++) {
+          if (font_data[c][px][py]) {
+            *pix = tcol;
+          }
+          pix++;
+        }
+      }
+      cur_x+=8;
+    }
+  }
 }
 
 void LockDoors(int r)
 {
-	//printf("Locking room %d...", r);
-	int x, y;
-	int rx, ry;
-	int rt;
-	int rcount = 0;
+  //printf("Locking room %d...", r);
+  int x, y;
+  int rx, ry;
+  int rt;
+  int rcount = 0;
 
-	for (y = 0; y < rooms[r].h; y++) {
-		for (x = 0; x < rooms[r].w; x++) {
-			rx = x + rooms[r].x;
-			ry = y + rooms[r].y;
-			rt = Get(rx, ry);
+  for (y = 0; y < rooms[r].h; y++) {
+    for (x = 0; x < rooms[r].w; x++) {
+      rx = x + rooms[r].x;
+      ry = y + rooms[r].y;
+      rt = Get(rx, ry);
 
-			if ((rt >= 13) && (rt <= 16)) {
-				rcount++;
-				Put(rx, ry, rt - 13 + 21, r);
-			}
-		}
-	}
-	//printf("locked %d doors\n", rcount);
+      if ((rt >= 13) && (rt <= 16)) {
+        rcount++;
+        Put(rx, ry, rt - 13 + 21, r);
+      }
+    }
+  }
+  //printf("locked %d doors\n", rcount);
 }
 
 void ActivateRoom(int room)
 {
-	//printf("Activating room %d (type %d)\n", room, rooms[room].room_type);
-	if (rooms[room].checkpoint) {
-		checkpoints_found++;
-	}
-	if (rooms[room].room_type == 3) {
-		// lock the doors!
-		LockDoors(room);
-	}
-	ActivateEnemies(room);
+  //printf("Activating room %d (type %d)\n", room, rooms[room].room_type);
+  if (rooms[room].checkpoint) {
+    checkpoints_found++;
+  }
+  if (rooms[room].room_type == 3) {
+    // lock the doors!
+    LockDoors(room);
+  }
+  ActivateEnemies(room);
 }
 
 void DrawRect(int x, int y, int w, int h, unsigned char c)
 {
-	SDL_Rect r;
+  SDL_Rect r;
 
-	r.x = x;
-	r.y = y;
-	r.w = w;
-	r.h = h;
+  r.x = x;
+  r.y = y;
+  r.w = w;
+  r.h = h;
 
-	SDL_FillRect(screen, &r, c);
+  SDL_FillRect(screen, &r, c);
 }
 
 void DrawCircuit()
 {
-	int vd = 520;
-	char buf[20];
+  int vd = 520;
+  char buf[20];
 
-	if (magic_circuit != 0) {
-		DrawRect(110, 469, 8+abs(magic_circuit) * vd / circuit_size, 9, (magic_circuit > 0) ? 159 : 72);
-		DrawRect(111, 470, 6+abs(magic_circuit) * vd / circuit_size, 7, (magic_circuit > 0) ? 183 : 80);
-		DrawRect(112, 471, 4+abs(magic_circuit) * vd / circuit_size, 5, (magic_circuit > 0) ? 207 : 96);
-		DrawRect(113, 472, 2+abs(magic_circuit) * vd / circuit_size, 3, (magic_circuit > 0) ? 231 : 112);
-		DrawRect(114, 473, abs(magic_circuit) * vd / circuit_size, 1, (magic_circuit > 0) ? 255 : 128);
-	}
-	sprintf(buf, "%.1f", fabs((float)magic_circuit / 100.0));
-	draw_text(115, 470, buf, 0);
-	draw_text(3, 469, "Psi Circuit", 200);
+  if (magic_circuit != 0) {
+    DrawRect(110, 469, 8+abs(magic_circuit) * vd / circuit_size, 9, (magic_circuit > 0) ? 159 : 72);
+    DrawRect(111, 470, 6+abs(magic_circuit) * vd / circuit_size, 7, (magic_circuit > 0) ? 183 : 80);
+    DrawRect(112, 471, 4+abs(magic_circuit) * vd / circuit_size, 5, (magic_circuit > 0) ? 207 : 96);
+    DrawRect(113, 472, 2+abs(magic_circuit) * vd / circuit_size, 3, (magic_circuit > 0) ? 231 : 112);
+    DrawRect(114, 473, abs(magic_circuit) * vd / circuit_size, 1, (magic_circuit > 0) ? 255 : 128);
+  }
+  sprintf(buf, "%.1f", fabs((float)magic_circuit / 100.0));
+  draw_text(115, 470, buf, 0);
+  draw_text(3, 469, "Psi Circuit", 200);
 }
 
 void ReleaseCircuit()
 {
-	circuit_release = 1;
-	release_range = circuit_range;
-	release_x = player_x;
-	release_y = player_y;
-	release_str = magic_circuit;
-	if (circuit_fillrate==30) {
-		release_str *= 1.25;
-	}
+  circuit_release = 1;
+  release_range = circuit_range;
+  release_x = player_x;
+  release_y = player_y;
+  release_str = magic_circuit;
+  if (circuit_fillrate==30) {
+    release_str *= 1.25;
+  }
 
-	SND_CircuitRelease(release_str);
-	magic_circuit *= -1;
+  SND_CircuitRelease(release_str);
+  magic_circuit *= -1;
 }
 
 void DrawCircle(int x, int y, int r, unsigned char c)
 {
-	int circ_y;
+  int circ_y;
 
-	int len_x, outer_len_x, inner_len_x;
+  int len_x, outer_len_x, inner_len_x;
 
-	int inner_r = r - 10;
-	if (inner_r < 1) inner_r = 1;
+  int inner_r = r - 10;
+  if (inner_r < 1) inner_r = 1;
 
-	if (r < 1) return;
-	// a^2 + b^2 = c^2
-	for (circ_y = 0; circ_y < r; circ_y++) {
-		if (circ_y < (r-10)) {
-			outer_len_x = sqrt(r*r - circ_y*circ_y);
-			inner_len_x = sqrt((r-10)*(r-10) - circ_y*circ_y);
-			DrawRect(x - outer_len_x, y - circ_y, (outer_len_x - inner_len_x), 1, c);
-			DrawRect(x + inner_len_x, y - circ_y, (outer_len_x - inner_len_x), 1, c);
-			DrawRect(x - outer_len_x, y + circ_y, (outer_len_x - inner_len_x), 1, c);
-			DrawRect(x + inner_len_x, y + circ_y, (outer_len_x - inner_len_x), 1, c);
-		} else {
-			len_x = sqrt(r*r - circ_y*circ_y);
+  if (r < 1) return;
+  // a^2 + b^2 = c^2
+  for (circ_y = 0; circ_y < r; circ_y++) {
+    if (circ_y < (r-10)) {
+      outer_len_x = sqrt(r*r - circ_y*circ_y);
+      inner_len_x = sqrt((r-10)*(r-10) - circ_y*circ_y);
+      DrawRect(x - outer_len_x, y - circ_y, (outer_len_x - inner_len_x), 1, c);
+      DrawRect(x + inner_len_x, y - circ_y, (outer_len_x - inner_len_x), 1, c);
+      DrawRect(x - outer_len_x, y + circ_y, (outer_len_x - inner_len_x), 1, c);
+      DrawRect(x + inner_len_x, y + circ_y, (outer_len_x - inner_len_x), 1, c);
+    } else {
+      len_x = sqrt(r*r - circ_y*circ_y);
 
-			DrawRect(x - len_x, y - circ_y, len_x*2, 1, c);
-			DrawRect(x - len_x, y + circ_y, len_x*2, 1, c);
-		}
-	}
+      DrawRect(x - len_x, y - circ_y, len_x*2, 1, c);
+      DrawRect(x - len_x, y + circ_y, len_x*2, 1, c);
+    }
+  }
 }
 
 void DrawCircleEx(int x, int y, int r, int r2, unsigned char c)
 {
-	int circ_y;
+  int circ_y;
 
-	int len_x, outer_len_x, inner_len_x;
+  int len_x, outer_len_x, inner_len_x;
 
-	int inner_r = r2;
-	int diffi = r-r2;
-	if (inner_r < 1) inner_r = 1;
+  int inner_r = r2;
+  int diffi = r-r2;
+  if (inner_r < 1) inner_r = 1;
 
 
 
-	if (r < 1) return;
-	// a^2 + b^2 = c^2
-	for (circ_y = 0; circ_y < r; circ_y++) {
-		if (circ_y < (r-diffi)) {
-			outer_len_x = sqrt(r*r - circ_y*circ_y);
-			inner_len_x = sqrt((r-diffi)*(r-diffi) - circ_y*circ_y);
-			DrawRect(x - outer_len_x, y - circ_y, (outer_len_x - inner_len_x), 1, c);
-			DrawRect(x + inner_len_x, y - circ_y, (outer_len_x - inner_len_x), 1, c);
-			DrawRect(x - outer_len_x, y + circ_y, (outer_len_x - inner_len_x), 1, c);
-			DrawRect(x + inner_len_x, y + circ_y, (outer_len_x - inner_len_x), 1, c);
-		} else {
-			len_x = sqrt(r*r - circ_y*circ_y);
+  if (r < 1) return;
+  // a^2 + b^2 = c^2
+  for (circ_y = 0; circ_y < r; circ_y++) {
+    if (circ_y < (r-diffi)) {
+      outer_len_x = sqrt(r*r - circ_y*circ_y);
+      inner_len_x = sqrt((r-diffi)*(r-diffi) - circ_y*circ_y);
+      DrawRect(x - outer_len_x, y - circ_y, (outer_len_x - inner_len_x), 1, c);
+      DrawRect(x + inner_len_x, y - circ_y, (outer_len_x - inner_len_x), 1, c);
+      DrawRect(x - outer_len_x, y + circ_y, (outer_len_x - inner_len_x), 1, c);
+      DrawRect(x + inner_len_x, y + circ_y, (outer_len_x - inner_len_x), 1, c);
+    } else {
+      len_x = sqrt(r*r - circ_y*circ_y);
 
-			DrawRect(x - len_x, y - circ_y, len_x*2, 1, c);
-			DrawRect(x - len_x, y + circ_y, len_x*2, 1, c);
-		}
-	}
+      DrawRect(x - len_x, y - circ_y, len_x*2, 1, c);
+      DrawRect(x - len_x, y + circ_y, len_x*2, 1, c);
+    }
+  }
 }
 
 void DrawShield()
 {
-	static int t=0;
-	int s_size;
-	int belts = 0;
-	int i, bpos;
-	t++;
+  static int t=0;
+  int s_size;
+  int belts = 0;
+  int i, bpos;
+  t++;
 
-	if (player_shield == 0) return;
-	if (shield_hp == 0) return;
+  if (player_shield == 0) return;
+  if (shield_hp == 0) return;
 
-	s_size = shield_hp;
-	if (s_size > 15) {
-		belts = s_size - 15;
-		s_size = 15;
-	}
-	DrawCircleEx(320, 240, 28+s_size, 28-s_size, 128 + (shield_hp*127/player_shield) - (50*(shield_hp<player_shield) + shield_recover) - 45 + ((t%4)*15));
+  s_size = shield_hp;
+  if (s_size > 15) {
+    belts = s_size - 15;
+    s_size = 15;
+  }
+  DrawCircleEx(320, 240, 28+s_size, 28-s_size, 128 + (shield_hp*127/player_shield) - (50*(shield_hp<player_shield) + shield_recover) - 45 + ((t%4)*15));
 
-	for (i = 0; i < belts; i++) {
-		bpos = 13 + (30 * (i+1) / (belts+1));
-		DrawCircleEx(320, 240, bpos + 1, bpos - 1, ((i+t)%6*12));
-	}
+  for (i = 0; i < belts; i++) {
+    bpos = 13 + (30 * (i+1) / (belts+1));
+    DrawCircleEx(320, 240, bpos + 1, bpos - 1, ((i+t)%6*12));
+  }
 }
 
-void ST_Teleport()
-{
-}
+// void ST_Teleport()
+// {
+// }
 
 int UpgradePrice(int t)
 {
-	// TODO: test this (upgrade prices)
-	int costFactor = CostFactor(t);
-	if (costFactor < 0) return 99999;
-	else return (80 - training*40) * costFactor + (5<<costFactor) * (4 - training*2);
+  // TODO: make upgrade prices configurable
+  int costFactor = CostFactor(t);
+  if (costFactor < 0) return 9999999;
+  else return (80 - training*40) * costFactor + (5<<costFactor) * (4 - training*2);
 }
 
 int GetNearestCheckpoint(int nx, int ny)
 {
-	int i;
-	int nearest_checkpoint = -1;
-	int nearest_dist = 10000000;
-	int cp_x, cp_y, cp_dist;
-	int room_chk[3000] = {0};
-	int x, y, rx, ry;
+  int i;
+  int nearest_checkpoint = -1;
+  int nearest_dist = 10000000;
+  int cp_x, cp_y, cp_dist;
+  int room_chk[3000] = {0};
+  int x, y, rx, ry;
 
-	i = GetRoom(nx/32, ny/32);
-	if (i != -1) {
-		room_chk[i] = 1;
-		if ((rooms[i].checkpoint != 0)&&(rooms[i].visited!=0)) {
-			nearest_checkpoint = i;
-		}
-	}
-	if (nearest_checkpoint == -1) {
+  i = GetRoom(nx/32, ny/32);
+  if (i != -1) {
+    room_chk[i] = 1;
+    if ((rooms[i].checkpoint != 0)&&(rooms[i].visited!=0)) {
+      nearest_checkpoint = i;
+    }
+  }
+  if (nearest_checkpoint == -1) {
 
-		for (y = 0; y < 54;) {
-			for (x = 0; x < 54;) {
-				rx = nx/32 - 27 + x;
-				ry = ny/32 - 27 + y;
+    for (y = 0; y < 54;) {
+      for (x = 0; x < 54;) {
+        rx = nx/32 - 27 + x;
+        ry = ny/32 - 27 + y;
 
-				i = GetRoom(rx, ry);
-				if (i != -1) {
-					if (room_chk[i] == 0) {
-						room_chk[i] = 1;
-						if ((rooms[i].checkpoint != 0)&&(rooms[i].visited!=0)) {
-							cp_x = rooms[i].x * 32 + rooms[i].w * 16;
-							cp_y = rooms[i].y * 32 + rooms[i].h * 16;
-							cp_dist = dist(cp_x, cp_y, nx, ny);
-							if (cp_dist < nearest_dist) {
-								nearest_dist = cp_dist;
-								nearest_checkpoint = i;
-							}
-						}
-					}
-				}
-				x += 2;
-			}
-			y += 2;
-		}
+        i = GetRoom(rx, ry);
+        if (i != -1) {
+          if (room_chk[i] == 0) {
+            room_chk[i] = 1;
+            if ((rooms[i].checkpoint != 0)&&(rooms[i].visited!=0)) {
+              cp_x = rooms[i].x * 32 + rooms[i].w * 16;
+              cp_y = rooms[i].y * 32 + rooms[i].h * 16;
+              cp_dist = dist(cp_x, cp_y, nx, ny);
+              if (cp_dist < nearest_dist) {
+                nearest_dist = cp_dist;
+                nearest_checkpoint = i;
+              }
+            }
+          }
+        }
+        x += 2;
+      }
+      y += 2;
+    }
 
-	}
+  }
 
-	return nearest_checkpoint;
+  return nearest_checkpoint;
 }
 
 void TeleportPlayerToRoom(int c_room)
 {
-	if (c_room == 0) {
-		player_x = 8232;
-		player_y = 8108;
-	} else {
-		player_x = rooms[c_room].x * 32 + (rooms[c_room].w / 2 * 32) + 8;
-		player_y = rooms[c_room].y * 32 + (rooms[c_room].h / 2 * 32) + 4;
-	}
-	c_scroll_x = player_x;
-	c_scroll_y = player_y;
-	scroll_home = 1;
+  if (c_room == 0) {
+    player_x = 8232;
+    player_y = 8108;
+  } else {
+    player_x = rooms[c_room].x * 32 + (rooms[c_room].w / 2 * 32) + 8;
+    player_y = rooms[c_room].y * 32 + (rooms[c_room].h / 2 * 32) + 4;
+  }
+  c_scroll_x = player_x;
+  c_scroll_y = player_y;
+  scroll_home = 1;
 }
 
 
 void TeleportPlayerToNextRoom()
 {
-	int c_room;
-	c_room = (player_room + 1) % 3000;
-	while (! ((rooms[c_room].checkpoint!=0)&&(rooms[c_room].visited!=0))) {
-		c_room = (c_room + 1) % 3000;
-	}
+  int c_room;
+  c_room = (player_room + 1) % 3000;
+  while (! ((rooms[c_room].checkpoint!=0)&&(rooms[c_room].visited!=0))) {
+    c_room = (c_room + 1) % 3000;
+  }
 
-	if (c_room == 0) {
-		player_x = 8232;
-		player_y = 8108;
-	} else {
-		player_x = rooms[c_room].x * 32 + (rooms[c_room].w / 2 * 32) + 8;
-		player_y = rooms[c_room].y * 32 + (rooms[c_room].h / 2 * 32) + 4;
-	}
-	c_scroll_x = player_x;
-	c_scroll_y = player_y;
-	scroll_home = 1;
+  if (c_room == 0) {
+    player_x = 8232;
+    player_y = 8108;
+  } else {
+    player_x = rooms[c_room].x * 32 + (rooms[c_room].w / 2 * 32) + 8;
+    player_y = rooms[c_room].y * 32 + (rooms[c_room].h / 2 * 32) + 4;
+  }
+  c_scroll_x = player_x;
+  c_scroll_y = player_y;
+  scroll_home = 1;
 }
 
 void ActivateTile(unsigned char tile, int x, int y)
 {
-	int c_room;
+  int c_room;
 
-	enter_pressed = 0;
-	switch (tile) {
-		case 25:
-			if (artifacts[11]) break;
+  enter_pressed = 0;
+  switch (tile) {
+    case 25:
+      if (artifacts[11]) break;
 
-			c_room = GetNearestCheckpoint(c_scroll_x, c_scroll_y);
-			if (tele_select) {
-				if (c_room != -1) {
-					if (c_room == player_room) {
-						TeleportPlayerToNextRoom();
-					} else {
-						TeleportPlayerToRoom(c_room);
-					}
-				}
-			} else {
-				map_enabled = 1;
-				game_paused = 1;
-				tele_select = 1;
+      c_room = GetNearestCheckpoint(c_scroll_x, c_scroll_y);
+      if (tele_select) {
+        if (c_room != -1) {
+          if (c_room == player_room) {
+            TeleportPlayerToNextRoom();
+          } else {
+            TeleportPlayerToRoom(c_room);
+          }
+        }
+      } else {
+        map_enabled = 1;
+        game_paused = 1;
+        tele_select = 1;
 
-				c_scroll_x = player_x;
-				c_scroll_y = player_y;
-			}
+        c_scroll_x = player_x;
+        c_scroll_y = player_y;
+      }
 
-			break;
-		case 26:
-			// TODO: test this (treasure boxes)
-			CollectItem(IS_CHESTS);
-			Put(x, y, 27, GetRoom(x, y));
-			break;
-		case 28:
-			if (CostFactor(IS_ALPHA) < 0) return;
-			if (player_gems >= UpgradePrice(0)) {
-				player_gems -= UpgradePrice(0);
-				// TODO: test this (shield upgrade)
-				CollectItem(IS_ALPHA);
-			}
-			break;
-		case 29:
-			if (CostFactor(IS_BETA) < 0) return;
-			if (player_gems >= UpgradePrice(1)) {
-				player_gems -= UpgradePrice(1);
-				// TODO: test this (fill rate upgrade)
-				CollectItem(IS_BETA);
-			}
-			break;
-		case 30:
-			if (CostFactor(IS_GAMMA) < 0) return;
-			if (player_gems >= UpgradePrice(2)) {
-				player_gems -= UpgradePrice(2);
-				// TODO: test this (recover upgrade)
-				CollectItem(IS_GAMMA);
-			}
-			break;
-		case 31:
-			DoSaveGame();
-			break;
-		case 32:
-			CrystalSummon();
-			SND_Pos("dat/a/crystal.wav", 80, 0);
-			break;
-		default:
-			break;
-	}
+      break;
+    case 26:
+      // NOTE: Treasure boxes
+      CollectItem(IS_CHESTS);
+      Put(x, y, 27, GetRoom(x, y));
+      break;
+    case 28:
+      if (CostFactor(IS_ALPHA) < 0) return;
+      if (player_gems >= UpgradePrice(0)) {
+        player_gems -= UpgradePrice(0);
+        // NOTE: Alpha store
+        CollectItem(IS_ALPHA);
+      }
+      break;
+    case 29:
+      if (CostFactor(IS_BETA) < 0) return;
+      if (player_gems >= UpgradePrice(1)) {
+        player_gems -= UpgradePrice(1);
+        // NOTE: Beta store
+        CollectItem(IS_BETA);
+      }
+      break;
+    case 30:
+      if (CostFactor(IS_GAMMA) < 0) return;
+      if (player_gems >= UpgradePrice(2)) {
+        player_gems -= UpgradePrice(2);
+        // NOTE: Gamma store
+        CollectItem(IS_GAMMA);
+      }
+      break;
+    case 31:
+      DoSaveGame();
+      break;
+    case 32:
+      CrystalSummon();
+      SND_Pos("dat/a/crystal.wav", 80, 0);
+      break;
+    default:
+      break;
+  }
 }
 
 void CompassPoint()
 {
-	int nearest = 1000000;
-	int n_room = -1;
-	int i;
-	int loc_x, loc_y;
-	int cdist;
-	int rplx, rply;
-	int bosses_defeated = current_boss;
-	float pdir_1 = 0;
-	float pdir_2 = 0;
-	int pdir_1t = 0, pdir_2t = 0;
+  int nearest = 1000000;
+  int n_room = -1;
+  int i;
+  int loc_x, loc_y;
+  int cdist;
+  int rplx, rply;
+  int bosses_defeated = current_boss;
+  float pdir_1 = 0;
+  float pdir_2 = 0;
+  int pdir_1t = 0, pdir_2t = 0;
 
-	rplx = player_x + PLAYERW/2;
-	rply = player_y + PLAYERH/2;
-	// Find the nearest SIGNIFICANT LOCATION for the player
+  rplx = player_x + PLAYERW/2;
+  rply = player_y + PLAYERH/2;
+  // Find the nearest SIGNIFICANT LOCATION for the player
 
-	// Look at the three artifacts
-	// Unless the player is going for the place of power
+  // Look at the three artifacts
+  // Unless the player is going for the place of power
 
-	if (current_boss < 3) {
-		for (i = 0; i < 3; i++) {
-			// Has the player got this artifact already?
-			if (artifacts[8+i] == 0) { // no
-				// Has the player already destroyed the boss?
-				if (rooms[i * 1000 + 999].room_type == 2) { // no
-					// Can the player get the artifact?
-					if (CanGetArtifact()) {
-						// Point player to this artifact room, if it is the nearest
-						loc_x = rooms[i * 1000 + 499].x * 32 + rooms[i * 1000 + 499].w * 16;
-						loc_y = rooms[i * 1000 + 499].y * 32 + rooms[i * 1000 + 499].h * 16;
-						cdist = dist(rplx, rply, loc_x, loc_y);
-						if (cdist < nearest) {
-							nearest = cdist;
-							n_room = i * 1000 + 499;
-						}
-					}
-				}
-			} else { // has artifact
-				// Has the player already destroyed the boss?
-				if (rooms[i * 1000 + 999].room_type == 2) { // no
-					// Point player to the boss room, if it is the nearest
-					loc_x = rooms[i * 1000 + 999].x * 32 + rooms[i * 1000 + 999].w * 16;
-					loc_y = rooms[i * 1000 + 999].y * 32 + rooms[i * 1000 + 999].h * 16;
-					cdist = dist(rplx, rply, loc_x, loc_y);
-					if (cdist < nearest) {
-						nearest = cdist;
-						n_room = i * 1000 + 999;
-					}
-				} else { // yes
-					bosses_defeated++;
-				}
-			}
-		}
-	}
-	// If, on the other hand, the player has destroyed all three bosses, point them towards the
-	// PLACE OF POWER
-	if (bosses_defeated == 3) {
-		// If the player already has the seal, point them to home
-		if (artifacts[11] == 1) {
-			loc_x = rooms[0].x * 32 + rooms[0].w * 16;
-			loc_y = rooms[0].y * 32 + rooms[0].h * 16;
-			cdist = dist(rplx, rply, loc_x, loc_y);
-			if (cdist < nearest) {
-				nearest = cdist;
-				n_room = 0;
-			}
-		} else {
-			// Can the player touch the seal?
-			if (CanGetArtifact()) {
-				loc_x = rooms[place_of_power].x * 32 + rooms[place_of_power].w * 16;
-				loc_y = rooms[place_of_power].y * 32 + rooms[place_of_power].h * 16;
-				cdist = dist(rplx, rply, loc_x, loc_y);
-				if (cdist < nearest) {
-					nearest = cdist;
-					n_room = place_of_power;
-				}
-			}
-		}
-	}
+  if (current_boss < 3) {
+    for (i = 0; i < 3; i++) {
+      // Has the player got this artifact already?
+      if (artifacts[8+i] == 0) { // no
+        // Has the player already destroyed the boss?
+        if (rooms[i * 1000 + 999].room_type == 2) { // no
+          // Can the player get the artifact?
+          if (CanGetArtifact()) {
+            // Point player to this artifact room, if it is the nearest
+            loc_x = rooms[i * 1000 + 499].x * 32 + rooms[i * 1000 + 499].w * 16;
+            loc_y = rooms[i * 1000 + 499].y * 32 + rooms[i * 1000 + 499].h * 16;
+            cdist = dist(rplx, rply, loc_x, loc_y);
+            if (cdist < nearest) {
+              nearest = cdist;
+              n_room = i * 1000 + 499;
+            }
+          }
+        }
+      } else { // has artifact
+        // Has the player already destroyed the boss?
+        if (rooms[i * 1000 + 999].room_type == 2) { // no
+          // Point player to the boss room, if it is the nearest
+          loc_x = rooms[i * 1000 + 999].x * 32 + rooms[i * 1000 + 999].w * 16;
+          loc_y = rooms[i * 1000 + 999].y * 32 + rooms[i * 1000 + 999].h * 16;
+          cdist = dist(rplx, rply, loc_x, loc_y);
+          if (cdist < nearest) {
+            nearest = cdist;
+            n_room = i * 1000 + 999;
+          }
+        } else { // yes
+          bosses_defeated++;
+        }
+      }
+    }
+  }
+  // If, on the other hand, the player has destroyed all three bosses, point them towards the
+  // PLACE OF POWER
+  if (bosses_defeated == 3) {
+    // If the player already has the seal, point them to home
+    if (artifacts[11] == 1) {
+      loc_x = rooms[0].x * 32 + rooms[0].w * 16;
+      loc_y = rooms[0].y * 32 + rooms[0].h * 16;
+      cdist = dist(rplx, rply, loc_x, loc_y);
+      if (cdist < nearest) {
+        nearest = cdist;
+        n_room = 0;
+      }
+    } else {
+      // Can the player touch the seal?
+      if (CanGetArtifact()) {
+        loc_x = rooms[place_of_power].x * 32 + rooms[place_of_power].w * 16;
+        loc_y = rooms[place_of_power].y * 32 + rooms[place_of_power].h * 16;
+        cdist = dist(rplx, rply, loc_x, loc_y);
+        if (cdist < nearest) {
+          nearest = cdist;
+          n_room = place_of_power;
+        }
+      }
+    }
+  }
 
-	// Did we find a room? If so, point to it
+  // Did we find a room? If so, point to it
 
-	if (n_room != -1) {
-		loc_x = rooms[n_room].x * 32 + rooms[n_room].w * 16;
-		loc_y = rooms[n_room].y * 32 + rooms[n_room].h * 16;
+  if (n_room != -1) {
+    loc_x = rooms[n_room].x * 32 + rooms[n_room].w * 16;
+    loc_y = rooms[n_room].y * 32 + rooms[n_room].h * 16;
 
-		pdir_1 = PlayerDir(loc_x, loc_y) + M_PI;
-		pdir_1t = 1;
+    pdir_1 = PlayerDir(loc_x, loc_y) + M_PI;
+    pdir_1t = 1;
 
-		n_room = -1;
-	}
+    n_room = -1;
+  }
 
-	nearest = 1000000;
-	// Find the nearest uncleared artifact room
-	for (i = 0; i < 3000; i++) {
-		if (rooms[i].room_type == 3) {
-			loc_x = rooms[i].x * 32 + rooms[i].w * 16;
-			loc_y = rooms[i].y * 32 + rooms[i].h * 16;
-			cdist = dist(rplx, rply, loc_x, loc_y);
-			if (cdist < nearest) {
-				nearest = cdist;
-				n_room = i;
-			}
-		}
-	}
+  nearest = 1000000;
+  // Find the nearest uncleared artifact room
+  for (i = 0; i < 3000; i++) {
+    if (rooms[i].room_type == 3) {
+      loc_x = rooms[i].x * 32 + rooms[i].w * 16;
+      loc_y = rooms[i].y * 32 + rooms[i].h * 16;
+      cdist = dist(rplx, rply, loc_x, loc_y);
+      if (cdist < nearest) {
+        nearest = cdist;
+        n_room = i;
+      }
+    }
+  }
 
-	if (n_room != -1) {
-		loc_x = rooms[n_room].x * 32 + rooms[n_room].w * 16;
-		loc_y = rooms[n_room].y * 32 + rooms[n_room].h * 16;
+  if (n_room != -1) {
+    loc_x = rooms[n_room].x * 32 + rooms[n_room].w * 16;
+    loc_y = rooms[n_room].y * 32 + rooms[n_room].h * 16;
 
-		pdir_2 = PlayerDir(loc_x, loc_y) + M_PI;
-		pdir_2t = 1;
+    pdir_2 = PlayerDir(loc_x, loc_y) + M_PI;
+    pdir_2t = 1;
 
-		n_room = -1;
-	}
+    n_room = -1;
+  }
 
-	// Did we find at least one thing to point to? If not, abort
-	if (!(pdir_1t || pdir_2t))
-		return;
+  // Did we find at least one thing to point to? If not, abort
+  if (!(pdir_1t || pdir_2t))
+    return;
 
-	DrawCircleEx(rplx - scroll_x, rply - scroll_y, 200, 190, 255);
-	if (pdir_1t)
-		DrawCircleEx(rplx - scroll_x + cos(pdir_1) * 170, rply - scroll_y + sin(pdir_1) * 170, 30, 20, 255);
-	if (pdir_2t)
-		DrawCircleEx(rplx - scroll_x + cos(pdir_2) * 170, rply - scroll_y + sin(pdir_2) * 170, 30, 20, 195);
+  DrawCircleEx(rplx - scroll_x, rply - scroll_y, 200, 190, 255);
+  if (pdir_1t)
+    DrawCircleEx(rplx - scroll_x + cos(pdir_1) * 170, rply - scroll_y + sin(pdir_1) * 170, 30, 20, 255);
+  if (pdir_2t)
+    DrawCircleEx(rplx - scroll_x + cos(pdir_2) * 170, rply - scroll_y + sin(pdir_2) * 170, 30, 20, 195);
 
-	for (i = 0; i < 50; i++) {
-		if (pdir_1t)
-			DrawCircle(rplx - scroll_x + cos(pdir_1) * (25 + i * 4), rply - scroll_y + sin(pdir_1) * (25 + i * 4), 5, 255);
-		if (pdir_2t)
-			DrawCircle(rplx - scroll_x + cos(pdir_2) * (25 + i * 4), rply - scroll_y + sin(pdir_2) * (25 + i * 4), 5, 195);
-	}
-	DrawCircleEx(rplx - scroll_x, rply - scroll_y, 30, 20, 255);
+  for (i = 0; i < 50; i++) {
+    if (pdir_1t)
+      DrawCircle(rplx - scroll_x + cos(pdir_1) * (25 + i * 4), rply - scroll_y + sin(pdir_1) * (25 + i * 4), 5, 255);
+    if (pdir_2t)
+      DrawCircle(rplx - scroll_x + cos(pdir_2) * (25 + i * 4), rply - scroll_y + sin(pdir_2) * (25 + i * 4), 5, 195);
+  }
+  DrawCircleEx(rplx - scroll_x, rply - scroll_y, 30, 20, 255);
 
-	DrawCircleEx(rplx - scroll_x, rply - scroll_y, 197, 193, 128);
-	if (pdir_1t)
-		DrawCircleEx(rplx - scroll_x + cos(pdir_1) * 170, rply - scroll_y + sin(pdir_1) * 170, 27, 23, 128);
-	if (pdir_2t)
-		DrawCircleEx(rplx - scroll_x + cos(pdir_2) * 170, rply - scroll_y + sin(pdir_2) * 170, 27, 23, 78);
+  DrawCircleEx(rplx - scroll_x, rply - scroll_y, 197, 193, 128);
+  if (pdir_1t)
+    DrawCircleEx(rplx - scroll_x + cos(pdir_1) * 170, rply - scroll_y + sin(pdir_1) * 170, 27, 23, 128);
+  if (pdir_2t)
+    DrawCircleEx(rplx - scroll_x + cos(pdir_2) * 170, rply - scroll_y + sin(pdir_2) * 170, 27, 23, 78);
 
-	for (i = 0; i < 50; i++) {
-		if (pdir_1t)
-			DrawCircle(rplx - scroll_x + cos(pdir_1) * (25 + i * 4), rply - scroll_y + sin(pdir_1) * (25 + i * 4), 3, 128);
-		if (pdir_2t)
-			DrawCircle(rplx - scroll_x + cos(pdir_2) * (25 + i * 4), rply - scroll_y + sin(pdir_2) * (25 + i * 4), 3, 78);
-	}
-	DrawCircleEx(rplx - scroll_x, rply - scroll_y, 27, 23, 128);
+  for (i = 0; i < 50; i++) {
+    if (pdir_1t)
+      DrawCircle(rplx - scroll_x + cos(pdir_1) * (25 + i * 4), rply - scroll_y + sin(pdir_1) * (25 + i * 4), 3, 128);
+    if (pdir_2t)
+      DrawCircle(rplx - scroll_x + cos(pdir_2) * (25 + i * 4), rply - scroll_y + sin(pdir_2) * (25 + i * 4), 3, 78);
+  }
+  DrawCircleEx(rplx - scroll_x, rply - scroll_y, 27, 23, 128);
+}
+
+void PostMessage(int msgid, int duration, int paramcount, ...)
+{
+  t_queued_message *newmsg = malloc(sizeof(t_queued_message));
+  memset(newmsg, 0, sizeof(t_queued_message));
+  newmsg->msgid = msgid;
+  newmsg->duration = duration;
+  newmsg->paramcount = paramcount;
+  newmsg->params = malloc(sizeof(char*) * paramcount);
+
+  if (paramcount > 0) {
+    va_list ptr;
+
+    va_start(ptr, paramcount);
+    for (int x = 0; x < paramcount; x++) {
+      newmsg->params[x] = malloc(sizeof(char) * 100);
+      memset(newmsg->params[x], 100 * sizeof(char), 0);
+      snprintf(newmsg->params[x], 99, va_arg(ptr, char*));
+    }
+    va_end(ptr);
+  }
+
+  if (msgqueue == NULL) msgqueue = newmsg;
+  else {
+    t_queued_message *findend = msgqueue;
+    while (findend->next != NULL) findend = findend->next;
+    findend->next = newmsg;
+  }
 }
 
 void SpecialTile(int x, int y)
 {
-	static int otext = 0;
-	static int t = 0;
-	unsigned char tile;
-	char message[100] = "";
+  static int otext = 0;
+  static int t = 0;
+  unsigned char tile;
+  char message[100] = "";
+  char specialmessage1[100] = "";
+  char specialmessage2[100] = "";
 
-	tile = Get(x, y);
-	switch (tile) {
-		case 25:
-			if (artifacts[11]) {
-				sprintf(message, "This is a checkpoint, but it doesn't seem to be working");
-				break;
-			}
-			if (checkpoints_found <= 1) {
-				sprintf(message, "This is a checkpoint. You will return here when you die.");
-			} else {
-				sprintf(message, "Press ENTER to teleport between checkpoints.");
-			}
-			break;
-		case 26:
-			sprintf(message, "Press ENTER to open the storage chest");
-			break;
-		case 28:
-			if (CostFactor(IS_ALPHA) < 0) {
-				sprintf(message, "Alpha cache is empty");
-			} else {
-				sprintf(message, "Press ENTER to loot Alpha cache (%d crystals)", UpgradePrice(0));
-			}
-			break;
-		case 29:
-			if (CostFactor(IS_BETA) < 0) {
-				sprintf(message, "Beta cache is empty");
-			} else {
-				sprintf(message, "Press ENTER to loot Beta cache (%d crystals)", UpgradePrice(1));
-			}
-			break;
-		case 30:
-			if (CostFactor(IS_GAMMA) < 0) {
-				sprintf(message, "Gamma cache is empty");
-			} else {
-				sprintf(message, "Press ENTER to loot Gamma cache (%d crystals)", UpgradePrice(2));
-			}
-			break;
-		case 31:
-			sprintf(message, "Press ENTER to record your progress");
-			break;
-		case 32:
-			if (total_gems == 0) {
-				sprintf(message, "This is a crystal device. It isn't working at the moment.");
-			} else {
-				sprintf(message, "Press ENTER to activate the crystal device");
-			}
-			break;
-		case 42:
-			if (rooms[player_room].room_type == 5) {
-				if (CanGetArtifact(rooms[player_room].room_param)) {
+  tile = Get(x, y);
+  switch (tile) {
+    case 25:
+      if (artifacts[11]) {
+        sprintf(message, "This is a checkpoint, but it doesn't seem to be working");
+        break;
+      }
+      if (checkpoints_found <= 1) {
+        sprintf(message, "This is a checkpoint. You will return here when you die.");
+      } else {
+        sprintf(message, "Press ENTER to teleport between checkpoints.");
+      }
+      break;
+    case 26:
+      sprintf(message, "Press ENTER to open the storage chest");
+      break;
+    case 28:
+      if (CostFactor(IS_ALPHA) < 0) {
+        sprintf(message, "Alpha cache is empty");
+      } else {
+        sprintf(message, "Press ENTER to loot Alpha cache (%d crystals)", UpgradePrice(0));
+      }
+      break;
+    case 29:
+      if (CostFactor(IS_BETA) < 0) {
+        sprintf(message, "Beta cache is empty");
+      } else {
+        sprintf(message, "Press ENTER to loot Beta cache (%d crystals)", UpgradePrice(1));
+      }
+      break;
+    case 30:
+      if (CostFactor(IS_GAMMA) < 0) {
+        sprintf(message, "Gamma cache is empty");
+      } else {
+        sprintf(message, "Press ENTER to loot Gamma cache (%d crystals)", UpgradePrice(2));
+      }
+      break;
+    case 31:
+      sprintf(message, "Press ENTER to record your progress");
+      break;
+    case 32:
+      if (total_gems == 0) {
+        sprintf(message, "This is a crystal device. It isn't working at the moment.");
+      } else {
+        sprintf(message, "Press ENTER to activate the crystal device");
+      }
+      break;
+    case 42:
+      if (rooms[player_room].room_type == 5) {
+        if (CanGetArtifact(rooms[player_room].room_param)) {
 
-				} else {
-					sprintf(message, "The artifact is tainted with shadow. You must slay more of the shadow first.");
-				}
-			}
-			break;
-		case 53:
-			CompassPoint();
-			break;
-		default:
-			if (first_game) {
-				if (otext < 60) {
-					sprintf(message, "Press H to read the help file");
-					otext++;
-				}
-			}
-			break;
-	}
+        } else {
+          sprintf(message, "The artifact is tainted with shadow. You must slay more of the shadow first.");
+        }
+      }
+      break;
+    case 53:
+      CompassPoint();
+      break;
+    default:
+      if (first_game) {
+        if (otext < 60) {
+          sprintf(message, "Press H to read the help file");
+          otext++;
+        }
+      }
+      break;
+  }
 
-	if (message[0] == 0) {
-		if (specialmessage != 0) {
-			switch (specialmessage) {
-				case 1: sprintf(message, "Ancient artifact: Complete Map"); break;
-				case 2: sprintf(message, "Ancient artifact: Shield boost"); break;
-				case 3: sprintf(message, "Ancient artifact: Extra crystal efficiency"); break;
-				case 4: sprintf(message, "Ancient artifact: Circuit booster"); break;
-				case 5: sprintf(message, "Ancient artifact: Metabolism increase"); break;
-				case 6: sprintf(message, "Ancient artifact: Dodge enhancer"); break;
-				case 7: sprintf(message, "Ancient artifact: Ethereal Monocle"); break;
-				case 8: sprintf(message, "Ancient artifact: Crystal gatherer"); break;
+  if (msgqueue != NULL) {
+    switch (msgqueue->msgid) {
+      case 1:
+        sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
+        sprintf(specialmessage1, "reveals the labyrinth within the Atlas Dome");
+        break;
+      case 2:
+        sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
+        sprintf(specialmessage1, "enhances Virtue's shield");
+        break;
+      case 3:
+        sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
+        sprintf(specialmessage1, "enriches all crystals within the Dome");
+        break;
+      case 4:
+        sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
+        sprintf(specialmessage1, "bolsters Virtue's PSI Circuit");
+        break;
+      case 5:
+        sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
+        sprintf(specialmessage1, "hastens Virtue's pace");
+        break;
+      case 6:
+        sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
+        sprintf(specialmessage1, "sharpens Virtue's reflexes");
+        break;
+      case 7:
+        sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
+        sprintf(specialmessage1, "reveals nearby threats");
+        break;
+      case 8:
+        sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
+        sprintf(specialmessage1, "draws crystals toward Virtue");
+        break;
 
-				case 10: sprintf(message, "Enhancement: Shield upgrade"); break;
-				case 11: sprintf(message, "Enhancement: Circuit charge upgrade"); break;
-				case 12: sprintf(message, "Enhancement: Circuit refill upgrade"); break;
+      case 10:
+        sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
+        sprintf(specialmessage1, "strengthens Virtue's shield");
+        break;
+      case 11:
+        sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
+        sprintf(specialmessage1, "strengthens Virtue's PSI Circuit");
+        break;
+      case 12:
+        sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
+        sprintf(specialmessage1, "hastens Virtue's PSI Circuit");
+        break;
 
-				case 20: sprintf(message, "Reward: Psi crystals"); break;
+      case 20:
+        sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
+        sprintf(specialmessage1, "showers Virtue with PSI crystals");
+        break;
 
-				case 25: sprintf(message, "The Dome becomes more dangerous"); break;
+      case 25:
+        sprintf(specialmessage1, "A disruption from %s", msgqueue->params[0]);
+        sprintf(specialmessage1, "makes the Atlas Dome more dangerous");
+        break;
 
-				case 30: sprintf(message, "Holy Sword 'Balmung' answers your call"); break;
-				case 31: sprintf(message, "Mystic Halberd 'Amenonuhoko' answers your call"); break;
-				case 32: sprintf(message, "Divine Bow 'Gandiva' answers your call"); break;
-				case 33: sprintf(message, "You capture the cursed seal. Return to the entrance"); break;
+      case 30:
+        sprintf(specialmessage1, "Holy Sword 'Balmung' answers your call");
+        break;
+      case 31:
+        sprintf(specialmessage1, "Mystic Halberd 'Amenonuhoko' answers your call");
+        break;
+      case 32:
+        sprintf(specialmessage1, "Divine Bow 'Gandiva' answers your call");
+        break;
+      case 33:
+        sprintf(specialmessage1, "You capture the cursed seal. Return to the entrance");
+        break;
+      case 34:
+        sprintf(specialmessage1, "A surge from %s", msgqueue->params[0]);
+        sprintf(specialmessage2, "beckons the %s to VIRTUE's aid", msgqueue->params[1]);
 
-				case 40: sprintf(message, "Balmung will remain here, where the ley lines are strong"); break;
-				case 41: sprintf(message, "Amenonuhoko will remain here, where the ley lines are strong"); break;
-				case 42: sprintf(message, "Gandiva will remain here, where the ley lines are strong"); break;
+      case 40:
+        sprintf(specialmessage1, "Balmung will remain here,");
+        sprintf(specialmessage2, "where the ley lines are strong");
+        break;
+      case 41:
+        sprintf(specialmessage1, "Amenonuhoko will remain here,");
+        sprintf(specialmessage2, "where the ley lines are strong");
+        break;
+      case 42:
+        sprintf(specialmessage1, "Gandiva will remain here,");
+        sprintf(specialmessage2, "where the ley lines are strong");
+        break;
 
-				case 50: sprintf(message, ". . . . . .   retrieved 'Agate Knife'"); break;
+      case 50:
+        sprintf(specialmessage1, ". . . . . .");
+        sprintf(specialmessage2, "retrieved 'Agate Knife'");
+        break;
 
-				default: sprintf(message, "ERROR: NO MESSAGE VALUE GIVEN"); break;
-			}
-			specialmessagetimer--;
-			if (specialmessagetimer <= 0) {
-				specialmessage = 0;
-			}
-		}
-	}
+      case 60:
+        sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
+        sprintf(specialmessage2, "dissipates and does nothing");
+        break;
 
-	if (message[0] == 0) return;
+      default: sprintf(specialmessage1, "ERROR: NO/INVALID MESSAGE VALUE GIVEN"); break;
+    }
+    msgqueue->duration--;
+    if (msgqueue->duration > 20 && msgqueue->next != NULL) msgqueue->duration--;
+    if (msgqueue->duration <= 0) {
+      t_queued_message *delmsg = msgqueue;
+      msgqueue = msgqueue->next;
+      if (delmsg->params != NULL) {
+        for (int x = 0; x < delmsg->paramcount; x++) free(delmsg->params[x]);
+        free(delmsg->params);
+      }
+      free(delmsg);
+    }
+  }
 
-	DrawRect(320 - strlen(message)*8 / 2 - 20, 100, strlen(message)*8+40, 48, 200);
-	DrawRect(320 - strlen(message)*8 / 2 - 15, 105, strlen(message)*8+30, 38, 32);
-	DrawRect(320 - strlen(message)*8 / 2 - 10, 110, strlen(message)*8+20, 28, 64);
+  if (message[0] != 0) {
+    DrawRect(320 - strlen(message)*8 / 2 - 20, 100, strlen(message)*8+40, 48, 200);
+    DrawRect(320 - strlen(message)*8 / 2 - 15, 105, strlen(message)*8+30, 38, 32);
+    DrawRect(320 - strlen(message)*8 / 2 - 10, 110, strlen(message)*8+20, 28, 64);
 
-	draw_text(320 - strlen(message)*8 / 2, 120, message, t%16<8 ? 255 : 192);
-	t++;
-	if (enter_pressed) {
-		ActivateTile(tile, x, y);
-	}
+    draw_text(320 - strlen(message)*8 / 2, 120, message, t%16<8 ? 255 : 192);
+  }
+
+  if (specialmessage1[0] != 0) {
+    if (specialmessage2[0] == 0) sprintf(specialmessage2, "test");
+    int longermsg = (int)__max(strlen(specialmessage1), strlen(specialmessage2));
+    DrawRect(320 - longermsg*8 / 2 - 20, 332, longermsg*8+40, 48, 200);
+    DrawRect(320 - longermsg*8 / 2 - 15, 337, longermsg*8+30, 38, 32);
+    DrawRect(320 - longermsg*8 / 2 - 10, 342, longermsg*8+20, 28, 64);
+
+    draw_text(320 - strlen(specialmessage1)*8 / 2, 352, specialmessage1, t%16<8 ? 255 : 192);
+    draw_text(320 - strlen(specialmessage2)*8 / 2, 352, specialmessage2, t%16<8 ? 255 : 192);
+  }
+
+  t++;
+  if (message[0] != 0 && enter_pressed) {
+    ActivateTile(tile, x, y);
+  }
 }
 
 void ScrollTo(int x, int y)
 {
-	static int scrollspeed_x = 1, scrollspeed_y = 1;
-	if (scroll_home == 0) {
-		scroll_x = x;
-		scroll_y = y;
-		return;
-	}
+  static int scrollspeed_x = 1, scrollspeed_y = 1;
+  if (scroll_home == 0) {
+    scroll_x = x;
+    scroll_y = y;
+    return;
+  }
 
-	if (scroll_home == 1) {
-		scrollspeed_x = (x - scroll_x)/20;
-		scrollspeed_y = (y - scroll_y)/20;
-		scroll_home = 2;
-	}
+  if (scroll_home == 1) {
+    scrollspeed_x = (x - scroll_x)/20;
+    scrollspeed_y = (y - scroll_y)/20;
+    scroll_home = 2;
+  }
 
-	if (scroll_home == 2) {
-		scroll_x += (x - scroll_x)/2;
-		scroll_y += (y - scroll_y)/2;
+  if (scroll_home == 2) {
+    scroll_x += (x - scroll_x)/2;
+    scroll_y += (y - scroll_y)/2;
 
-		if ((abs(scroll_x-x)<2)&&(abs(scroll_y-y)<2)) {
-			scroll_x = x;
-			scroll_y = y;
-			scroll_home = 0;
-		}
-	}
+    if ((abs(scroll_x-x)<2)&&(abs(scroll_y-y)<2)) {
+      scroll_x = x;
+      scroll_y = y;
+      scroll_home = 0;
+    }
+  }
 }
 
 void DrawArtifacts()
 {
-	int i;
-	SDL_Rect from, to;
+  int i;
+  SDL_Rect from, to;
 
-	if (artifact_spr == NULL) {
-		artifact_spr = IMG_Load("dat/i/artifacts.png");
-		SDL_SetColorKey(artifact_spr, SDL_SRCCOLORKEY | SDL_RLEACCEL, 0);
-	}
+  if (artifact_spr == NULL) {
+    artifact_spr = IMG_Load("dat/i/artifacts.png");
+    SDL_SetColorKey(artifact_spr, SDL_SRCCOLORKEY | SDL_RLEACCEL, 0);
+  }
 
-	for (i = 0; i < 12; i++) {
-		if (artifacts[i]) {
-			from.x = i * 32;
-			from.y = 0;
-			from.w = 32;
-			from.h = 32;
+  for (i = 0; i < 12; i++) {
+    if (artifacts[i]) {
+      from.x = i * 32;
+      from.y = 0;
+      from.w = 32;
+      from.h = 32;
 
-			to.x = 608;
-			to.y = 47 + i * 35;
-			SDL_BlitSurface(artifact_spr, &from, screen, &to);
-		}
-	}
+      to.x = 608;
+      to.y = 47 + i * 35;
+      SDL_BlitSurface(artifact_spr, &from, screen, &to);
+    }
+  }
 }
 
 void Swap(int *a, int *b)
 {
-	*a ^= *b ^= *a ^= *b;
+  *a ^= *b ^= *a ^= *b;
 }
 
 void ThinLine(SDL_Surface *scr, int x1, int y1, int x2, int y2, Uint8 col)
 {
-	int dx, dy, dm;
-	int i, j;
+  int dx, dy, dm;
+  int i, j;
 
-	dx = (x2 - x1);
-	dy = (y2 - y1);
+  dx = (x2 - x1);
+  dy = (y2 - y1);
 
-	dm = abs(dx) > abs(dy) ? dx : dy;
+  dm = abs(dx) > abs(dy) ? dx : dy;
 
-	if (dm == 0) return;
+  if (dm == 0) return;
 
-	if (dm < 0) {
-		Swap(&x1, &x2);
-		Swap(&y1, &y2);
-		dx = (x2 - x1);
-		dy = (y2 - y1);
+  if (dm < 0) {
+    Swap(&x1, &x2);
+    Swap(&y1, &y2);
+    dx = (x2 - x1);
+    dy = (y2 - y1);
 
-		dm = dm * -1;
-	}
+    dm = dm * -1;
+  }
 
-	if (dm == dx) {
-		if (dy == 0) {
-			DrawRect(x1, y1, x2-x1+1, 1, col);
-			return;
-		}
-		for (i = 0; i < dm; i++) {
-			j = (dy * i / dm);
-			DrawRect(i+x1, j+y1, 1, 1, col);
-		}
-	}
-	if (dm == dy) {
-		if (dx == 0) {
-			DrawRect(x1, y1, 1, y2-y1+1, col);
-			return;
-		}
-		for (i = 0; i < dm; i++) {
-			j = (dx * i / dm);
-			DrawRect(j+x1, i+y1, 1, 1, col);
-		}
-	}
+  if (dm == dx) {
+    if (dy == 0) {
+      DrawRect(x1, y1, x2-x1+1, 1, col);
+      return;
+    }
+    for (i = 0; i < dm; i++) {
+      j = (dy * i / dm);
+      DrawRect(i+x1, j+y1, 1, 1, col);
+    }
+  }
+  if (dm == dy) {
+    if (dx == 0) {
+      DrawRect(x1, y1, 1, y2-y1+1, col);
+      return;
+    }
+    for (i = 0; i < dm; i++) {
+      j = (dx * i / dm);
+      DrawRect(j+x1, i+y1, 1, 1, col);
+    }
+  }
 }
 

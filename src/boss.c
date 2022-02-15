@@ -1551,8 +1551,9 @@ void BC_BossDying()
 	static float dr = 0;
 
 	if (current_boss < 3) {
-		specialmessage = 40 + rooms[player_room].room_param;
-		specialmessagetimer = 120;
+		PostMessage(40 + rooms[player_room].room_param, 120, 0);
+		// specialmessage = 40 + rooms[player_room].room_param;
+		// specialmessagetimer = 120;
 		rooms[player_room].room_type = 4;
 		boss_fight_mode = 0;
 		current_boss += 1;
