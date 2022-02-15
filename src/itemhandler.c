@@ -143,7 +143,7 @@ void ProcessItem(t_itemTypes item, char *source) {
           case T_PSI_KEY_3: sprintf(artifact, "Divine Bow 'Gandiva'");
           default: sprintf(artifact, "unknown artifact");
         }
-        PostMessage(30 + (item - T_PSI_KEY_1), 120, 2, source, artifact);
+        PostMessage(34, 120, 2, source, artifact);
         // specialmessage = 30 + (item - T_PSI_KEY_1);
         // specialmessagetimer = 120;
       } else {
