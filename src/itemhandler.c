@@ -143,12 +143,7 @@ void ProcessItem(t_itemTypes item, char *source) {
     default:
       if (item >= T_PSI_KEY_1) {
         char artifact[30] = {0};
-        switch (item) {
-          case T_PSI_KEY_1: sprintf(artifact, "Holy Sword 'Balmung'");
-          case T_PSI_KEY_2: sprintf(artifact, "Mystic Halberd 'Amenonuhoko'");
-          case T_PSI_KEY_3: sprintf(artifact, "Divine Bow 'Gandiva'");
-          default: sprintf(artifact, "unknown artifact");
-        }
+        sprintf(artifact, artifact_names[item - T_PSI_KEY_1]);
         PostMessage(34, 120, 2, source, artifact);
         // specialmessage = 30 + (item - T_PSI_KEY_1);
         // specialmessagetimer = 120;
