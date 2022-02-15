@@ -250,7 +250,7 @@ char IsArchipelago() {
   return 1;
 }
 
-void ForceCollectItem(char *player, char *itemName, char *waswere) {
+void PostCollectNotice(char *player, char *itemName, char *waswere) {
   PostMessage(72, 30, 2, itemName, waswere, player);
 }
 

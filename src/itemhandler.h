@@ -32,6 +32,9 @@ int CostFactor(t_itemStores store);
 void CollectItem(t_itemStores store);
 void CollectSpecialItem(t_specialStore itemIndex);
 
+char IsArchipelago();
+void PostCollectNotice(char *player, char *itemName, char *waswere);
+
 void WriteStoreData();
 void ReadStoreData();
 
