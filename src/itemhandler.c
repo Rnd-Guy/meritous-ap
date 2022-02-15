@@ -141,6 +141,7 @@ void ProcessItem(t_itemTypes item, char *source) {
           case T_PSI_KEY_1: sprintf(artifact, "Holy Sword 'Balmung'");
           case T_PSI_KEY_2: sprintf(artifact, "Mystic Halberd 'Amenonuhoko'");
           case T_PSI_KEY_3: sprintf(artifact, "Divine Bow 'Gandiva'");
+          default: sprintf(artifact, "unknown artifact");
         }
         PostMessage(30 + (item - T_PSI_KEY_1), 120, 2, source, artifact);
         // specialmessage = 30 + (item - T_PSI_KEY_1);
