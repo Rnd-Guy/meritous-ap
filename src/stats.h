@@ -32,10 +32,13 @@ typedef enum statType {
   STAT_LIVES_GAINED, // ✔️
   STAT_LIVES_LOST, // ✔️
 
+  STAT_GEMS_COLLECTED, // ✔️
+  STAT_GEMS_SPENT, // ✔️
+  STAT_GEMS_LOST_ON_DEATH, // ✔️
   STAT_PURCHASES, // ✔️
   STAT_CHESTS, // ✔️
-  STAT_CHECKPOINT_WARPS,
-  STAT_SAVES,
+  STAT_CHECKPOINT_WARPS, // ✔️
+  STAT_SAVES, // ✔️
 
   STAT_TRIES_BOSS1, // ✔️
   STAT_TRIES_BOSS2, // ✔️

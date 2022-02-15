@@ -829,6 +829,7 @@ int DungeonPlay(char *fname)
           AnnounceDeath();
           if (!training) player_lives--;
           lost_gems = player_gems / 3;
+          add_int_stat(STAT_GEMS_LOST_ON_DEATH, lost_gems);
           player_gems -= lost_gems;
 
           lost_gems = lost_gems * 95 / 100;
@@ -2223,32 +2224,38 @@ void ActivateTile(unsigned char tile, int x, int y)
       Put(x, y, 27, GetRoom(x, y));
       break;
     case 28:
-      if (CostFactor(IS_ALPHA) < 0) return;
-      if (player_gems >= UpgradePrice(0)) {
-        add_int_stat(STAT_PURCHASES, 1);
-        player_gems -= UpgradePrice(0);
-        // NOTE: Alpha store
-        CollectItem(IS_ALPHA);
-      }
-      break;
     case 29:
-      if (CostFactor(IS_BETA) < 0) return;
-      if (player_gems >= UpgradePrice(1)) {
-        add_int_stat(STAT_PURCHASES, 1);
-        player_gems -= UpgradePrice(1);
-        // NOTE: Beta store
-        CollectItem(IS_BETA);
-      }
-      break;
     case 30:
-      if (CostFactor(IS_GAMMA) < 0) return;
-      if (player_gems >= UpgradePrice(2)) {
+      int storeoffset = tile - 28;
+      if (CostFactor(storeoffset) < 0) return;
+      if (player_gems >= UpgradePrice(storeoffset)) {
         add_int_stat(STAT_PURCHASES, 1);
-        player_gems -= UpgradePrice(2);
-        // NOTE: Gamma store
-        CollectItem(IS_GAMMA);
+        add_int_stat(STAT_GEMS_SPENT, UpgradePrice(storeoffset));
+        player_gems -= UpgradePrice(storeoffset);
+        // NOTE: All three stores
+        CollectItem(storeoffset);
       }
       break;
+    // case 29:
+    //   if (CostFactor(IS_BETA) < 0) return;
+    //   if (player_gems >= UpgradePrice(1)) {
+    //     add_int_stat(STAT_PURCHASES, 1);
+    //     add_int_stat(STAT_GEMS_SPENT, UpgradePrice(1));
+    //     player_gems -= UpgradePrice(1);
+    //     // NOTE: Beta store
+    //     CollectItem(IS_BETA);
+    //   }
+    //   break;
+    // case 30:
+    //   if (CostFactor(IS_GAMMA) < 0) return;
+    //   if (player_gems >= UpgradePrice(2)) {
+    //     add_int_stat(STAT_PURCHASES, 1);
+    //     add_int_stat(STAT_GEMS_SPENT, UpgradePrice(2));
+    //     player_gems -= UpgradePrice(2);
+    //     // NOTE: Gamma store
+    //     CollectItem(IS_GAMMA);
+    //   }
+    //   break;
     case 31:
       DoSaveGame();
       break;

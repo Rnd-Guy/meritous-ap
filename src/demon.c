@@ -2240,6 +2240,7 @@ void MoveEntities()
 						}
 						
 					} else {
+						add_int_stat(STAT_GEMS_COLLECTED, g->value);
 						player_gems += g->value;
 					}
 				}
