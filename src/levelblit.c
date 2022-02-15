@@ -2233,26 +2233,6 @@ void ActivateTile(unsigned char tile, int x, int y)
         CollectItem(storeoffset);
       }
       break;
-    // case 29:
-    //   if (CostFactor(IS_BETA) < 0) return;
-    //   if (player_gems >= UpgradePrice(1)) {
-    //     add_int_stat(STAT_PURCHASES, 1);
-    //     add_int_stat(STAT_GEMS_SPENT, UpgradePrice(1));
-    //     player_gems -= UpgradePrice(1);
-    //     // NOTE: Beta store
-    //     CollectItem(IS_BETA);
-    //   }
-    //   break;
-    // case 30:
-    //   if (CostFactor(IS_GAMMA) < 0) return;
-    //   if (player_gems >= UpgradePrice(2)) {
-    //     add_int_stat(STAT_PURCHASES, 1);
-    //     add_int_stat(STAT_GEMS_SPENT, UpgradePrice(2));
-    //     player_gems -= UpgradePrice(2);
-    //     // NOTE: Gamma store
-    //     CollectItem(IS_GAMMA);
-    //   }
-    //   break;
     case 31:
       DoSaveGame();
       break;
@@ -2608,6 +2588,7 @@ void SpecialTile(int x, int y)
       case 34:
         sprintf(specialmessage1, "A surge from %s", msgqueue->params[0]);
         sprintf(specialmessage2, "beckons the %s to Virtue's aid", msgqueue->params[1]);
+        break;
 
       case 40:
         sprintf(specialmessage1, "Balmung will remain here,");
