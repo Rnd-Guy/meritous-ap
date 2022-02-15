@@ -113,6 +113,7 @@ int dist(int x1, int y1, int x2, int y2);
 #define K_RT 3
 #define K_SP 4
 
+const char *ComposeTime(int msec, char displayMsec);
 void PostMessage(int msgid, int duration, int paramcount, ...);
 
 #endif

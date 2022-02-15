@@ -762,6 +762,26 @@ void Arc(SDL_Surface *s, int x, int y, int r, float dir)
 
 }
 
+const char *ComposeTime(int msec, char displayMsec) {
+  char buf[30] = {0};
+
+  int t_msec = expired_ms % 1000;
+  int t_days = expired_ms / (1000*60*60*24);
+  int t_hours = (expired_ms / (1000*60*60)) % 24;
+  int t_minutes = (expired_ms / (1000*60)) % 60;
+  int t_seconds = (expired_ms / 1000) % 60;
+
+  if (displayMsec) sprintf(buf, "%dm %d.%03ds", t_minutes, t_seconds, t_msec);
+  else sprintf(buf, "%dm %ds", t_minutes, t_seconds);
+
+  if (t_hours > 0) {
+    if (t_days > 0) sprintf(buf, "%dd %dh %s", t_days, t_hours, buf);
+    else sprintf(buf, "%dd %dh %s", t_days, t_hours, buf);
+  }
+
+  return buf;
+}
+
 int DungeonPlay(char *fname)
 {
   int ix,  iy;
@@ -1128,28 +1148,8 @@ int DungeonPlay(char *fname)
       }
       draw_text((640 - 6 * 8) / 2, (480 - 8) / 2, "Paused", 255);
 
-      {
-        int t_days;
-        int t_hours;
-        int t_minutes;
-        int t_seconds;
-
-        t_seconds = (expired_ms / 1000) % 60;
-        t_minutes = ((expired_ms / 1000) / 60) % 60;
-        t_hours = (((expired_ms / 1000) / 60) / 60) % 24;
-        t_days = (((expired_ms / 1000) / 60) / 60) / 24;
-
-        if (t_days > 0) {
-          sprintf(buf, "%dd %dh %dm %ds", t_days, t_hours, t_minutes, t_seconds);
-        } else {
-          if (t_hours > 0) {
-            sprintf(buf, "%dh %dm %ds", t_hours, t_minutes, t_seconds);
-          } else {
-            sprintf(buf, "%dm %ds", t_minutes, t_seconds);
-          }
-        }
-        draw_text(636 - strlen(buf)*8, 470, buf, 255);
-      }
+      sprintf(buf, ComposeTime(expired_ms, 0));
+      draw_text(636 - strlen(buf)*8, 470, buf, 255);
     }
 
     if (voluntary_exit) {
