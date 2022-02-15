@@ -24,6 +24,7 @@
 #include "demon.h"
 #include "itemstore.h"
 #include "levelblit.h"
+#include "stats.h"
 
 void InitStores() {
   LocalGenerateItemStores(0);
@@ -102,6 +103,7 @@ void ProcessItem(t_itemTypes item, char *source) {
       noise = 1;
       break;
     case T_AGATE_KNIFE:
+      add_int_stat(STAT_TIME_KNIFE, expired_ms);
       PostMessage(50, 150, 0);
       // specialmessage = 50;
       // specialmessagetimer = 150;

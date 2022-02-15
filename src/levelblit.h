@@ -32,6 +32,8 @@
 #define PLAYERW 16
 #define PLAYERH 24
 
+extern int expired_ms;
+
 extern SDL_Surface *screen;
 
 extern int player_x, player_y;
@@ -43,6 +45,7 @@ extern int explored;
 extern int magic_circuit;
 extern int circuit_size;
 extern int circuit_range;
+extern char release_hit_something;
 void DrawCircle(int x, int y, int r, unsigned char c);
 void DrawCircleEx(int x, int y, int r, int r2, unsigned char c);
 void DrawRect(int x, int y, int w, int h, unsigned char c);

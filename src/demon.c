@@ -32,6 +32,7 @@
 #include "audio.h"
 #include "boss.h"
 #include "tiles.h"
+#include "stats.h"
 
 SDL_Surface *reticle;
 SDL_Surface *inrange;
@@ -1546,6 +1547,7 @@ void MoveEnemy(struct enemy *e)
 			
 			e->deaths++;
 			if (e->deaths >= actual_lives) {
+				add_int_stat(STAT_KILLS, 1);
 				e->deaths--;
 				e->delete_me = 1;
 				e->dying = 0;
@@ -1705,6 +1707,7 @@ void MoveBullet(struct bullet *e)
 				if (player_dying == 0) {
 					if (player_shield > 0) {
 						if (shield_hp > 0) {
+							add_int_stat(STAT_SHIELD_HITS, 1);
 							shield_hp--;
 							if (e->img == 4) {
 								e->dying = 1;
@@ -2210,6 +2213,7 @@ void MoveEntities()
 					total_gems--;
 					
 					if (g->value == 31337) {
+						add_int_stat(STAT_HEARTS_GATHERED, 1);
 						if (player_hp < (3 + (player_shield == 30)*3)) {
 							SND_Pos("dat/a/crystal.wav", 64, 0);
 							player_hp++;
@@ -2227,6 +2231,7 @@ void MoveEntities()
 									}
 								}
 								if (player_lives_part >= 88) {
+									add_int_stat(STAT_LIVES_GAINED, 1);
 									player_lives_part -= 88;
 									player_lives += 1;
 									SND_Pos("dat/a/crystal2.wav", 100, 0);
@@ -2366,11 +2371,13 @@ void HurtEnemies(int x, int y, int range, int power)
 	while (t != NULL) {
 		e_range = sqrt(sqr(t->x - x) + sqr(t->y - y));
 		if (e_range < range) {
+			release_hit_something = 1;
 			if (power >= t->str) {
+				add_int_stat(STAT_HITS, 1);
 				if (t->room == GetRoom(x/32, y/32)) {
 					KillEnemy(t);
 				}
-			}
+			} else add_int_stat(STAT_RESISTS, 1);
 		}
 		t = t->next_active;
 	}

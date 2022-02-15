@@ -39,6 +39,7 @@
 #include "boss.h"
 #include "ending.h"
 #include "itemhandler.h"
+#include "stats.h"
 
 // this is here to make VSCodium behave
 #ifndef M_PI
@@ -102,6 +103,7 @@ int release_range;
 int release_x;
 int release_y;
 int release_str;
+char release_hit_something;
 
 int shield_hp;
 int shield_recover;
@@ -218,8 +220,6 @@ void PlayerDefaultStats()
   for (i = 0; i < 12; i++) {
     artifacts[i] = 0;
   }
-
-  while (msgqueue != NULL) DisposeFrontMessage();
 
   #ifdef DEBUG_STATS
 
@@ -790,6 +790,8 @@ int DungeonPlay(char *fname)
   InitBossVars();
 
   PlayerDefaultStats();
+  while (msgqueue != NULL) DisposeFrontMessage();
+
   if (game_load) {
     first_game = 0;
     ReadPlayerData();
@@ -817,9 +819,11 @@ int DungeonPlay(char *fname)
     //SDL_WM_SetCaption(buf, "MT");
     if (!game_paused) {
       if (player_dying > 30) {
+        add_int_stat(STAT_DAMAGE_TAKEN, 1);
         player_hp--;
 
         if (player_hp <= 0) {
+          add_int_stat(STAT_LIVES_LOST, 1);
           AnnounceDeath();
           if (!training) player_lives--;
           lost_gems = player_gems / 3;
@@ -1013,6 +1017,7 @@ int DungeonPlay(char *fname)
             circuit_release = 0;
             HurtEnemies(release_x, release_y, release_range, release_str);
             if (boss_fight_mode == 2) TryHurtBoss(release_x, release_y, release_range, release_str);
+            if (!release_hit_something) add_int_stat(STAT_WHIFFS, 1);
           }
         }
       }
@@ -1985,11 +1990,15 @@ void DrawCircuit()
 
 void ReleaseCircuit()
 {
+  add_int_stat(STAT_BURSTS, 1);
+  add_float_stat(STAT_CIRCUIT_VALUE, (float)magic_circuit / 100.0);
+
   circuit_release = 1;
   release_range = circuit_range;
   release_x = player_x;
   release_y = player_y;
   release_str = magic_circuit;
+  release_hit_something = 0;
   if (circuit_fillrate==30) {
     release_str *= 1.25;
   }
@@ -2206,12 +2215,14 @@ void ActivateTile(unsigned char tile, int x, int y)
       break;
     case 26:
       // NOTE: Treasure boxes
+      add_int_stat(STAT_CHESTS, 1);
       CollectItem(IS_CHESTS);
       Put(x, y, 27, GetRoom(x, y));
       break;
     case 28:
       if (CostFactor(IS_ALPHA) < 0) return;
       if (player_gems >= UpgradePrice(0)) {
+        add_int_stat(STAT_PURCHASES, 1);
         player_gems -= UpgradePrice(0);
         // NOTE: Alpha store
         CollectItem(IS_ALPHA);
@@ -2220,6 +2231,7 @@ void ActivateTile(unsigned char tile, int x, int y)
     case 29:
       if (CostFactor(IS_BETA) < 0) return;
       if (player_gems >= UpgradePrice(1)) {
+        add_int_stat(STAT_PURCHASES, 1);
         player_gems -= UpgradePrice(1);
         // NOTE: Beta store
         CollectItem(IS_BETA);
@@ -2228,6 +2240,7 @@ void ActivateTile(unsigned char tile, int x, int y)
     case 30:
       if (CostFactor(IS_GAMMA) < 0) return;
       if (player_gems >= UpgradePrice(2)) {
+        add_int_stat(STAT_PURCHASES, 1);
         player_gems -= UpgradePrice(2);
         // NOTE: Gamma store
         CollectItem(IS_GAMMA);
