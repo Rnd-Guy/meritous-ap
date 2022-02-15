@@ -41,6 +41,7 @@ int CostFactor(t_itemStores store) {
 }
 
 t_itemTypes MakeCrystals() {
+  // TODO: Make these weights configurable
   int randCrystals = rand() % 32;
   if (randCrystals < 24) return T_CRYSTALS_500;
   if (randCrystals < 31) return T_CRYSTALS_1000;

@@ -64,6 +64,8 @@ int EndingEvents()
 	
 	MusicUpdate();
 	
+	// TODO: Forfeit/collect commands here
+
 	while (SDL_PollEvent(&event)) {
 		if (event.type == SDL_KEYDOWN) {
 			switch (event.key.keysym.sym) {
@@ -284,6 +286,7 @@ void InitParticleStorm()
 	}
 }
 
+// TODO: Is this fixed?
 char *credits[] = {
 	"Concept:                    Lancer-X/Asceai",
 	"Game design:                Lancer-X/Asceai",
@@ -294,21 +297,21 @@ char *credits[] = {
 	"Beta testing:               Quasar",
 	"Beta testing:               Terryn",
 	"Beta testing:               Wervyn",
-	 "\"Ambient Light\"       Vogue of Triton",
-	 "\"Battle of Ragnarok\"  Frostbite",
-	 "\"Dragon Cave\"         TICAZ",
-	 " cavern.xm             Unknown",
-	 "\"Caverns Boss\"        Alexis Janson",
-	 "\"Forest Boss\"         Alexis Janson",
-	 "\"Catacombs Boss\"      Alexis Janson",
-	 "\"Fear 2\"              Mick Rippon",
-	 "\"The Final Battle\"    Goose/C�DA & iNVASiON",
-	 "\"Ice Frontier\"        Skaven/FC",
-	 "\"KnarkLoader 1.0\"     Rapacious",
-	 "\"RPG-Battle\"          Cyn",
-	 "\"Metallic Forest\"     Joseph Fox",
-	"Additional patches          bart9h",
-	"Item randomizer             KewlioMZX"
+	"Additional patches:         bart9h",
+	"Item randomizer:            KewlioMZX",
+	"\"Ambient Light\"             Vogue of Triton",
+	"\"Battle of Ragnarok\"        Frostbite",
+	"\"Dragon Cave\"               TICAZ",
+	" cavern.xm                  Unknown",
+	"\"Caverns Boss\"              Alexis Janson",
+	"\"Forest Boss\"               Alexis Janson",
+	"\"Catacombs Boss\"            Alexis Janson",
+	"\"Fear 2\"                    Mick Rippon",
+	"\"The Final Battle\"          Goose/C�DA & iNVASiON",
+	"\"Ice Frontier\"              Skaven/FC",
+	"\"KnarkLoader 1.0\"           Rapacious",
+	"\"RPG-Battle\"                Cyn",
+	"\"Metallic Forest\"           Joseph Fox"
 };
 
 void DrawCredits()
@@ -337,6 +340,7 @@ void DrawCredits()
 	}
 	
 	if (credits_scroll >= (finish_point + 80)) {
+		// TODO: This is probably where to draw stats
 		SDL_BlitSurface(theend[(player_shield == 30)], NULL, screen, NULL);
 	} else {
 		SDL_BlitSurface(fin, NULL, screen, &draw_to);

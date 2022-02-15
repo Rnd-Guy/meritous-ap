@@ -546,7 +546,7 @@ void DrawPowerObject()
 						if (collect > 100) {
 							collect = 0;
 							rooms[player_room].room_type = 4;
-							// TODO: test this (PSI Keys/cursed seal)
+							// NOTE: PSI keys and Cursed Seal
 							CollectSpecialItem(p_obj);
 						}
 					}
@@ -1587,7 +1587,7 @@ void BC_BossDying()
 			}
 		}
 
-		// TODO: test this (Evo traps)
+		// NOTE: Evo traps
 		if (current_boss > 0) {
 			CollectSpecialItem(current_boss + SS_BOSS_PRIZE_1 - 1);
 		}
