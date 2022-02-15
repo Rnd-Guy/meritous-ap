@@ -40,6 +40,7 @@ typedef enum itemTypes {
   T_CRYSTALS_500,
   T_CRYSTALS_1000,
   T_CRYSTALS_2000,
+  T_1UP,
 
   T_MAX
 } t_itemTypes;

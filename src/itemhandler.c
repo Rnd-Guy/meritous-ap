@@ -129,6 +129,12 @@ void ProcessItem(t_itemTypes item, char *source) {
       // specialmessagetimer = 30;
       noise = 1;
       break;
+    case T_1UP:
+      PostMessage(61, 30, 1, source);
+      player_lives++;
+      player_hp = 3 + (player_shield == 30)*3;
+      noise = 3;
+      break;
     case T_CURSED_SEAL:
       PostMessage(33, 120, 0);
       artifacts[item - T_MAP] = 1;
@@ -159,6 +165,7 @@ void ProcessItem(t_itemTypes item, char *source) {
 
   if (noise == 1) SND_Pos("dat/a/tone.wav", 128, 0);
   else if (noise == 2) SND_Pos("dat/a/crystal.wav", 128, 0);
+  else if (noise == 3) SND_Pos("dat/a/crystal2.wav", 100, 0);
 }
 
 void KillPlayer() {

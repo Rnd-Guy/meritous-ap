@@ -2609,6 +2609,10 @@ void SpecialTile(int x, int y)
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
         sprintf(specialmessage2, "dissipates and does nothing");
         break;
+      case 61:
+        sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
+        sprintf(specialmessage2, "protects Virtue's life");
+        break;
 
       case 70: // Check goes to other player
         sprintf(specialmessage1, "Looting %s restores %s's", msgqueue->params[0], msgqueue->params[1]);
