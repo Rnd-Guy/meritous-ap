@@ -762,24 +762,20 @@ void Arc(SDL_Surface *s, int x, int y, int r, float dir)
 
 }
 
-const char *ComposeTime(int msec, char displayMsec) {
-  char buf[30] = {0};
-
+void ComposeTime(char *ptr, int msec, char displayMsec) {
   int t_msec = expired_ms % 1000;
   int t_days = expired_ms / (1000*60*60*24);
   int t_hours = (expired_ms / (1000*60*60)) % 24;
   int t_minutes = (expired_ms / (1000*60)) % 60;
   int t_seconds = (expired_ms / 1000) % 60;
 
-  if (displayMsec) sprintf(buf, "%dm %d.%03ds", t_minutes, t_seconds, t_msec);
-  else sprintf(buf, "%dm %ds", t_minutes, t_seconds);
+  if (displayMsec) sprintf(ptr, "%dm %d.%03ds", t_minutes, t_seconds, t_msec);
+  else sprintf(ptr, "%dm %ds", t_minutes, t_seconds);
 
   if (t_hours > 0) {
-    if (t_days > 0) sprintf(buf, "%dd %dh %s", t_days, t_hours, buf);
-    else sprintf(buf, "%dd %dh %s", t_days, t_hours, buf);
+    if (t_days > 0) sprintf(ptr, "%dd %dh %s", t_days, t_hours, ptr);
+    else sprintf(ptr, "%dd %dh %s", t_days, t_hours, ptr);
   }
-
-  return buf;
 }
 
 int DungeonPlay(char *fname)
@@ -1148,7 +1144,7 @@ int DungeonPlay(char *fname)
       }
       draw_text((640 - 6 * 8) / 2, (480 - 8) / 2, "Paused", 255);
 
-      sprintf(buf, ComposeTime(expired_ms, 0));
+      ComposeTime(buf, expired_ms, 0);
       draw_text(636 - strlen(buf)*8, 470, buf, 255);
     }
 
@@ -2433,9 +2429,11 @@ void PostMessage(int msgid, int duration, int paramcount, ...)
 
     va_start(ptr, paramcount);
     for (int x = 0; x < paramcount; x++) {
-      newmsg->params[x] = malloc(sizeof(char) * 100);
-      memset(newmsg->params[x], 100 * sizeof(char), 0);
-      snprintf(newmsg->params[x], 99, va_arg(ptr, char*));
+      char *str = va_arg(ptr, char*);
+      size_t makelen = __min(sizeof(char) * (strlen(str) + 1), 100);
+      newmsg->params[x] = malloc(makelen);
+      memset(newmsg->params[x], makelen, 0);
+      snprintf(newmsg->params[x], makelen - 1, str);
     }
     va_end(ptr);
   }
