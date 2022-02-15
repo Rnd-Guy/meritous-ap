@@ -80,6 +80,7 @@ char HasItem(t_itemTypes item) {
     case T_CRYSTALS_500:
     case T_CRYSTALS_1000:
     case T_CRYSTALS_2000:
+    case T_1UP:
       return 0;
     case T_REFLECT_SHIELD:
       return player_shield >= 25;
@@ -252,6 +253,11 @@ char IsArchipelago() {
 
 void PostCollectNotice(char *player, char *itemName, char *waswere) {
   PostMessage(72, 30, 2, itemName, waswere, player);
+}
+
+void SendAPSignal(t_apSignal signal) {
+  if (!IsArchipelago()) return;
+  // Currently does nothing; will interact with AP client to send forfeit/collect
 }
 
 void WriteStoreData() {

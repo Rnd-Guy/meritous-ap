@@ -72,4 +72,10 @@ typedef enum genFlags {
   GF_INCLUDE_TRAPS = 0x01
 } t_genFlags;
 
+typedef enum apSignal {
+  APSIG_NONE,
+  APSIG_FORFEIT,
+  APSIG_COLLECT
+} t_apSignal;
+
 #endif

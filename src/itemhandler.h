@@ -35,6 +35,8 @@ void CollectSpecialItem(t_specialStore itemIndex);
 char IsArchipelago();
 void PostCollectNotice(char *player, char *itemName, char *waswere);
 
+void SendAPSignal(t_apSignal signal);
+
 void WriteStoreData();
 void ReadStoreData();
 
