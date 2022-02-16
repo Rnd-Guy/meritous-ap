@@ -20,11 +20,14 @@
 #
 LDFLAGS = `sdl-config --libs` -lSDL_image -lSDL_mixer -lz -lpthread
 CCFLAGS = -O2 -Wall `sdl-config --cflags` -ggdb
-INC     = -Isrc/submodules \
-					-Isrc/submodules/websocketpp \
-					-Isrc/submodules/wswrap/include \
-					-Isrc/submodules/json/include \
-					-Isrc/submodules/valijson/include
+
+AP_INCLUDES = -Isrc/submodules/wswrap/include\
+              -Isrc/submodules/json/include\
+              -Isrc/submodules/websocketpp\
+              -Isrc/submodules/asio/include\
+              -Isrc/submodules/valijson/include\
+              -Isrc/submodules
+AP_LIBS = -lwsock32 -lws2_32 # for windows
 DEFINES = -DASIO_STANDALONE
 
 #
@@ -41,21 +44,23 @@ OBJS = 	src/levelblit.o \
 		src/gamepad.o \
 		src/itemstore.o \
 		src/itemhandler.o \
-		src/stats.o \
-		src/submodules/wswrap/src/wswrap.o \
-		src/apinterface.o
+		src/stats.o
 #
 default:	meritous
+
+apinterface.o: src/apinterface.cpp
+		# this is your cpp code that bridges between apclientpp and the game
+		g++ -c $? -o $@ ${AP_INCLUDES} ${DEFINES} ${CCFLAGS}
+
+wswrap.o: src/submodules/wswrap/src/wswrap.cpp
+		g++ -c $? -o $@ ${AP_INCLUDES} ${DEFINES} ${CCFLAGS}
 
 %.o:		%.c
 		gcc -c -o $@ $? ${CCFLAGS}
 
-%.o:		%.cpp
-		g++ -c -o $@ $? ${INC} ${DEFINES} ${CCFLAGS}
-
-meritous:	${OBJS}
-		g++ -o $@ $+ ${LDFLAGS}
+meritous:	${OBJS} wswrap.o apinterface.o
+		g++ -o $@ ${OBJS} wswrap.o apinterface.o ${AP_LIBS} ${LDFLAGS}
 
 clean:		
-		rm ${OBJS}
+		rm ${OBJS} wswrap.o apinterface.o
 
