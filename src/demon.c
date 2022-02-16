@@ -1531,6 +1531,7 @@ void MoveEnemy(struct enemy *e)
 			while (b != NULL) {
 				if (!b->delete_me) {
 					if (b->firer == e) {
+						add_int_stat(STAT_BULLETS_CANCELLED, 1);
 						b->delete_me = 1;
 						CreateGem(b->x, b->y, b->room, (e->max_gems + e->min_gems) / 5 + (artifacts[2] * (e->max_gems + e->min_gems) / 4));
 					}
@@ -2393,6 +2394,7 @@ void CircuitBullets(int x, int y, int r)
 			if (b->dying == 0) {
 				if (b->invuln == 0) {
 					if (sqrt(sqr(b->x - x) + sqr(b->y - y)) < r) {
+						add_int_stat(STAT_BULLETS_CANCELLED, 1);
 						b->dying = 1;
 					}
 				}

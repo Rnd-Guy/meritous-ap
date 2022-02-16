@@ -25,6 +25,7 @@ typedef enum statType {
   STAT_KILLS, // ✔️
   STAT_RESISTS, // ✔️
   STAT_WHIFFS, // ✔️
+  STAT_BULLETS_CANCELLED,
 
   STAT_HEARTS_GATHERED, // ✔️
   STAT_SHIELD_HITS, // ✔️
@@ -56,13 +57,15 @@ typedef enum statType {
   STAT_TIME_BOSS3, // ✔️
   STAT_TIME_BOSS4, // ✔️
   STAT_TIME_KNIFE, // ✔️
+
+  // TODO: per-enemy kill stats
   
   STAT_INTMAX,
 
+  // float types
   STAT_CIRCUIT_VALUE = STAT_INTMAX, // ✔️
 
   STAT_FLOATMAX
-  // float types
 } t_statType;
 
 void init_stats();
