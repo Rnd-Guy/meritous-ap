@@ -18,8 +18,15 @@
 #   You should have received a copy of the GNU General Public License
 #   along with Meritous.  If not, see <http://www.gnu.org/licenses/>.
 #
-LDFLAGS = `sdl-config --libs` -lSDL_image -lSDL_mixer -lz
+LDFLAGS = `sdl-config --libs` -lSDL_image -lSDL_mixer -lz -lpthread
 CCFLAGS = -O2 -Wall `sdl-config --cflags` -ggdb
+INC     = -Isrc/submodules \
+					-Isrc/submodules/websocketpp \
+					-Isrc/submodules/wswrap/include \
+					-Isrc/submodules/json/include \
+					-Isrc/submodules/valijson/include
+DEFINES = -DASIO_STANDALONE
+
 #
 OBJS = 	src/levelblit.o \
 		src/mapgen.o \
@@ -34,15 +41,20 @@ OBJS = 	src/levelblit.o \
 		src/gamepad.o \
 		src/itemstore.o \
 		src/itemhandler.o \
-		src/stats.o
+		src/stats.o \
+		src/submodules/wswrap/src/wswrap.o \
+		src/apinterface.o
 #
 default:	meritous
 
 %.o:		%.c
 		gcc -c -o $@ $? ${CCFLAGS}
 
+%.o:		%.cpp
+		g++ -c -o $@ $? ${INC} ${DEFINES} ${CCFLAGS}
+
 meritous:	${OBJS}
-		gcc -o $@ $+ ${LDFLAGS}
+		g++ -o $@ $+ ${LDFLAGS}
 
 clean:		
 		rm ${OBJS}
