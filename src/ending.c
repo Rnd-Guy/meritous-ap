@@ -361,7 +361,7 @@ void DrawStats()
   if (player_shield == 30) {
     draw_text(366, 130, "Time to Agate Knife", 168);
     ComposeTime(buf, get_int_stat(STAT_TIME_KNIFE), 1);
-    draw_text(376, 140, buf, 192);
+    draw_text_f(366, 140, "%26s", 192, buf);
   } else draw_text_f(366, 130, "Rooms explored     %7d", 168, explored);
 
   draw_text(176, 200, "Tries      Time spent fighting              Time beaten", 192);
