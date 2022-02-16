@@ -763,11 +763,11 @@ void Arc(SDL_Surface *s, int x, int y, int r, float dir)
 }
 
 void ComposeTime(char *ptr, int msec, char displayMsec) {
-  int t_msec = expired_ms % 1000;
-  int t_days = expired_ms / (1000*60*60*24);
-  int t_hours = (expired_ms / (1000*60*60)) % 24;
-  int t_minutes = (expired_ms / (1000*60)) % 60;
-  int t_seconds = (expired_ms / 1000) % 60;
+  int t_msec = msec % 1000;
+  int t_days = msec / (1000*60*60*24);
+  int t_hours = (msec / (1000*60*60)) % 24;
+  int t_minutes = (msec / (1000*60)) % 60;
+  int t_seconds = (msec / 1000) % 60;
 
   if (displayMsec) sprintf(ptr, "%dm %d.%03ds", t_minutes, t_seconds, t_msec);
   else sprintf(ptr, "%dm %ds", t_minutes, t_seconds);
@@ -1143,6 +1143,10 @@ int DungeonPlay(char *fname)
         DrawRect((640 - 6 * 8) / 2 - i, (480 - 8) / 2 - i, 6*8 + 2*i, 8 + 2*i, 64 - i*5);
       }
       draw_text((640 - 6 * 8) / 2, (480 - 8) / 2, "Paused", 255);
+
+      // TODO: remove test code
+      DrawRect(10, 10, 620, 460, 0);
+      DrawStats();
 
       ComposeTime(buf, expired_ms, 0);
       draw_text(636 - strlen(buf)*8, 470, buf, 255);
@@ -1893,6 +1897,15 @@ void draw_text(int x, int y, char *str, Uint8 tcol)
   }
 }
 
+void draw_text_f(int x, int y, char *str, Uint8 tcol, ...)
+{
+  char buf[255] = {0};
+  va_list args;
+  va_start(args, tcol);
+  vsprintf(buf, str, args);
+  draw_text(x, y, buf, tcol);
+}
+
 void draw_text_ex(int x, int y, char *str, Uint8 tcol, SDL_Surface *srf)
 {
   Uint8 *pix;
@@ -2586,8 +2599,8 @@ void SpecialTile(int x, int y)
         sprintf(specialmessage2, "A threatening aura surrounds you. Run.");
         break;
       case 34:
-        sprintf(specialmessage1, "A surge from %s", msgqueue->params[0]);
-        sprintf(specialmessage2, "beckons the %s to Virtue's aid", msgqueue->params[1]);
+        sprintf(specialmessage1, "A surge from %s beckons", msgqueue->params[0]);
+        sprintf(specialmessage2, "the %s to Virtue's aid", msgqueue->params[1]);
         break;
 
       case 40:

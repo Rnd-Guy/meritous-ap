@@ -52,6 +52,7 @@ void DrawRect(int x, int y, int w, int h, unsigned char c);
 int IsSolid(unsigned char tile);
 void draw_char(int cur_x, int cur_y, int c, Uint8 tcol);
 void draw_text(int x, int y, char *str, Uint8 tcol);
+void draw_text_f(int x, int y, char *str, Uint8 tcol, ...);
 void draw_text_ex(int x, int y, char *str, Uint8 tcol, SDL_Surface *srf);
 
 extern int player_shield;
