@@ -1531,7 +1531,7 @@ void MoveEnemy(struct enemy *e)
 			while (b != NULL) {
 				if (!b->delete_me) {
 					if (b->firer == e) {
-						add_int_stat(STAT_BULLETS_CANCELLED, 1);
+						// add_int_stat(STAT_BULLETS_CANCELLED, 1);
 						b->delete_me = 1;
 						CreateGem(b->x, b->y, b->room, (e->max_gems + e->min_gems) / 5 + (artifacts[2] * (e->max_gems + e->min_gems) / 4));
 					}
