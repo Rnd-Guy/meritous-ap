@@ -316,6 +316,7 @@ char *credits[] = {
   "Beta testing:               Wervyn",
   "Additional patches:         bart9h",
   "Item randomizer:            KewlioMZX",
+  "Archipelago client:         Black Sliver",
   "\"Ambient Light\"             Vogue of Triton",
   "\"Battle of Ragnarok\"        Frostbite",
   "\"Dragon Cave\"               TICAZ",
@@ -366,12 +367,13 @@ void DrawStats()
 
   draw_text(176, 200, "Tries      Time spent fighting              Time beaten", 192);
   for (int x = 0; x < 4; x++) {
-    if (get_int_stat(STAT_TRIES_BOSS1 + x)) {
+    int bosstries = get_int_stat(STAT_TRIES_BOSS1 + x);
+    if (bosstries) {
       char sent[25] = {0}, beat[25] = {0};
       ComposeTime(sent, get_int_stat(STAT_TIMESPENT_BOSS1 + x), 1);
       ComposeTime(beat, get_int_stat(STAT_TIME_BOSS1 + x), 1);
       draw_text(20, 210 + (x * 10), boss_names[x], x % 2 ? 192 : 168);
-      draw_text_f(176, 210 + (x * 10), "%5d %24s %24s", x % 2 ? 192 : 168, get_int_stat(STAT_TRIES_BOSS1 + x), sent, beat);
+      draw_text_f(176, 210 + (x * 10), "%5d %24s %24s", x % 2 ? 192 : 168, bosstries, sent, beat);
     } else {
       draw_text(20, 210 + (x * 10), "????????", x % 2 ? 192 : 168);
     }
