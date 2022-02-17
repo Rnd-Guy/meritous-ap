@@ -25,15 +25,15 @@ void DestroyStores();
 
 t_itemTypes MakeCrystals();
 
-
 int CostFactor(t_itemStores store);
 void CollectItem(t_itemStores store);
 void CollectSpecialItem(t_specialStore itemIndex);
 
-char IsArchipelago();
+char isArchipelago();
 void PostCollectNotice(const char *player, const char *itemName, const char *waswere);
 
 void PollAPClient();
+void ReceiveItem(t_itemTypes item, const char *source);
 void SendAPSignal(t_apSignal signal);
 void KillPlayer(const char *from);
 void AnnounceDeath();

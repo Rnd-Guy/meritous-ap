@@ -408,7 +408,7 @@ void DrawCredits()
   
   if (credits_scroll >= (finish_point + 80)) {
     draw_text(2, 2, "ESC to end, S for stats", 192);
-    if (IsArchipelago()) draw_text(2, 12, "F to forfeit, C to collect", 192);
+    if (isArchipelago()) draw_text(2, 12, "F to forfeit, C to collect", 192);
 
     if (statsmode) DrawStats();
     else SDL_BlitSurface(theend[(player_shield == 30)], NULL, screen, NULL);

@@ -54,19 +54,22 @@ const char *itemNames[] = {
 
 char apEnabled = 0;
 
+char isArchipelago();
+
 void InitStores() {
-  LocalGenerateItemStores(0);
+  if (isArchipelago()) CreateAPStores();
+  else LocalGenerateItemStores(0);
 }
 
 void DestroyStores() {
-  DestroyItemStores();
+  if (isArchipelago()) DestroyAPStores();
+  else DestroyItemStores();
 }
 
 int CostFactor(t_itemStores store) {
-  if (store >= IS_ALPHA && store <= IS_GAMMA) {
-    return GetNextIndexInStore(store);
-  }
-  else return -1;
+  if (store < IS_ALPHA || store > IS_GAMMA) return -1;
+  else if (isArchipelago()) return GetAPCostFactor(store);
+  else return GetNextIndexInStore(store);
 }
 
 t_itemTypes MakeCrystals() {
@@ -202,38 +205,46 @@ void ProcessItem(t_itemTypes item, const char *source, char isForfeit) {
 }
 
 void CollectItem(t_itemStores store) {
-  t_itemTypes item = GetNextItem(store, 1);
-  char source[12] = {0};
+  if (isArchipelago()) {
+    CollectAPItem(store);
+  } else {
+    t_itemTypes item = GetNextItem(store, 1);
+    char source[12] = {0};
 
-  switch (store) {
-    case IS_ALPHA: sprintf(source, "Alpha store"); break;
-    case IS_BETA: sprintf(source, "Beta store"); break;
-    case IS_GAMMA: sprintf(source, "Gamma store"); break;
-    case IS_CHESTS: sprintf(source, "the chest"); break;
-    default: sprintf(source, "nowhere"); break;
+    switch (store) {
+      case IS_ALPHA: sprintf(source, "Alpha store"); break;
+      case IS_BETA: sprintf(source, "Beta store"); break;
+      case IS_GAMMA: sprintf(source, "Gamma store"); break;
+      case IS_CHESTS: sprintf(source, "the chest"); break;
+      default: sprintf(source, "nowhere"); break;
+    }
+    ProcessItem(item, source, 0);
   }
-  ProcessItem(item, source, 0);
 }
 
 void CollectSpecialItem(t_specialStore itemIndex) {
-  t_itemTypes item = GetItemByIndex(IS_SPECIAL, itemIndex, 1);
-  char source[16] = {0};
+  if (isArchipelago()) {
+    CollectAPSpecialItem(itemIndex);
+  } else {
+    t_itemTypes item = GetItemByIndex(IS_SPECIAL, itemIndex, 1);
+    char source[16] = {0};
 
-  switch (itemIndex) {
-    case SS_PSI_KEY_1: case SS_PSI_KEY_2: case SS_PSI_KEY_3:
-      sprintf(source, "the pedestal"); break;
+    switch (itemIndex) {
+      case SS_PSI_KEY_1: case SS_PSI_KEY_2: case SS_PSI_KEY_3:
+        sprintf(source, "the pedestal"); break;
 
-    case SS_BOSS_PRIZE_1: sprintf(source, "Meridian's soul"); break;
-    case SS_BOSS_PRIZE_2: sprintf(source, "Ataraxia's soul"); break;
-    case SS_BOSS_PRIZE_3: sprintf(source, "Merodach's soul"); break;
+      case SS_BOSS_PRIZE_1: sprintf(source, "Meridian's soul"); break;
+      case SS_BOSS_PRIZE_2: sprintf(source, "Ataraxia's soul"); break;
+      case SS_BOSS_PRIZE_3: sprintf(source, "Merodach's soul"); break;
 
-    default: sprintf(source, "somewhere");
+      default: sprintf(source, "somewhere");
+    }
+
+    ProcessItem(item, source, 0);
   }
-
-  ProcessItem(item, source, 0);
 }
 
-char IsArchipelago() {
+char isArchipelago() {
   return apEnabled;
 }
 
@@ -242,12 +253,17 @@ void PostCollectNotice(const char *player, const char *itemName, const char *was
 }
 
 void PollAPClient() {
-  if (!IsArchipelago()) return;
+  if (!isArchipelago()) return;
   // Currently does nothing; will interact with AP client to poll server
 }
 
+void ReceiveItem(t_itemTypes item, const char *source) {
+  ProcessItem(item, source, 0);
+}
+
 void SendAPSignal(t_apSignal signal) {
-  if (!IsArchipelago()) return;
+  if (!isArchipelago()) return;
+  SendAPSignalMsg(signal);
   // Currently does nothing; will interact with AP client to send forfeit/collect
 }
 
@@ -261,19 +277,25 @@ void KillPlayer(const char *from) {
 }
 
 void AnnounceDeath() {
-  if (!IsArchipelago()) return;
-  // doesn't do anything for now; this is for AP DeathLink
+  if (!isArchipelago() || !isDeathLink()) return;
+  SendDeathLink();
 }
 
 void AnnounceVictory(char isFullVictory) {
-  if (!IsArchipelago()) return;
+  if (!isArchipelago()) return;
   // doesn't do anything for now; this is for AP
 }
 
 void WriteStoreData() {
-  SaveStores();
+  if (isArchipelago()) {
+
+  }
+  else SaveStores();
 }
 
 void ReadStoreData() {
-  LoadStores();
+  if (isArchipelago()) {
+
+  }
+  else LoadStores();
 }

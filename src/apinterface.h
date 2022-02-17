@@ -24,6 +24,21 @@
 #define EXTERNC
 #endif
 
-EXTERNC void connect_ap(const char *c_uri);
+EXTERNC void CreateAPStores();
+EXTERNC void DestroyAPStores();
+
+EXTERNC int GetAPCostFactor(t_itemStores store);
+EXTERNC void CollectAPItem(t_itemStores store);
+EXTERNC void CollectAPSpecialItem(t_specialStore index);
+
+EXTERNC void ConnectAP(const char *c_uri);
+EXTERNC void DisconnectAP();
+
+EXTERNC void SendAPSignalMsg(t_apSignal signal);
+EXTERNC void SendCheck(int locationId);
+EXTERNC void PollServer();
+
+EXTERNC char isDeathLink();
+EXTERNC void SendDeathLink();
 
 #endif

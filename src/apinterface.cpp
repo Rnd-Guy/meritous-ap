@@ -17,6 +17,7 @@
 
 #include "submodules/apclientpp/apclient.hpp"
 #include "uuid.h"
+#include "apitemstore.hpp"
 
 extern "C" {
   #include "itemhandler.h"
@@ -24,6 +25,7 @@ extern "C" {
 
 #define GAME_NAME "Meritous"
 #define DATAPACKAGE_CACHE "datapackage.json"
+#define AP_OFFSET 593000
 
 using nlohmann::json;
 
@@ -32,13 +34,72 @@ bool ap_sync_queued = false;
 bool deathlink = false;
 bool ap_connect_sent = false;
 double deathtime = -1;
+std::vector<ItemStore*> apStores;
+
+const char *storeNames[] = {
+  "Alpha store",
+  "Beta store",
+  "Gamma store",
+  "the chest",
+  "somewhere special"
+};
+
+void DestroyAPStores();
 
 bool isEqual(double a, double b)
 {
   return fabs(a - b) < std::numeric_limits<double>::epsilon() * fmax(fabs(a), fabs(b));
 }
 
-void connect_ap(const char *c_uri)
+void CreateAPStores()
+{
+  if (apStores.size() > 0) DestroyAPStores();
+  apStores.push_back(new ItemStore(24, false));
+  apStores.push_back(new ItemStore(24, false));
+  apStores.push_back(new ItemStore(24, false));
+  apStores.push_back(new ItemStore(24, true));
+  apStores.push_back(new ItemStore(8, false));
+}
+
+void DestroyAPStores()
+{
+  while (apStores.size()) {
+    ItemStore *delStore = apStores.back();
+    apStores.pop_back();
+    delete delStore;
+  }
+}
+
+int GetAPCostFactor(t_itemStores store)
+{
+  if (!apStores.size() || store < IS_ALPHA || store > IS_GAMMA) return -1;
+  return apStores[store]->GetCostFactor();
+}
+
+void CollectAPItem(t_itemStores store)
+{
+  if (!ap || !apStores.size()) return;
+  int next = apStores[store]->BuyNextItem();
+  if (next >= 0) {
+    std::list<int64_t> check;
+    check.push_back((store * 24) + next + AP_OFFSET);
+    ap->LocationChecks(check);
+  } else if (apStores[store]->HasCrystalFallback()) {
+    ReceiveItem(MakeCrystals(), storeNames[store]);
+  }
+}
+
+void CollectAPSpecialItem(t_specialStore index)
+{
+  if (!ap || !apStores.size()) return;
+  apStores[IS_SPECIAL]->MarkCollected(index);
+
+  std::list<int64_t> check;
+  check.push_back(index + 96 + AP_OFFSET);
+  ap->LocationChecks(check);
+}
+
+void ConnectAP(const char *c_uri)
 {
   std::string uri = c_uri;
   // read or generate uuid, required by AP
@@ -123,14 +184,13 @@ void connect_ap(const char *c_uri)
       return;
     }
     for (const auto& item: items) {
-      // TODO: what to do when we receive an item
       std::string itemname = ap->get_item_name(item.item);
       std::string sender = ap->get_player_alias(item.player);
       std::string location = ap->get_location_name(item.location);
       printf("  #%d: %s (%" PRId64 ") from %s - %s\n",
               item.index, itemname.c_str(), item.item,
               sender.c_str(), location.c_str());
-      //game->send_item(item.index, item.item, sender, location);
+      ReceiveItem((t_itemTypes)item.index, sender.c_str());
     }
   });
   ap->set_data_package_changed_handler([](const json& data) {
@@ -150,7 +210,6 @@ void connect_ap(const char *c_uri)
   });
   ap->set_bounced_handler([](const json& cmd) {
     if (deathlink) {
-      // TODO: what to do when DeathLink is received
       auto tagsIt = cmd.find("tags");
       auto dataIt = cmd.find("data");
       if (tagsIt != cmd.end() && tagsIt->is_array()
@@ -171,3 +230,50 @@ void connect_ap(const char *c_uri)
   });
 }
 
+void DisconnectAP()
+{
+  if (ap) {
+    delete ap;
+    ap = NULL;
+  }
+}
+
+void SendAPSignalMsg(t_apSignal signal)
+{
+  if (!ap) return;
+  switch (signal) {
+    case APSIG_COLLECT: ap->Say("!collect"); break;
+    case APSIG_FORFEIT: ap->Say("!forfeit"); break;
+    default: break;
+  }
+}
+
+void SendCheck(int locationId)
+{
+  if (ap) {
+    std::list<int64_t> check;
+    check.push_back(locationId + AP_OFFSET);
+    ap->LocationChecks(check);
+  }
+}
+
+void PollServer()
+{
+  if (ap) ap->poll();
+}
+
+char isDeathLink()
+{
+  return (char)deathlink;
+}
+
+void SendDeathLink()
+{
+  if (!ap || !deathlink) return;
+  json data{
+    {"time", ap->get_server_time()},
+    {"cause", "PSI of defeat"}, // TODO: see about adding more granular reasons
+    {"source", ap->get_slot()}
+  };
+  ap->Bounce(data, {}, {}, {"DeathLink"});
+}
