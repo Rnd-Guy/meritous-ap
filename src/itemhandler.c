@@ -25,6 +25,7 @@
 #include "itemstore.h"
 #include "levelblit.h"
 #include "stats.h"
+#include "apinterface.h"
 
 const char *itemNames[] = {
   "Nothing",
@@ -99,7 +100,7 @@ char HasItem(t_itemTypes item) {
   }
 }
 
-void ProcessItem(t_itemTypes item, char *source, char isForfeit) {
+void ProcessItem(t_itemTypes item, const char *source, char isForfeit) {
   char noise = 0;
   int basemod = 500;
 
@@ -200,22 +201,6 @@ void ProcessItem(t_itemTypes item, char *source, char isForfeit) {
   else if (noise == 3) SND_Pos("dat/a/crystal2.wav", 100, 0);
 }
 
-void KillPlayer() {
-  if (player_dying <= 0 && player_hp > 0) {
-    player_hp = 0;
-    player_dying = 1;
-    SND_Pos("dat/a/playerhurt.wav", 128, 0);
-  }
-}
-
-void AnnounceDeath() {
-  // doesn't do anything for now; this is for AP DeathLink
-}
-
-void AnnounceVictory(char isFullVictory) {
-  // doesn't do anything for now; this is for AP
-}
-
 void CollectItem(t_itemStores store) {
   t_itemTypes item = GetNextItem(store, 1);
   char source[12] = {0};
@@ -252,8 +237,8 @@ char IsArchipelago() {
   return apEnabled;
 }
 
-void PostCollectNotice(char *player, char *itemName, char *waswere) {
-  PostMessage(72, 30, 2, itemName, waswere, player);
+void PostCollectNotice(const char *player, const char *itemName, const char *waswere) {
+  PostMessage(72, 30, 3, itemName, waswere, player);
 }
 
 void PollAPClient() {
@@ -264,6 +249,25 @@ void PollAPClient() {
 void SendAPSignal(t_apSignal signal) {
   if (!IsArchipelago()) return;
   // Currently does nothing; will interact with AP client to send forfeit/collect
+}
+
+void KillPlayer(const char *from) {
+  PostMessage(72, 30, 1, from);
+  if (player_dying <= 0 && player_hp > 0) {
+    player_hp = 0;
+    player_dying = 1;
+    SND_Pos("dat/a/playerhurt.wav", 128, 0);
+  }
+}
+
+void AnnounceDeath() {
+  if (!IsArchipelago()) return;
+  // doesn't do anything for now; this is for AP DeathLink
+}
+
+void AnnounceVictory(char isFullVictory) {
+  if (!IsArchipelago()) return;
+  // doesn't do anything for now; this is for AP
 }
 
 void WriteStoreData() {

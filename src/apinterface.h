@@ -15,31 +15,15 @@
 // You should have received a copy of the GNU General Public License
 // along with Meritous-AP.  If not, see <http://www.gnu.org/licenses/>.
 
-#ifndef ITEMHANDLER_H
-#define ITEMHANDLER_H
+#ifndef APINTERFACE_H
+#define APINTERFACE_H
 
-#include "itemdefs.h"
+#ifdef __cplusplus
+#define EXTERNC extern "C"
+#else
+#define EXTERNC
+#endif
 
-void InitStores();
-void DestroyStores();
-
-t_itemTypes MakeCrystals();
-
-
-int CostFactor(t_itemStores store);
-void CollectItem(t_itemStores store);
-void CollectSpecialItem(t_specialStore itemIndex);
-
-char IsArchipelago();
-void PostCollectNotice(const char *player, const char *itemName, const char *waswere);
-
-void PollAPClient();
-void SendAPSignal(t_apSignal signal);
-void KillPlayer(const char *from);
-void AnnounceDeath();
-void AnnounceVictory(char isFullVictory);
-
-void WriteStoreData();
-void ReadStoreData();
+EXTERNC void connect_ap(const char *c_uri);
 
 #endif
