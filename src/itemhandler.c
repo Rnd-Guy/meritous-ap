@@ -51,6 +51,8 @@ const char *itemNames[] = {
   "Extra Life"
 };
 
+char apEnabled = 0;
+
 void InitStores() {
   LocalGenerateItemStores(0);
 }
@@ -247,12 +249,16 @@ void CollectSpecialItem(t_specialStore itemIndex) {
 }
 
 char IsArchipelago() {
-  // TODO: when we implement the AP client, this will return whether the current game is AP or local rando
-  return 1;
+  return apEnabled;
 }
 
 void PostCollectNotice(char *player, char *itemName, char *waswere) {
   PostMessage(72, 30, 2, itemName, waswere, player);
+}
+
+void PollAPClient() {
+  if (!IsArchipelago()) return;
+  // Currently does nothing; will interact with AP client to poll server
 }
 
 void SendAPSignal(t_apSignal signal) {

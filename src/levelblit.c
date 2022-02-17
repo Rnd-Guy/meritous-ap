@@ -836,6 +836,9 @@ int DungeonPlay(char *fname)
     //sprintf(buf, "X: %d  Y: %d", (player_x + PLAYERW/2)/32*32 + PLAYERW/2, (player_y + PLAYERH/2)/32*32 + PLAYERH/2);
     //SDL_WM_SetCaption(buf, "MT");
     if (!game_paused) {
+      // NOTE: not sure if this is the best place for this, but I just learned about polling things
+      PollAPClient();
+
       if (player_dying > 30) {
         add_int_stat(STAT_DAMAGE_TAKEN, 1);
         player_hp--;
