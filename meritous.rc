@@ -1,0 +1,28 @@
+#include <winver.h>
+1 VERSIONINFO
+FILEVERSION     0,8,0,0
+PRODUCTVERSION  1,2,0,0
+FILEFLAGS       VS_FF_PRERELEASE
+FILEOS          VOS__WINDOWS32
+FILETYPE        VFT_APP
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904E4"
+    BEGIN
+      VALUE "CompanyName", "KewlioMZX"
+      VALUE "FileDescription", "Meritous Gaiden"
+      VALUE "FileVersion", "AP 0.8"
+      VALUE "InternalName", "meritous-ap"
+      VALUE "LegalCopyright", "Licensed under the GNU General Public License v3"
+      VALUE "OriginalFilename", "meritous.exe"
+      VALUE "ProductName", "Meritous Gaiden"
+      VALUE "ProductVersion", "1.2"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1252
+  END
+END
+2 ICON meritous.ico

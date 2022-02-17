@@ -19,7 +19,8 @@
 #   along with Meritous.  If not, see <http://www.gnu.org/licenses/>.
 #
 LDFLAGS = `sdl-config --libs` -lSDL_image -lSDL_mixer -lz -lpthread
-CCFLAGS = -O2 -Wall `sdl-config --cflags` -ggdb
+#CCFLAGS = -O2 -Wall `sdl-config --cflags` -ggdb
+CCFLAGS = -Os -Wall `sdl-config --cflags`
 
 AP_INCLUDES = -Isrc/submodules/wswrap/include\
               -Isrc/submodules/json/include\
@@ -48,8 +49,8 @@ OBJS = 	src/levelblit.o \
 #
 default:	meritous
 
+# this is your cpp code that bridges between apclientpp and the game
 apinterface.o: src/apinterface.cpp
-		# this is your cpp code that bridges between apclientpp and the game
 		g++ -c $? -o $@ ${AP_INCLUDES} ${DEFINES} ${CCFLAGS}
 
 wswrap.o: src/submodules/wswrap/src/wswrap.cpp
@@ -58,8 +59,11 @@ wswrap.o: src/submodules/wswrap/src/wswrap.cpp
 %.o:		%.c
 		gcc -c -o $@ $? ${CCFLAGS}
 
-meritous:	${OBJS} wswrap.o apinterface.o
-		g++ -o $@ ${OBJS} wswrap.o apinterface.o ${AP_LIBS} ${LDFLAGS}
+meritous.res: meritous.rc
+		windres $? -O coff -o $@
+
+meritous:	${OBJS} wswrap.o apinterface.o meritous.res
+		g++ -o $@ ${OBJS} wswrap.o apinterface.o meritous.res ${AP_LIBS} ${LDFLAGS}
 
 clean:		
 		rm ${OBJS} wswrap.o apinterface.o
