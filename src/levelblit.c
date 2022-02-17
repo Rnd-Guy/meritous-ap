@@ -50,6 +50,10 @@
 #define PLAYERH 24
 
 #define MERITOUS_VERSION "v 1.2-AP"
+
+#define MIN(a,b) (((a) < (b)) ? (a) : (b))
+#define MAX(a,b) (((a) > (b)) ? (a) : (b))
+
 int RECORDING = 0;
 int PLAYBACK = 0;
 
@@ -359,12 +363,6 @@ void ReadPlayerData()
   for (i = 0; i < 12; i++) {
     artifacts[i] = FRChar();
   }
-}
-
-int min(int x, int y)
-{
-  if (x<y) return x;
-  return y;
 }
 
 void DummyEventPoll()
@@ -883,7 +881,7 @@ int DungeonPlay(char *fname)
     circuit_size = 250 + 50*(circuit_fillrate + circuit_recoverrate);
 
     if (magic_circuit > 0) {
-      circuit_range = (sqrt(magic_circuit + 1) * 6 + min(magic_circuit / 2, 50))*1.66;
+      circuit_range = (sqrt(magic_circuit + 1) * 6 + MIN(magic_circuit / 2, 50))*1.66;
       if (artifacts[3]) circuit_range += circuit_range / 2.4;
     } else circuit_range = -1;
     player_room = GetRoom(player_x/32, player_y/32);
@@ -2426,7 +2424,7 @@ void PostMessage(int msgid, int duration, int paramcount, ...)
     va_start(ptr, paramcount);
     for (int x = 0; x < paramcount; x++) {
       char *str = va_arg(ptr, char*);
-      size_t makelen = __min(sizeof(char) * (strlen(str) + 1), 100);
+      size_t makelen = MIN(sizeof(char) * (strlen(str) + 1), 100);
       newmsg->params[x] = malloc(makelen);
       memset(newmsg->params[x], makelen, 0);
       snprintf(newmsg->params[x], makelen - 1, str);
@@ -2667,7 +2665,7 @@ void SpecialTile(int x, int y)
 
   if (specialmessage1[0] != 0) {
     if (specialmessage2[0] == 0) sprintf(specialmessage2, "test");
-    int longermsg = (int)__max(strlen(specialmessage1), strlen(specialmessage2));
+    int longermsg = (int)MAX(strlen(specialmessage1), strlen(specialmessage2));
     DrawRect(320 - longermsg*8 / 2 - 20, 325, longermsg*8+40, 55, 200);
     DrawRect(320 - longermsg*8 / 2 - 15, 330, longermsg*8+30, 45, 32);
     DrawRect(320 - longermsg*8 / 2 - 10, 335, longermsg*8+20, 35, 64);
