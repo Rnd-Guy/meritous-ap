@@ -22,6 +22,7 @@
 extern "C" {
   #include "itemhandler.h"
 }
+#include "apinterface.h"
 
 #define GAME_NAME "Meritous"
 #define DATAPACKAGE_CACHE "datapackage.json"
