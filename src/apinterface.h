@@ -18,27 +18,30 @@
 #ifndef APINTERFACE_H
 #define APINTERFACE_H
 
-#ifdef __cplusplus
-#define EXTERNC extern "C"
-#else
-#define EXTERNC
-#endif
+// #ifdef __cplusplus
+// #define EXTERNC extern "C"
+// #else
+// #define EXTERNC
+// #endif
 
-EXTERNC void CreateAPStores();
-EXTERNC void DestroyAPStores();
+char ReadAPSettings();
 
-EXTERNC int GetAPCostFactor(t_itemStores store);
-EXTERNC void CollectAPItem(t_itemStores store);
-EXTERNC void CollectAPSpecialItem(t_specialStore index);
+void CreateAPStores();
+void DestroyAPStores();
 
-EXTERNC void ConnectAP(const char *c_uri);
-EXTERNC void DisconnectAP();
+int GetAPCostFactor(t_itemStores store);
+void CollectAPItem(t_itemStores store);
+void CollectAPSpecialItem(t_specialStore index);
 
-EXTERNC void SendAPSignalMsg(t_apSignal signal);
-EXTERNC void SendCheck(int locationId);
-EXTERNC void PollServer();
+void ConnectAP();
+void DisconnectAP();
 
-EXTERNC char isDeathLink();
-EXTERNC void SendDeathLink();
+void SendAPSignalMsg(t_apSignal signal);
+void SendCheck(int locationId);
+void PollServer();
+
+char isDeathLink();
+void SendDeathLink();
+void AnnounceAPVictory(char isFullVictory);
 
 #endif

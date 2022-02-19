@@ -584,6 +584,8 @@ int main(int argc, char **argv)
         draw_text((SCREEN_W - 14*8)/2 - 22, 310 + option * 10, " >", 165 + sin((float)ticker_tick / 5.0)*24);
       }
 
+      if (isArchipelago()) draw_text(0, 450, "AP Enabled", 255);
+
       VideoUpdate();
 
       if (ticker_tick++ > 30) {
@@ -828,6 +830,8 @@ int DungeonPlay(char *fname)
       max_dist = rooms[i].s_dist;
     }
   }
+
+  StartRando();
 
   game_running = 1;
   while (game_running) {
@@ -1269,6 +1273,8 @@ int DungeonPlay(char *fname)
       ActivateRand();
     }
 
+    if (isArchipelago()) draw_text(0, 450, GetAPStatus(), 0);
+
     if (voluntary_exit && enter_pressed) {
       voluntary_exit = 0;
       game_running = 0;
@@ -1294,6 +1300,9 @@ int DungeonPlay(char *fname)
     VideoUpdate();
     SDL_Delay(2000);
   }
+
+  EndRando();
+  DestroyStores();
 
   return 0;
 }

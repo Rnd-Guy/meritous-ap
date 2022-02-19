@@ -15,14 +15,16 @@
 // You should have received a copy of the GNU General Public License
 // along with Meritous-AP.  If not, see <http://www.gnu.org/licenses/>.
 
+#include <fstream>
+
 #include "submodules/apclientpp/apclient.hpp"
 #include "uuid.h"
 #include "apitemstore.hpp"
 
 extern "C" {
   #include "itemhandler.h"
+  #include "apinterface.h"
 }
-#include "apinterface.h"
 
 #define GAME_NAME "Meritous"
 #define DATAPACKAGE_CACHE "datapackage.json"
@@ -32,10 +34,16 @@ using nlohmann::json;
 
 APClient *ap = NULL;
 bool ap_sync_queued = false;
-bool deathlink = false;
 bool ap_connect_sent = false;
 double deathtime = -1;
 std::vector<ItemStore*> apStores;
+
+std::string server;
+std::string slotname;
+std::string password;
+
+int goal = 0;
+bool deathlink = false;
 
 const char *storeNames[] = {
   "Alpha store",
@@ -45,11 +53,45 @@ const char *storeNames[] = {
   "somewhere special"
 };
 
+const char *specialStoreNames[] = {
+  "the pedestal",
+  "the pedestal",
+  "the pedestal",
+  "Meridian's soul",
+  "Ataraxia's soul",
+  "Merodach's soul",
+  "this remote location",
+  "this reclusive location"
+};
+
 void DestroyAPStores();
 
 bool isEqual(double a, double b)
 {
   return fabs(a - b) < std::numeric_limits<double>::epsilon() * fmax(fabs(a), fabs(b));
+}
+
+char ReadAPSettings() {
+  std::ifstream i("meritous-ap.json");
+  if (i.is_open()) {
+    std::ostringstream fullserver;
+    json settings;
+    i >> settings;
+    i.close();
+
+    bool apEnabled = settings["ap-enable"].get<bool>();
+    if (!apEnabled) return 0;
+
+    fullserver
+      << (settings["server"].is_string() ? settings["server"].get<std::string>() : (std::string)"localhost")
+      << (settings["port"].is_number() ? settings["port"].get<int>() : 38281);
+    server = fullserver.str();
+
+    password = settings["password"].is_string() ? settings["password"].get<std::string>() : (std::string)"";
+    slotname = settings["slotname"].get<std::string>();
+
+    return 1;
+  } else return 0;
 }
 
 void CreateAPStores()
@@ -100,9 +142,9 @@ void CollectAPSpecialItem(t_specialStore index)
   ap->LocationChecks(check);
 }
 
-void ConnectAP(const char *c_uri)
+void ConnectAP()
 {
-  std::string uri = c_uri;
+  std::string uri = server;
   // read or generate uuid, required by AP
   std::string uuid = get_uuid();
 
@@ -120,30 +162,32 @@ void ConnectAP(const char *c_uri)
   // load DataPackage cache
   FILE* f = fopen(DATAPACKAGE_CACHE, "rb");
   if (f) {
-      char* buf = nullptr;
-      size_t len = (size_t)0;
-      if ((0 == fseek(f, 0, SEEK_END)) &&
-          ((len = ftell(f)) > 0) &&
-          ((buf = (char*)malloc(len+1))) &&
-          (0 == fseek(f, 0, SEEK_SET)) &&
-          (len == fread(buf, 1, len, f)))
-      {
-          buf[len] = 0;
-          try {
-              ap->set_data_package(json::parse(buf));
-          } catch (std::exception) { /* ignore */ }
-      }
-      free(buf);
-      fclose(f);
+    char* buf = nullptr;
+    size_t len = (size_t)0;
+    if ((0 == fseek(f, 0, SEEK_END)) &&
+        ((len = ftell(f)) > 0) &&
+        ((buf = (char*)malloc(len+1))) &&
+        (0 == fseek(f, 0, SEEK_SET)) &&
+        (len == fread(buf, 1, len, f)))
+    {
+      buf[len] = 0;
+      try {
+        ap->set_data_package(json::parse(buf));
+      } catch (std::exception) { /* ignore */ }
+    }
+    free(buf);
+    fclose(f);
   }
 
   // set state and callbacks
   ap_sync_queued = false;
   ap->set_socket_connected_handler([](){
     // TODO: what to do when we've connected to the server
+    SetAPStatus("Authenticating", 1);
   });
   ap->set_socket_disconnected_handler([](){
     // TODO: what to do when we've disconnected from the server
+    SetAPStatus("Disconnected", 1);
   });
   ap->set_room_info_handler([](){
     // TODO: not completely sure what to do here
@@ -155,12 +199,18 @@ void ConnectAP(const char *c_uri)
     // else {
         std::list<std::string> tags;
         if (deathlink) tags.push_back("DeathLink");
-        // ap->ConnectSlot(game->get_slot(), password, game->get_items_handling(), tags);
+        ap->ConnectSlot(slotname, password, 0b111, tags);
         ap_connect_sent = true; // TODO: move to APClient::State ?
     // }
   });
-  ap->set_slot_connected_handler([](){
+  ap->set_slot_connected_handler([](const json& data){
     // TODO: what to do when we've connected to our slot
+    // This is probably where we can figure out whether we have DeathLink and what our goal is
+    goal = data["goal"].is_number_integer() ? data["goal"].get<int>() : 0;
+    deathlink = data["death_link"].is_boolean() ? data["death_link"].get<bool>() : false;
+    if (deathlink) ap->ConnectUpdate(false, 0b111, true, {"DeathLink"});
+    ap->StatusUpdate(APClient::ClientStatus::PLAYING);
+    SetAPStatus("Connected", 0);
   });
   ap->set_slot_disconnected_handler([](){
     // TODO: what to do when we've disconnected from our slot
@@ -175,6 +225,7 @@ void ConnectAP(const char *c_uri)
       printf("AP: Connection refused:");
       for (const auto& error: errors) printf(" %s", error.c_str());
       printf("\n");
+      SetAPStatus(errors.front().c_str(), 1);
     }
   });
   ap->set_items_received_handler([](const std::list<APClient::NetworkItem>& items) {
@@ -186,16 +237,26 @@ void ConnectAP(const char *c_uri)
     }
     for (const auto& item: items) {
       std::string itemname = ap->get_item_name(item.item);
-      std::string sender = ap->get_player_alias(item.player);
+      std::string sender = ap->get_player_alias(item.player) + "'s world";
       std::string location = ap->get_location_name(item.location);
+
+      if (item.player == ap->get_player_number()) {
+        int locId = item.location - AP_OFFSET;
+        if (locId < 96) location = storeNames[locId / 24];
+        else location = specialStoreNames[locId - 96];
+      }
+      
       printf("  #%d: %s (%" PRId64 ") from %s - %s\n",
               item.index, itemname.c_str(), item.item,
               sender.c_str(), location.c_str());
-      ReceiveItem((t_itemTypes)item.index, sender.c_str());
+      ReceiveItem((t_itemTypes)item.index,
+        item.player == ap->get_player_number()
+        ? sender.c_str()
+        : location.c_str());
     }
   });
   ap->set_data_package_changed_handler([](const json& data) {
-    // TODO: what to do when the data package changes (probably doesn't need to change this code)
+    // NOTE: what to do when the data package changes (probably doesn't need to change this code)
     FILE* f = fopen(DATAPACKAGE_CACHE, "wb");
     if (f) {
       std::string s = data.dump();
@@ -277,4 +338,10 @@ void SendDeathLink()
     {"source", ap->get_slot()}
   };
   ap->Bounce(data, {}, {}, {"DeathLink"});
+}
+
+void AnnounceAPVictory(char isFullVictory)
+{
+  if (!ap || ap->get_state() != APClient::State::SLOT_CONNECTED) return;
+  if (goal == 0 || isFullVictory == 1) ap->StatusUpdate(APClient::ClientStatus::GOAL);
 }

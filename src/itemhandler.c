@@ -53,8 +53,15 @@ const char *itemNames[] = {
 };
 
 char apEnabled = 0;
+char apStatus[24] = {0};
+time_t apLastStatusUpdate = 0;
 
 char isArchipelago();
+
+void InitRando() {
+  apEnabled = ReadAPSettings();
+  if (apEnabled) sprintf(apStatus, "Not connected");
+}
 
 void InitStores() {
   if (isArchipelago()) CreateAPStores();
@@ -64,6 +71,14 @@ void InitStores() {
 void DestroyStores() {
   if (isArchipelago()) DestroyAPStores();
   else DestroyItemStores();
+}
+
+void StartRando() {
+  if (isArchipelago()) ConnectAP();
+}
+
+void EndRando() {
+  if (isArchipelago()) DisconnectAP();
 }
 
 int CostFactor(t_itemStores store) {
@@ -248,6 +263,19 @@ char isArchipelago() {
   return apEnabled;
 }
 
+const char *GetAPStatus() {
+  if (apLastStatusUpdate != 0 && time(NULL) > apLastStatusUpdate + 10) {
+    apLastStatusUpdate = 0;
+    sprintf(apStatus, "");
+  }
+  return apStatus;
+}
+
+void SetAPStatus(const char *status, char important) {
+  apLastStatusUpdate = important ? 0 : time(NULL);
+  sprintf(apStatus, status);
+}
+
 void PostCollectNotice(const char *player, const char *itemName, const char *waswere) {
   PostMessage(72, 30, 3, itemName, waswere, player);
 }
@@ -282,8 +310,7 @@ void AnnounceDeath() {
 }
 
 void AnnounceVictory(char isFullVictory) {
-  if (!isArchipelago()) return;
-  // doesn't do anything for now; this is for AP
+  if (isArchipelago()) AnnounceAPVictory(isFullVictory);
 }
 
 void WriteStoreData() {
