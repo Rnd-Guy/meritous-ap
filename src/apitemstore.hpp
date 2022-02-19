@@ -34,12 +34,12 @@ public:
   }
 
   void MarkCollected(int index) {
-    if (index < 0 || index >= checks.size()) return;
+    if (index < 0 || index >= (int)checks.size()) return;
     checks[index] = true;
   }
 
   int BuyNextItem() {
-    for (int x = 0; x < checks.size(); x++) {
+    for (size_t x = 0; x < checks.size(); x++) {
       if (!checks[x]) {
         costFactor++;
         checks[x] = true;
@@ -58,7 +58,7 @@ public:
   }
 
   bool operator[](int index) {
-    if (index < 0 || index >= checks.size()) return false;
+    if (index < 0 || index >= (int)checks.size()) return false;
     return checks[index];
   }
 };
