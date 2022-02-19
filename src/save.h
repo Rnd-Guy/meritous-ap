@@ -35,8 +35,8 @@ int FRInt();
 
 extern int game_load;
 
-void SaveGame(char *);
-void LoadGame(char *);
+void SaveGame(const char *);
+void LoadGame(const char *);
 void CloseFile();
 
 int IsSaveFile();
