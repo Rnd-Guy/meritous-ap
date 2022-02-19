@@ -88,7 +88,7 @@ void DrawArtifacts();
 void HandleEvents();
 
 void text_init();
-void draw_text(int x, int y, char *str, Uint8 tcol);
+void draw_text(int x, int y, const char *str, Uint8 tcol);
 unsigned char font_data[128][8][8];
 
 void DrawShield();
@@ -371,7 +371,7 @@ void DummyEventPoll()
   SDL_PollEvent(&e);
 }
 
-int DungeonPlay(char *fname);
+int DungeonPlay(const char *fname);
 
 Uint8 Uint8_Bound(int c)
 {
@@ -407,7 +407,7 @@ int main(int argc, char **argv)
   Uint8 *src_p, *col_p;
   Uint8 wm_mask[128];
   int i;
-  int light = 0;
+  //int light = 0;
   int x, y;
   int pulse[SCREEN_W * SCREEN_H];
   int precalc_sine[400];
@@ -620,7 +620,7 @@ int main(int argc, char **argv)
 
       EndCycle(10);
 
-      light = 0;
+      //light = 0;
       tick -= 2;
     }
 
@@ -684,7 +684,7 @@ void DrawMeter(int x, int y, int n)
   SDL_BlitSurface(meter, &drawfrom, screen, &drawto);
 }
 
-void ProgressBarScreen(int part, float progress, char *message, float t_parts)
+void ProgressBarScreen(int part, float progress, const char *message, float t_parts)
 {
   memset(screen->pixels, 0, 640*480);
 
@@ -780,7 +780,7 @@ void ComposeTime(char *ptr, int msec, char displayMsec) {
   }
 }
 
-int DungeonPlay(char *fname)
+int DungeonPlay(const char *fname)
 {
   int ix,  iy;
   int off_x, off_y;
@@ -1166,9 +1166,12 @@ int DungeonPlay(char *fname)
       draw_text((640 - 23 * 8) / 2, (480 - 8) / 2 + 4, "Press enter to confirm.", 255);
     }
 
-    if (isArchipelago()) {
-      DrawRect(10, 450, 150, 10, 64);
-      draw_text(11, 451, GetAPStatus(), 192);
+    if (isArchipelago() && HasAPStatus()) {
+      size_t len = strlen(GetAPStatus());
+      if (len > 0) {
+        DrawRect(10, 450, len * 8 + 2, 10, 64);
+        draw_text(11, 451, GetAPStatus(), 192);
+      }
     }
 
     VideoUpdate();
@@ -1893,7 +1896,7 @@ void draw_char(int cur_x, int cur_y, int c, Uint8 tcol)
   }
 }
 
-void draw_text(int x, int y, char *str, Uint8 tcol)
+void draw_text(int x, int y, const char *str, Uint8 tcol)
 {
   int c, cur_x, cur_y;
 
@@ -1912,7 +1915,7 @@ void draw_text(int x, int y, char *str, Uint8 tcol)
   }
 }
 
-void draw_text_f(int x, int y, char *str, Uint8 tcol, ...)
+void draw_text_f(int x, int y, const char *str, Uint8 tcol, ...)
 {
   char buf[255] = {0};
   va_list args;
@@ -1921,7 +1924,7 @@ void draw_text_f(int x, int y, char *str, Uint8 tcol, ...)
   draw_text(x, y, buf, tcol);
 }
 
-void draw_text_ex(int x, int y, char *str, Uint8 tcol, SDL_Surface *srf)
+void draw_text_ex(int x, int y, const char *str, Uint8 tcol, SDL_Surface *srf)
 {
   Uint8 *pix;
   int c, cur_x, cur_y, px, py;
@@ -2437,11 +2440,11 @@ void PostMessage(int msgid, int duration, int paramcount, ...)
 
     va_start(ptr, paramcount);
     for (int x = 0; x < paramcount; x++) {
-      char *str = va_arg(ptr, char*);
+      const char *str = va_arg(ptr, const char*);
       size_t makelen = MIN(sizeof(char) * (strlen(str) + 1), 100);
       newmsg->params[x] = malloc(makelen);
-      memset(newmsg->params[x], makelen, 0);
-      snprintf(newmsg->params[x], makelen - 1, str);
+      memset(newmsg->params[x], 0, makelen);
+      snprintf(newmsg->params[x], makelen, str);
     }
     va_end(ptr);
   }
@@ -2696,7 +2699,7 @@ void SpecialTile(int x, int y)
 
 void ScrollTo(int x, int y)
 {
-  static int scrollspeed_x = 1, scrollspeed_y = 1;
+  //static int scrollspeed_x = 1, scrollspeed_y = 1;
   if (scroll_home == 0) {
     scroll_x = x;
     scroll_y = y;
@@ -2704,8 +2707,8 @@ void ScrollTo(int x, int y)
   }
 
   if (scroll_home == 1) {
-    scrollspeed_x = (x - scroll_x)/20;
-    scrollspeed_y = (y - scroll_y)/20;
+    // scrollspeed_x = (x - scroll_x)/20;
+    // scrollspeed_y = (y - scroll_y)/20;
     scroll_home = 2;
   }
 
