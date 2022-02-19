@@ -1166,8 +1166,8 @@ int DungeonPlay(char *fname)
       draw_text((640 - 23 * 8) / 2, (480 - 8) / 2 + 4, "Press enter to confirm.", 255);
     }
 
-    if (isArchipelago() && strlen(GetAPStatus() > 0)) {
-      DrawRect(10, 450, strlen(GetAPStatus()) + 2, 12, 64);
+    if (isArchipelago()) {
+      DrawRect(10, 450, 150, 10, 64);
       draw_text(11, 451, GetAPStatus(), 192);
     }
 
