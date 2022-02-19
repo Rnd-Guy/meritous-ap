@@ -18,6 +18,7 @@
  */
 
 #include <SDL.h>
+#include <time.h>
 
 #include "audio.h"
 #include "boss.h"
@@ -123,21 +124,27 @@ void ProcessItem(t_itemTypes item, const char *source, char isForfeit) {
   int basemod = 500;
 
   if (HasItem(item)) item = MakeCrystals();
+  printf("Processing %d: ", item);
 
   // Process the item effect
   switch (item) {
     case T_NOTHING:
+      printf("Nothing\n");
       break;
     case T_REFLECT_SHIELD:
+      printf("Shield\n");
       player_shield++;
       break;
     case T_CIRCUIT_CHARGE:
+      printf("Charge\n");
       circuit_fillrate++;
       break;
     case T_CIRCUIT_REFILL:
+      printf("Refill\n");
       circuit_recoverrate++;
       break;
     case T_AGATE_KNIFE:
+      printf("Knife\n");
       add_int_stat(STAT_TIME_KNIFE, expired_ms);
       player_shield = 30;
       circuit_fillrate = 30;
@@ -145,6 +152,7 @@ void ProcessItem(t_itemTypes item, const char *source, char isForfeit) {
       player_hp = 6;
       break;
     case T_EVOLUTION_TRAP:
+      printf("EvoTrap\n");
       SoupUpEnemies();
       break;
     case T_CRYSTALS_500:
@@ -152,16 +160,19 @@ void ProcessItem(t_itemTypes item, const char *source, char isForfeit) {
     case T_CRYSTALS_2000:
       if (item >= T_CRYSTALS_1000) basemod *= 2;
       if (item == T_CRYSTALS_2000) basemod *= 2;
+      printf("Crystals x%d\n", basemod);
       int collect = rand()%((1 << (explored / 300)) * basemod);
       add_int_stat(STAT_GEMS_COLLECTED, collect);
       player_gems += collect;
       break;
     case T_1UP:
+      printf("1up\n");
       add_int_stat(STAT_LIVES_GAINED, 1);
       player_lives++;
       player_hp = 3 + (player_shield == 30)*3;
       break;
     default:
+      printf("Artifact %d\n", item - T_MAP);
       artifacts[item - T_MAP] = 1;
       if (item == T_CURSED_SEAL) Curse();
       break;
@@ -272,6 +283,7 @@ const char *GetAPStatus() {
 }
 
 void SetAPStatus(const char *status, char important) {
+  printf("AP status: %s\n", status);
   apLastStatusUpdate = important ? 0 : time(NULL);
   sprintf(apStatus, status);
 }
@@ -281,8 +293,7 @@ void PostCollectNotice(const char *player, const char *itemName, const char *was
 }
 
 void PollAPClient() {
-  if (!isArchipelago()) return;
-  // Currently does nothing; will interact with AP client to poll server
+  if (isArchipelago()) PollServer();
 }
 
 void ReceiveItem(t_itemTypes item, const char *source) {
@@ -290,9 +301,7 @@ void ReceiveItem(t_itemTypes item, const char *source) {
 }
 
 void SendAPSignal(t_apSignal signal) {
-  if (!isArchipelago()) return;
-  SendAPSignalMsg(signal);
-  // Currently does nothing; will interact with AP client to send forfeit/collect
+  if (isArchipelago()) SendAPSignalMsg(signal);
 }
 
 void KillPlayer(const char *from) {
