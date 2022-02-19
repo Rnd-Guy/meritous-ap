@@ -544,6 +544,8 @@ int main(int argc, char **argv)
     EndCycle(20);
   }
 
+  InitRando();
+
   while (executable_running) {
     ticker_tick = 0;
     TitleScreenMusic();
@@ -1164,6 +1166,11 @@ int DungeonPlay(char *fname)
       draw_text((640 - 23 * 8) / 2, (480 - 8) / 2 + 4, "Press enter to confirm.", 255);
     }
 
+    if (isArchipelago() && strlen(GetAPStatus() > 0)) {
+      DrawRect(10, 450, strlen(GetAPStatus()) + 2, 12, 64);
+      draw_text(11, 451, GetAPStatus(), 192);
+    }
+
     VideoUpdate();
 
     MusicUpdate();
@@ -1272,8 +1279,6 @@ int DungeonPlay(char *fname)
     if ((t % (33 * 10))==(33 * 10 - 1)) {
       ActivateRand();
     }
-
-    if (isArchipelago()) draw_text(0, 450, GetAPStatus(), 0);
 
     if (voluntary_exit && enter_pressed) {
       voluntary_exit = 0;
