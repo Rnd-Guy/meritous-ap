@@ -84,6 +84,7 @@ char ReadAPSettings() {
 
     fullserver
       << (settings["server"].is_string() ? settings["server"].get<std::string>() : (std::string)"localhost")
+      << ":"
       << (settings["port"].is_number() ? settings["port"].get<int>() : 38281);
     server = fullserver.str();
 
@@ -152,9 +153,10 @@ void ConnectAP()
   ap = nullptr;
   if (!uri.empty() && uri.find("ws://") != 0 && uri.find("wss://") != 0) uri = "ws://"+uri;
 
-  printf("Connecting to AP...\n");
+  printf("Connecting to AP, server %s\n", uri.c_str());
   if (uri.empty()) ap = new APClient(uuid, GAME_NAME);
   else ap = new APClient(uuid, GAME_NAME, uri);
+  SetAPStatus("Connecting", 1);
 
   // clear game's cache. read below on socket_connected_handler
   //if (game) game->clear_cache();
@@ -183,10 +185,12 @@ void ConnectAP()
   ap_sync_queued = false;
   ap->set_socket_connected_handler([](){
     // TODO: what to do when we've connected to the server
+    printf("Connected, authenticating\n");
     SetAPStatus("Authenticating", 1);
   });
   ap->set_socket_disconnected_handler([](){
     // TODO: what to do when we've disconnected from the server
+    printf("Disconnected\n");
     SetAPStatus("Disconnected", 1);
   });
   ap->set_room_info_handler([](){
@@ -197,23 +201,26 @@ void ConnectAP()
     // else if (strncmp(game->get_seed().c_str(), ap->get_seed().c_str(), GAME::MAX_SEED_LENGTH) != 0)
     //     bad_seed(ap->get_seed(), game->get_seed());
     // else {
+        printf("Room info received\n");
         std::list<std::string> tags;
         if (deathlink) tags.push_back("DeathLink");
-        ap->ConnectSlot(slotname, password, 0b111, tags);
+        ap->ConnectSlot(slotname, password, 0b111, tags, {0,2,4});
         ap_connect_sent = true; // TODO: move to APClient::State ?
     // }
   });
   ap->set_slot_connected_handler([](const json& data){
     // TODO: what to do when we've connected to our slot
     // This is probably where we can figure out whether we have DeathLink and what our goal is
-    goal = data["goal"].is_number_integer() ? data["goal"].get<int>() : 0;
-    deathlink = data["death_link"].is_boolean() ? data["death_link"].get<bool>() : false;
+    // goal = data["goal"].is_number_integer() ? data["goal"].get<int>() : 0;
+    // deathlink = data["death_link"].is_boolean() ? data["death_link"].get<bool>() : false;
     if (deathlink) ap->ConnectUpdate(false, 0b111, true, {"DeathLink"});
     ap->StatusUpdate(APClient::ClientStatus::PLAYING);
+    printf("Connected and ready to go as %s\n", ap->get_player_alias(ap->get_player_number()).c_str());
     SetAPStatus("Connected", 0);
   });
   ap->set_slot_disconnected_handler([](){
     // TODO: what to do when we've disconnected from our slot
+    printf("Disconnected\n");
     ap_connect_sent = false;
   });
   ap->set_slot_refused_handler([](const std::list<std::string>& errors){
@@ -241,6 +248,7 @@ void ConnectAP()
       std::string location = ap->get_location_name(item.location);
 
       if (item.player == ap->get_player_number()) {
+        printf("Sender is self\n");
         int locId = item.location - AP_OFFSET;
         if (locId < 96) location = storeNames[locId / 24];
         else location = specialStoreNames[locId - 96];
@@ -249,7 +257,7 @@ void ConnectAP()
       printf("  #%d: %s (%" PRId64 ") from %s - %s\n",
               item.index, itemname.c_str(), item.item,
               sender.c_str(), location.c_str());
-      ReceiveItem((t_itemTypes)item.index,
+      ReceiveItem((t_itemTypes)(item.item - AP_OFFSET),
         item.player == ap->get_player_number()
         ? sender.c_str()
         : location.c_str());
