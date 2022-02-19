@@ -175,7 +175,7 @@ void ConnectAP()
       buf[len] = 0;
       try {
         ap->set_data_package(json::parse(buf));
-      } catch (std::exception) { /* ignore */ }
+      } catch (std::exception&) { /* ignore */ }
     }
     free(buf);
     fclose(f);
@@ -194,37 +194,27 @@ void ConnectAP()
     SetAPStatus("Disconnected", 1);
   });
   ap->set_room_info_handler([](){
-    // TODO: not completely sure what to do here
-    // compare seeds and error out if it's the wrong one, and then (try to) connect with games's slot
-    // if (!game || game->get_seed().empty() || game->get_slot().empty())
-    //     printf("Waiting for game ...\n");
-    // else if (strncmp(game->get_seed().c_str(), ap->get_seed().c_str(), GAME::MAX_SEED_LENGTH) != 0)
-    //     bad_seed(ap->get_seed(), game->get_seed());
-    // else {
-        printf("Room info received\n");
-        std::list<std::string> tags;
-        if (deathlink) tags.push_back("DeathLink");
-        ap->ConnectSlot(slotname, password, 0b111, tags, {0,2,4});
-        ap_connect_sent = true; // TODO: move to APClient::State ?
-    // }
+    printf("Room info received\n");
+    std::list<std::string> tags;
+    if (deathlink) tags.push_back("DeathLink");
+    ap->ConnectSlot(slotname, password, 0b111, tags, {0,2,5});
+    ap_connect_sent = true; // TODO: move to APClient::State ?
   });
   ap->set_slot_connected_handler([](const json& data){
-    // TODO: what to do when we've connected to our slot
-    // This is probably where we can figure out whether we have DeathLink and what our goal is
-    // goal = data["goal"].is_number_integer() ? data["goal"].get<int>() : 0;
-    // deathlink = data["death_link"].is_boolean() ? data["death_link"].get<bool>() : false;
+    deathlink = data["death_link"].is_boolean() ? data["death_link"].get<bool>() : false;
+    goal = data["goal"].is_number_integer() ? data["goal"].get<int>() : 0;
+
     if (deathlink) ap->ConnectUpdate(false, 0b111, true, {"DeathLink"});
     ap->StatusUpdate(APClient::ClientStatus::PLAYING);
     printf("Connected and ready to go as %s\n", ap->get_player_alias(ap->get_player_number()).c_str());
     SetAPStatus("Connected", 0);
   });
   ap->set_slot_disconnected_handler([](){
-    // TODO: what to do when we've disconnected from our slot
     printf("Disconnected\n");
+    SetAPStatus("Disconnected", 1);
     ap_connect_sent = false;
   });
   ap->set_slot_refused_handler([](const std::list<std::string>& errors){
-    // TODO: what to do when connecting to our slot failed
     ap_connect_sent = false;
     if (std::find(errors.begin(), errors.end(), "InvalidSlot") != errors.end()) {
       //bad_slot(game?game->get_slot():"");
@@ -259,8 +249,8 @@ void ConnectAP()
               sender.c_str(), location.c_str());
       ReceiveItem((t_itemTypes)(item.item - AP_OFFSET),
         item.player == ap->get_player_number()
-        ? sender.c_str()
-        : location.c_str());
+        ? location.c_str()
+        : sender.c_str());
     }
   });
   ap->set_data_package_changed_handler([](const json& data) {
