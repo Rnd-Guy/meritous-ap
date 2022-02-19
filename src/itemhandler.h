@@ -35,6 +35,7 @@ void CollectItem(t_itemStores store);
 void CollectSpecialItem(t_specialStore itemIndex);
 
 char isArchipelago();
+char HasAPStatus();
 const char *GetAPStatus();
 void SetAPStatus(const char *status, char important);
 void PostCollectNotice(const char *player, const char *itemName, const char *waswere);

@@ -181,21 +181,21 @@ void ProcessItem(t_itemTypes item, const char *source, char isForfeit) {
   // Show the appropriate message
   if (isForfeit) {
     char kelka = item >= T_PSI_KEY_1 && item <= T_CURSED_SEAL;
-    PostMessage(71, 30, 2, source, kelka ? artifact_names[item - T_PSI_KEY_1] : itemNames[item]);
+    PostMessage(71, 50, 2, source, kelka ? artifact_names[item - T_PSI_KEY_1] : itemNames[item]);
   } else switch (item) {
     case T_NOTHING:
-      PostMessage(60, 30, 1, source);
+      PostMessage(60, 50, 1, source);
       break;
     case T_REFLECT_SHIELD:
-      PostMessage(10, 30, 1, source);
+      PostMessage(10, 50, 1, source);
       noise = 1;
       break;
     case T_CIRCUIT_CHARGE:
-      PostMessage(11, 30, 1, source);
+      PostMessage(11, 50, 1, source);
       noise = 1;
       break;
     case T_CIRCUIT_REFILL:
-      PostMessage(12, 30, 1, source);
+      PostMessage(12, 50, 1, source);
       noise = 1;
       break;
     case T_AGATE_KNIFE:
@@ -208,19 +208,19 @@ void ProcessItem(t_itemTypes item, const char *source, char isForfeit) {
     case T_CRYSTALS_500:
     case T_CRYSTALS_1000:
     case T_CRYSTALS_2000:
-      PostMessage(20, 30, 1, source);
+      PostMessage(20, 50, 1, source);
       noise = 1;
       break;
     case T_1UP:
-      PostMessage(61, 30, 1, source);
+      PostMessage(61, 50, 1, source);
       noise = 3;
       break;
     case T_CURSED_SEAL:
-      PostMessage(33, 120, 0);
+      PostMessage(33, 180, 0);
       break;
     default:
-      if (item >= T_PSI_KEY_1) PostMessage(34, 120, 2, source, artifact_names[item - T_PSI_KEY_1]);
-      else PostMessage(item - T_MAP + 1, 30, 1, source);
+      if (item >= T_PSI_KEY_1) PostMessage(34, 180, 2, source, artifact_names[item - T_PSI_KEY_1]);
+      else PostMessage(item - T_MAP + 1, 120, 1, source);
       noise = 2;
       break;
   }
@@ -274,10 +274,14 @@ char isArchipelago() {
   return apEnabled;
 }
 
+char HasAPStatus() {
+  return apStatus[0] != 0;
+}
+
 const char *GetAPStatus() {
   if (apLastStatusUpdate != 0 && time(NULL) > apLastStatusUpdate + 10) {
     apLastStatusUpdate = 0;
-    sprintf(apStatus, "");
+    apStatus[0] = 0;
   }
   return apStatus;
 }
