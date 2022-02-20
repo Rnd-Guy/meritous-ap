@@ -44,7 +44,6 @@ double deathtime = -1;
 
 std::vector<ItemStore*> apStores;
 std::map<int, std::set<int>> recvCache;
-uint8_t received[T_MAX] = {0};
 
 std::string server;
 std::string slotname;
@@ -315,7 +314,6 @@ void DisconnectAP()
 void WriteAPState()
 {
   int progress = 0;
-  for (auto receivedItem: received) FWChar(receivedItem);
   FWInt(recvCache.size());
   for (const auto& [key, locList]: recvCache) {
     FWInt(key);
@@ -339,7 +337,7 @@ void ReadAPState()
   int progress = 0;
   for (int x = FRInt(); x > 0; x--) {
     auto player = FRInt();
-    recvCache.insert(std::pair<int, std::set<int>>(FRInt(), std::set<int>()));
+    recvCache.insert(std::pair<int, std::set<int>>(player, std::set<int>()));
     for (int y = FRInt(); y > 0; y--) recvCache[player].insert(FRInt());
   }
   for (auto store: apStores) {
