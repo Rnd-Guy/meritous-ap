@@ -2531,15 +2531,17 @@ void SoupUpEnemies()
 	int str_limit;
 	float str_multiplier;
 	float fr_divider;
-	
+
+	enemy_evolutions++;
+
 	e = enemy_stack;
 	str_limit = 1500;
 	if (circuit_size > 1500) {
 		str_limit = 1500;
 	}
 	
-	str_multiplier = 1.0 + (1.0/3.0)*(float)current_boss;
-	fr_divider = 1.0 + (2.0/3.0)*(float)current_boss;
+	str_multiplier = 1.0 + (1.0/3.0)*(float)enemy_evolutions;
+	fr_divider = 1.0 + (2.0/3.0)*(float)enemy_evolutions;
 	
 	while (e != NULL) {
 		if (e->delete_me == 0) {
@@ -2559,7 +2561,6 @@ void SoupUpEnemies()
 		}
 		e = e->next;
 	}
-	enemy_evolutions++;
 }
 
 void CurseSingleEnemy(struct enemy *e)
