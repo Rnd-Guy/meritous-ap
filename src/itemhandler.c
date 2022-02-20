@@ -309,8 +309,8 @@ void SendAPSignal(t_apSignal signal) {
 }
 
 void KillPlayer(const char *from) {
-  PostMessage(72, 30, 1, from);
   if (player_dying <= 0 && player_hp > 0) {
+    PostMessage(73, 30, 1, from);
     player_hp = 0;
     player_dying = 1;
     SND_Pos("dat/a/playerhurt.wav", 128, 0);

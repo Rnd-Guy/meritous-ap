@@ -384,8 +384,9 @@ char isDeathLink()
 void SendDeathLink()
 {
   if (!ap || !deathlink) return;
+  deathtime = ap->get_server_time();
   json data{
-    {"time", ap->get_server_time()},
+    {"time", deathtime},
     {"cause", "PSI of defeat"}, // TODO: see about adding more granular reasons
     {"source", ap->get_slot()}
   };
