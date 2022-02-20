@@ -336,34 +336,34 @@ void DrawStats()
 {
   char buf[30] = {0};
 
-  draw_text_f(66, 30, "Circuit bursts     %7d", 192, get_int_stat(STAT_BURSTS));
-  draw_text_f(66, 40, "Successful hits    %7d", 168, get_int_stat(STAT_HITS));
-  draw_text_f(66, 50, "Kills              %7d", 192, get_int_stat(STAT_KILLS));
-  draw_text_f(66, 60, "Resisted hits      %7d", 168, get_int_stat(STAT_RESISTS));
-  draw_text_f(66, 70, "Misses             %7d", 192, get_int_stat(STAT_WHIFFS));
-  draw_text_f(66, 80, "Total discharged     %5.1f", 168, get_float_stat(STAT_CIRCUIT_VALUE));
-  draw_text_f(66, 90, "Bullets cancelled  %7d", 192, get_int_stat(STAT_BULLETS_CANCELLED));
+  draw_text_f(66, 30, "Circuit bursts     %9d", 192, get_int_stat(STAT_BURSTS));
+  draw_text_f(66, 40, "Successful hits    %9d", 168, get_int_stat(STAT_HITS));
+  draw_text_f(66, 50, "Kills              %9d", 192, get_int_stat(STAT_KILLS));
+  draw_text_f(66, 60, "Resisted hits      %9d", 168, get_int_stat(STAT_RESISTS));
+  draw_text_f(66, 70, "Misses             %9d", 192, get_int_stat(STAT_WHIFFS));
+  draw_text_f(66, 80, "Total discharged     %7.1f", 168, get_float_stat(STAT_CIRCUIT_VALUE));
+  draw_text_f(66, 90, "Bullets cancelled  %9d", 192, get_int_stat(STAT_BULLETS_CANCELLED));
 
-  draw_text_f(66, 110, "Hearts gathered    %7d", 192, get_int_stat(STAT_HEARTS_GATHERED));
-  draw_text_f(66, 120, "Shielded hits      %7d", 168, get_int_stat(STAT_SHIELD_HITS));
-  draw_text_f(66, 130, "Damage taken       %7d", 192, get_int_stat(STAT_DAMAGE_TAKEN));
-  draw_text_f(66, 140, "Lives gained       %7d", 168, get_int_stat(STAT_LIVES_GAINED));
-  draw_text_f(66, 150, "Lives lost         %7d", 192, get_int_stat(STAT_LIVES_LOST));
+  draw_text_f(66, 110, "Hearts gathered    %9d", 192, get_int_stat(STAT_HEARTS_GATHERED));
+  draw_text_f(66, 120, "Shielded hits      %9d", 168, get_int_stat(STAT_SHIELD_HITS));
+  draw_text_f(66, 130, "Damage taken       %9d", 192, get_int_stat(STAT_DAMAGE_TAKEN));
+  draw_text_f(66, 140, "Lives gained       %9d", 168, get_int_stat(STAT_LIVES_GAINED));
+  draw_text_f(66, 150, "Lives lost         %9d", 192, get_int_stat(STAT_LIVES_LOST));
 
-  draw_text_f(366, 30, "Crystals collected %7d", 168, get_int_stat(STAT_GEMS_COLLECTED));
-  draw_text_f(366, 40, "Crystals spent     %7d", 192, get_int_stat(STAT_GEMS_SPENT));
-  draw_text_f(366, 50, "Crys lost on death %7d", 168, get_int_stat(STAT_GEMS_LOST_ON_DEATH));
-  draw_text_f(366, 60, "Store purchases    %7d", 192, get_int_stat(STAT_PURCHASES));
-  draw_text_f(366, 70, "Chests opened      %7d", 168, get_int_stat(STAT_CHESTS));
-  draw_text_f(366, 80, "Room transitions   %7d", 192, get_int_stat(STAT_ROOM_TRANSITIONS));
-  draw_text_f(366, 90, "Checkpoint warps   %7d", 168, get_int_stat(STAT_CHECKPOINT_WARPS));
-  draw_text_f(366, 100, "Saves              %7d", 192, get_int_stat(STAT_SAVES));
+  draw_text_f(350, 30, "Crystals collected %9d", 168, get_int_stat(STAT_GEMS_COLLECTED));
+  draw_text_f(350, 40, "Crystals spent     %9d", 192, get_int_stat(STAT_GEMS_SPENT));
+  draw_text_f(350, 50, "Crys lost on death %9d", 168, get_int_stat(STAT_GEMS_LOST_ON_DEATH));
+  draw_text_f(350, 60, "Store purchases    %9d", 192, get_int_stat(STAT_PURCHASES));
+  draw_text_f(350, 70, "Chests opened      %9d", 168, get_int_stat(STAT_CHESTS));
+  draw_text_f(350, 80, "Room transitions   %9d", 192, get_int_stat(STAT_ROOM_TRANSITIONS));
+  draw_text_f(350, 90, "Checkpoint warps   %9d", 168, get_int_stat(STAT_CHECKPOINT_WARPS));
+  draw_text_f(350, 100, "Saves              %9d", 192, get_int_stat(STAT_SAVES));
 
   if (player_shield == 30) {
-    draw_text(366, 130, "Time to Agate Knife", 168);
+    draw_text(350, 130, "Time to Agate Knife", 168);
     ComposeTime(buf, get_int_stat(STAT_TIME_KNIFE), 1);
-    draw_text_f(366, 140, "%26s", 192, buf);
-  } else draw_text_f(366, 130, "Rooms explored     %7d", 168, explored);
+    draw_text_f(350, 140, "%28s", 192, buf);
+  } else draw_text_f(350, 130, "Rooms explored     %9d", 168, explored);
 
   draw_text(176, 200, "Tries      Time spent fighting              Time beaten", 192);
   for (int x = 0; x < 4; x++) {
