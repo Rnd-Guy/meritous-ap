@@ -17,6 +17,8 @@
 
 #include <fstream>
 
+#include <SDL.h>
+
 #include "submodules/apclientpp/apclient.hpp"
 #include "uuid.h"
 #include "apitemstore.hpp"
@@ -24,7 +26,10 @@
 extern "C" {
   #include "itemhandler.h"
   #include "apinterface.h"
+  #include "save.h"
 }
+
+#include <map>
 
 #define GAME_NAME "Meritous"
 #define DATAPACKAGE_CACHE "datapackage.json"
@@ -36,7 +41,10 @@ APClient *ap = NULL;
 bool ap_sync_queued = false;
 bool ap_connect_sent = false;
 double deathtime = -1;
+
 std::vector<ItemStore*> apStores;
+std::map<int, std::set<int>> recvCache;
+uint8_t received[T_MAX] = {0};
 
 std::string server;
 std::string slotname;
@@ -46,9 +54,9 @@ int goal = 0;
 bool deathlink = false;
 
 const char *storeNames[] = {
-  "Alpha store",
-  "Beta store",
-  "Gamma store",
+  "Alpha cache",
+  "Beta cache",
+  "Gamma cache",
   "the chest",
   "somewhere special"
 };
@@ -103,6 +111,7 @@ void CreateAPStores()
   apStores.push_back(new ItemStore(24, false));
   apStores.push_back(new ItemStore(24, true));
   apStores.push_back(new ItemStore(8, false));
+  recvCache.clear();
 }
 
 void DestroyAPStores()
@@ -233,6 +242,11 @@ void ConnectAP()
       return;
     }
     for (const auto& item: items) {
+      if (recvCache.find(item.player) == recvCache.end())
+        recvCache.insert(std::pair<int, std::set<int>>(item.player, std::set<int>()));
+      if (recvCache[item.player].find(item.location) != recvCache[item.player].end()) return;
+      recvCache[item.player].insert(item.location);
+
       std::string itemname = ap->get_item_name(item.item);
       std::string sender = ap->get_player_alias(item.player) + "'s world";
       std::string location = ap->get_location_name(item.location);
@@ -295,6 +309,46 @@ void DisconnectAP()
   if (ap) {
     delete ap;
     ap = NULL;
+  }
+}
+
+void WriteAPState()
+{
+  int progress = 0;
+  for (auto receivedItem: received) FWChar(receivedItem);
+  FWInt(recvCache.size());
+  for (const auto& [key, locList]: recvCache) {
+    FWInt(key);
+    FWInt(locList.size());
+    for (const auto location: locList) FWInt(location);
+  }
+  for (const auto store: apStores) {
+    FWInt(store->GetCostFactor());
+    for (size_t x = 0; x < store->GetLength(); x++) {
+      FWChar((unsigned char)(*store)[x]);
+    }
+    UpdateSavingScreen((float)(++progress + 1) / (IS_MAX + 1));
+  }
+}
+
+void ReadAPState()
+{
+  CreateAPStores();
+  recvCache.clear();
+
+  int progress = 0;
+  for (int x = FRInt(); x > 0; x--) {
+    auto player = FRInt();
+    recvCache.insert(std::pair<int, std::set<int>>(FRInt(), std::set<int>()));
+    for (int y = FRInt(); y > 0; y--) recvCache[player].insert(FRInt());
+  }
+  for (auto store: apStores) {
+    store->SetCostFactor(FRInt());
+    for (size_t x = 0; x < store->GetLength(); x++) {
+      auto collected = FRChar();
+      if (collected) store->MarkCollected(x);
+    }
+    UpdateLoadingScreen((float)(++progress + 1) / (IS_MAX + 1));
   }
 }
 

@@ -327,15 +327,19 @@ void AnnounceVictory(char isFullVictory) {
 }
 
 void WriteStoreData() {
-  if (isArchipelago()) {
-
-  }
+  if (isArchipelago()) WriteAPState();
   else SaveStores();
 }
 
 void ReadStoreData() {
-  if (isArchipelago()) {
-
-  }
+  if (isArchipelago()) ReadAPState();
   else LoadStores();
+}
+
+void UpdateLoadingScreen(float value) {
+  LoadingScreen(5, value);
+}
+
+void UpdateSavingScreen(float value) {
+  SavingScreen(4, value);
 }

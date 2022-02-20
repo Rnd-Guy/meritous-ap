@@ -36,6 +36,12 @@ void CollectAPSpecialItem(t_specialStore index);
 void ConnectAP();
 void DisconnectAP();
 
+void WriteAPState();
+void ReadAPState();
+
+void UpdateSavingScreen(float value);
+void UpdateLoadingScreen(float value);
+
 void SendAPSignalMsg(t_apSignal signal);
 void SendCheck(int locationId);
 void PollServer();
