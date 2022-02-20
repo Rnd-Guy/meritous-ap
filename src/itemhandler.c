@@ -238,9 +238,9 @@ void CollectItem(t_itemStores store) {
     char source[12] = {0};
 
     switch (store) {
-      case IS_ALPHA: sprintf(source, "Alpha store"); break;
-      case IS_BETA: sprintf(source, "Beta store"); break;
-      case IS_GAMMA: sprintf(source, "Gamma store"); break;
+      case IS_ALPHA: sprintf(source, "Alpha cache"); break;
+      case IS_BETA: sprintf(source, "Beta cache"); break;
+      case IS_GAMMA: sprintf(source, "Gamma cache"); break;
       case IS_CHESTS: sprintf(source, "the chest"); break;
       default: sprintf(source, "nowhere"); break;
     }
