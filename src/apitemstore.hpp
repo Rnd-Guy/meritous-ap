@@ -49,6 +49,14 @@ public:
     return -1;
   }
 
+  void SetCostFactor(int newFactor) {
+    if (costFactor == 0) costFactor = newFactor;
+  }
+
+  size_t GetLength() {
+    return checks.size();
+  }
+
   int GetCostFactor() {
     return costFactor;
   }
