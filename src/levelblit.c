@@ -765,19 +765,20 @@ void Arc(SDL_Surface *s, int x, int y, int r, float dir)
 }
 
 void ComposeTime(char *ptr, int msec, char displayMsec) {
-  int t_msec = msec % 1000;
   int t_days = msec / (1000*60*60*24);
   int t_hours = (msec / (1000*60*60)) % 24;
   int t_minutes = (msec / (1000*60)) % 60;
   int t_seconds = (msec / 1000) % 60;
+  int t_msec = msec % 1000;
 
-  if (displayMsec) sprintf(ptr, "%dm %d.%03ds", t_minutes, t_seconds, t_msec);
-  else sprintf(ptr, "%dm %ds", t_minutes, t_seconds);
+  char buf[16] = {0};
 
-  if (t_hours > 0) {
-    if (t_days > 0) sprintf(ptr, "%dd %dh %s", t_days, t_hours, ptr);
-    else sprintf(ptr, "%dd %dh %s", t_days, t_hours, ptr);
-  }
+  if (displayMsec) sprintf(buf, "%dm %d.%03ds", t_minutes, t_seconds, t_msec);
+  else sprintf(buf, "%dm %ds", t_minutes, t_seconds);
+
+  if (t_days > 0) sprintf(ptr, "%dd %dh %s", t_days, t_hours, buf);
+  else if (t_hours > 0) sprintf(ptr, "%dd %dh %s", t_days, t_hours, buf);
+  else sprintf(ptr, buf);
 }
 
 int DungeonPlay(const char *fname)
