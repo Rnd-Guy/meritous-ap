@@ -29,6 +29,7 @@
 #include "mapgen.h"
 #include "tiles.h"
 #include "save.h"
+#include "itemhandler.h"
 
 SDL_Surface *automap = NULL;
 void RecordRoom(int room_id);
@@ -53,7 +54,7 @@ void InitAutomap()
 		if (artifacts[0]) {
 			FullRender();
 		} else {
-			for (i = 0; i < 3000; i++) {
+			for (i = 0; i < rooms_to_gen; i++) {
 				if (rooms[i].visited) {
 					RecordRoom(i);
 				}
@@ -81,7 +82,7 @@ void FullRender()
 		}
 	}
 	
-	for (i = 0; i < 3000; i++) {
+	for (i = 0; i < rooms_to_gen; i++) {
 		if (rooms[i].visited) {
 			RecordRoom(i);
 		}

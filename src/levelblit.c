@@ -828,7 +828,7 @@ int DungeonPlay(const char *fname)
   if (game_load) CloseFile();
 
   max_dist = 0;
-  for (i = 0; i < 3000; i++) {
+  for (i = 0; i < rooms_to_gen; i++) {
     if (rooms[i].s_dist > max_dist) {
       max_dist = rooms[i].s_dist;
     }
@@ -916,7 +916,7 @@ int DungeonPlay(const char *fname)
         rooms[player_room].visited = 1;
         explored++;
 
-        if (explored == 3000) {
+        if (explored == rooms_to_knife) {
           agate_knife_loc = player_room;
         }
 
@@ -1069,7 +1069,7 @@ int DungeonPlay(const char *fname)
     if (!tele_select) {
       sprintf(buf, "Psi Crystals: %d", player_gems);
       draw_text(3, 3, buf, 200);
-      sprintf(buf, "Explored: %.1f%% (%d/%d rooms)", (float)explored/30.0, explored, 3000);
+      sprintf(buf, "Explored: %.1f%% (%d/%d rooms)", (float)explored/30.0, explored, rooms_to_gen);
       draw_text(3, 11, buf, 200);
       sprintf(buf, "Cleared: %.1f%% (%d/%d monsters)", (float)killed_enemies/(float)total_enemies*100.0, killed_enemies, total_enemies);
       draw_text(3, 19, buf, 200);
@@ -1322,7 +1322,7 @@ void UpRoom()
 
   nd = rooms[player_room].s_dist + 1;
 
-  for (i = 0; i < 3000; i++) {
+  for (i = 0; i < rooms_to_gen; i++) {
     if (rooms[i].s_dist == nd) {
       player_x = rooms[i].x * 32 + 64;
       player_y = rooms[i].y * 32 + 64;
@@ -1446,7 +1446,7 @@ void HandleEvents()
               int i, n, j;
               for (j = 0; j < 1; j++) {
                 for (i = 0; i < 50000; i++) {
-                  n = rand()%3000;
+                  n = rand()%rooms_to_gen;
                   if (rooms[n].visited == 0) {
                     player_x = rooms[n].x * 32 + rooms[n].w * 16;
                     player_y = rooms[n].y * 32 + rooms[n].h * 16;
@@ -2200,9 +2200,9 @@ void TeleportPlayerToRoom(int c_room)
 void TeleportPlayerToNextRoom()
 {
   int c_room;
-  c_room = (player_room + 1) % 3000;
+  c_room = (player_room + 1) % rooms_to_gen;
   while (! ((rooms[c_room].checkpoint!=0)&&(rooms[c_room].visited!=0))) {
-    c_room = (c_room + 1) % 3000;
+    c_room = (c_room + 1) % rooms_to_gen;
   }
 
   if (c_room == 0) {
@@ -2372,7 +2372,7 @@ void CompassPoint()
 
   nearest = 1000000;
   // Find the nearest uncleared artifact room
-  for (i = 0; i < 3000; i++) {
+  for (i = 0; i < rooms_to_gen; i++) {
     if (rooms[i].room_type == 3) {
       loc_x = rooms[i].x * 32 + rooms[i].w * 16;
       loc_y = rooms[i].y * 32 + rooms[i].h * 16;

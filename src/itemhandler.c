@@ -53,6 +53,9 @@ const char *itemNames[] = {
   "Extra Life"
 };
 
+const int rooms_to_gen = 3000;
+const int rooms_to_knife = 3000;
+
 char apEnabled = 0;
 char apStatus[24] = {0};
 time_t apLastStatusUpdate = 0;

@@ -33,6 +33,7 @@
 #include "boss.h"
 #include "tiles.h"
 #include "stats.h"
+#include "itemhandler.h"
 
 SDL_Surface *reticle;
 SDL_Surface *inrange;
@@ -202,7 +203,7 @@ void DestroyThings()
 	gem_stack = NULL;
 	active_stack = NULL;
 	
-	for (i = 0; i < 3000; i++) {
+	for (i = 0; i < rooms_to_gen; i++) {
 		room_gems[i] = NULL;
 	}
 }
@@ -424,12 +425,12 @@ void ActivateVisited()
 	int i;
 
 
-	for (i = 0; i < 3000; i++) {
+	for (i = 0; i < rooms_to_gen; i++) {
 		if (rooms[i].visited) {
 			ActivateEnemies(i);
 		}
 		if (i % 10 == 9) {
-			LoadingScreen(4, (float)i / 3000.0);
+			LoadingScreen(4, (float)i / (const float)rooms_to_gen);
 		}
 	}
 	LoadingScreen(4, 1);
@@ -891,7 +892,7 @@ void InitEnemies()
 	active_enemies = 0;
 	total_gems = 0;
 	
-	for (i = 0; i < 3000; i++) {
+	for (i = 0; i < rooms_to_gen; i++) {
 		room_active[i] = 0;
 	}
 
@@ -899,7 +900,7 @@ void InitEnemies()
 		ReadCreatureData();
 		if (current_boss > 0) SoupUpEnemies();
 	} else {
-		for (c_room = 1; c_room < 3000; c_room++) {
+		for (c_room = 1; c_room < rooms_to_gen; c_room++) {
 			cr_x = rooms[c_room].x + 1;
 			cr_y = rooms[c_room].y + 1;
 			cr_w = rooms[c_room].w - 2;
@@ -935,7 +936,7 @@ void InitEnemies()
 				}
 			}
 			if (c_room % 100 == 99) {
-				LoadingScreen(2, (float)c_room / 3000.0);
+				LoadingScreen(2, (float)c_room / (const float)rooms_to_gen);
 			}
 		}
 	}
@@ -2412,7 +2413,7 @@ void CrystalSummon()
 
 	g = gem_stack;
 	
-	for (i = 0; i < 3000; i++) {
+	for (i = 0; i < rooms_to_gen; i++) {
 		room_gems[i] = NULL;
 	}
 	
@@ -2571,7 +2572,7 @@ void CurseSingleEnemy(struct enemy *e)
 	int rm;
 	
 	if (NActiveRooms == 0) {
-		for (i = 0; i < 3000; i++) {
+		for (i = 0; i < rooms_to_gen; i++) {
 			if ((rooms[i].room_type == 0) || (rooms[i].room_type == 4)) {
 				ActiveRooms[NActiveRooms++] = i;
 			}

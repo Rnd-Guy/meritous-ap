@@ -20,6 +20,9 @@
 
 #include "itemdefs.h"
 
+extern const int rooms_to_gen;
+extern const int rooms_to_knife;
+
 void InitRando();
 
 void InitStores();
