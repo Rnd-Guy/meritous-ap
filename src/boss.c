@@ -399,7 +399,7 @@ void BossDialog()
       boss_dlg = 0;
       boss_fight_mode = 2;
       boss_engaged = expired_ms;
-      add_int_stat(STAT_TRIES_BOSS1 + rooms[player_room].room_param, 1);
+      //add_int_stat(STAT_TRIES_BOSS1 + current_boss, 1);
     } else {
       boss_dlg++;
     }
@@ -937,12 +937,13 @@ void BC_BossIntro()
       } else {
         DrawBoss();
         if ((final_boss_dlg == 0) && (current_boss == 3)) {
+          // NOTE: possibly enable other boss dialogues here?
           boss_dlg = 1;
           final_boss_dlg = 1;
         } else {
           boss_fight_mode = 2;
           boss_engaged = expired_ms;
-          add_int_stat(STAT_TRIES_BOSS4, 1);
+          add_int_stat(STAT_TRIES_BOSS1 + current_boss, 1);
         }
         boss_circle = 0;
         boss_bar_fill = 0;
@@ -1563,8 +1564,8 @@ void BC_BossDying()
   static float dr = 0;
 
   if (current_boss < 3) {
-    add_int_stat(STAT_TIMESPENT_BOSS1 + rooms[player_room].room_param, expired_ms - boss_engaged);
-    set_int_stat(STAT_TIME_BOSS1 + rooms[player_room].room_param, expired_ms);
+    add_int_stat(STAT_TIMESPENT_BOSS1 + current_boss, expired_ms - boss_engaged);
+    set_int_stat(STAT_TIME_BOSS1 + current_boss, expired_ms);
     add_int_stat(STAT_KILLS, 1);
 
     PostMessage(40 + rooms[player_room].room_param, 120, 0);
@@ -1750,7 +1751,7 @@ void BossControl()
 {
   if ((player_room != current_boss_room)) {
     // Player left, so roll back the boss
-    add_int_stat(STAT_TIMESPENT_BOSS1 + rooms[current_boss_room].room_param, expired_ms - boss_engaged);
+    add_int_stat(STAT_TIMESPENT_BOSS1 + current_boss, expired_ms - boss_engaged);
     boss_engaged = 0;
     resetboss = 0;
     current_boss_room = 0;
