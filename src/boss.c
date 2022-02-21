@@ -1563,11 +1563,13 @@ void BC_BossDying()
   static SDL_Surface *endpics[1] = {NULL};
   static float dr = 0;
 
-  if (current_boss < 3) {
+  if (boss_fight_mode == 3) {
     add_int_stat(STAT_TIMESPENT_BOSS1 + current_boss, expired_ms - boss_engaged);
     set_int_stat(STAT_TIME_BOSS1 + current_boss, expired_ms);
     add_int_stat(STAT_KILLS, 1);
+  }
 
+  if (current_boss < 3) {
     PostMessage(40 + rooms[player_room].room_param, 120, 0);
     // specialmessage = 40 + rooms[player_room].room_param;
     // specialmessagetimer = 120;
@@ -1611,6 +1613,10 @@ void BC_BossDying()
     }
   } else {
     if (boss_fight_mode == 3) {
+      // add_int_stat(STAT_TIMESPENT_BOSS4, expired_ms - boss_engaged);
+      // set_int_stat(STAT_TIME_BOSS4, expired_ms);
+      // add_int_stat(STAT_KILLS, 1);
+      
       t_timer = 0;
       boss_fight_mode = 4;
       magic_circuit = 0;
@@ -1620,10 +1626,6 @@ void BC_BossDying()
 
       if (training) t_timer = 2000;
     } else {
-      add_int_stat(STAT_TIMESPENT_BOSS4, expired_ms - boss_engaged);
-      set_int_stat(STAT_TIME_BOSS4, expired_ms);
-      add_int_stat(STAT_KILLS, 1);
-      
       DrawArtifactOverhead(3);
       if (bdef > 0) {
         DrawCircleEx(boss_x-scroll_x, boss_y-scroll_y, bxp, bxp-bdef, 0);
