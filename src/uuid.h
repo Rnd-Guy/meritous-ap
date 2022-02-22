@@ -44,11 +44,6 @@ static std::string get_uuid()
         if (f) {
             n = fwrite(uuid, 1, 32, f);
             fclose(f);
-            #ifdef __EMSCRIPTEN__
-            EM_ASM(
-                FS.syncfs(function (err) {});
-            );
-            #endif
         }
         if (!f || n < 32) {
             printf("Could not write persistant UUID!\n");
