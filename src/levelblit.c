@@ -455,7 +455,7 @@ int main(int argc, char **argv)
   if ((RECORDING) && (PLAYBACK)) {
     exit(1);
   }
-  srand(time(NULL));
+  srand(RetrieveSeed());
   if (RECORDING) {
     record_file = fopen(record_filename, "wb");
     if (record_file == NULL) {

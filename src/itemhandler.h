@@ -28,6 +28,8 @@ void InitRando();
 void InitStores();
 void DestroyStores();
 
+uint32_t RetrieveSeed();
+
 void StartRando();
 void EndRando();
 

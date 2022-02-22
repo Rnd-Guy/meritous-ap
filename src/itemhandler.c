@@ -77,6 +77,11 @@ void DestroyStores() {
   else DestroyItemStores();
 }
 
+uint32_t RetrieveSeed() {
+  if (isArchipelago()) return RetrieveAPSeed();
+  else return time(NULL);
+}
+
 void StartRando() {
   if (isArchipelago()) ConnectAP();
 }

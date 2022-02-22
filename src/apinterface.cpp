@@ -16,8 +16,10 @@
 // along with Meritous-AP.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <fstream>
+#include <map>
 
 #include <SDL.h>
+#include <zlib.h>
 
 #include "submodules/apclientpp/apclient.hpp"
 #include "uuid.h"
@@ -29,7 +31,8 @@ extern "C" {
   #include "save.h"
 }
 
-#include <map>
+#define HIDWORD(n) (uint32_t)((n >> 8) & 0xffffffff)
+#define LODWORD(n) (uint32_t)(n & 0xffffffff)
 
 #define GAME_NAME "Meritous"
 #define DATAPACKAGE_CACHE "datapackage.json"
@@ -363,6 +366,16 @@ void ReadAPState()
     }
     UpdateLoadingScreen((float)(++progress + 1) / (IS_MAX + 1));
   }
+}
+
+uint32_t RetrieveAPSeed()
+{
+  if (ap && ap->get_state() >= APClient::State::ROOM_INFO) {
+    auto crc = crc32(0L, NULL, 0);
+    crc = crc32(crc, (const Bytef*)ap->get_seed().c_str(), ap->get_seed().length());
+    return HIDWORD(crc) ^ LODWORD(crc);
+  }
+  else return time(NULL);
 }
 
 void SendAPSignalMsg(t_apSignal signal)

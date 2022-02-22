@@ -36,6 +36,7 @@ void ReadAPState();
 void UpdateSavingScreen(float value);
 void UpdateLoadingScreen(float value);
 
+uint32_t RetrieveAPSeed();
 void SendAPSignalMsg(t_apSignal signal);
 void SendCheck(int locationId);
 void PollServer();
