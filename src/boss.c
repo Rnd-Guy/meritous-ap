@@ -1570,7 +1570,8 @@ void BC_BossDying()
   }
 
   if (current_boss < 3) {
-    PostMessage(40 + rooms[player_room].room_param, 120, 0);
+    //PostMessage(40 + rooms[player_room].room_param, 120, 0);
+    PostMessage(43, 120, 1, artifact_names[rooms[player_room].room_param]);
     // specialmessage = 40 + rooms[player_room].room_param;
     // specialmessagetimer = 120;
     rooms[player_room].room_type = 4;

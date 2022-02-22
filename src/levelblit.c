@@ -2622,16 +2622,20 @@ void SpecialTile(int x, int y)
         sprintf(specialmessage2, "the %s to Virtue's aid", msgqueue->params[1]);
         break;
 
-      case 40:
+      case 40: //deprecated
         sprintf(specialmessage1, "Balmung will remain here,");
         sprintf(specialmessage2, "where the ley lines are strong");
         break;
-      case 41:
+      case 41: //deprecated
         sprintf(specialmessage1, "Amenonuhoko will remain here,");
         sprintf(specialmessage2, "where the ley lines are strong");
         break;
-      case 42:
+      case 42: //deprecated
         sprintf(specialmessage1, "Gandiva will remain here,");
+        sprintf(specialmessage2, "where the ley lines are strong");
+        break;
+      case 43:
+        sprintf(specialmessage1, "%s will remain here,", msgqueue->params[0]);
         sprintf(specialmessage2, "where the ley lines are strong");
         break;
 
