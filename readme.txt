@@ -16,8 +16,8 @@ INSTALLATION:
 
 Run Meritous.exe after extraction and everything should work correctly.
 
-If the game is too difficult for you, you can play in 'Wuss mode' for
-a far more sombre gaming experience.
+If the game is too difficult for you, you can play in 'Training mode'
+for a far more sombre gaming experience.
 
 
 BASIC CONTROLS:

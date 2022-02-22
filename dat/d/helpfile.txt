@@ -15,7 +15,7 @@ access this help file at any time by pressing 'H'.
 ?intro?Introduction
 ?background?Background
 ?controls?Controls
-?wuss?Wuss Mode
+?training?Training Mode
 ?dungeon?The Dome
 ?circuit?Your PSI Circuit and You
 ?cred?Credits
@@ -317,7 +317,7 @@ Last, but not least, your PSI also maintains your body vitality.
 In the top-right corner, the three hearts represent this. If you lose
 all three you will die and be regenerated at the last checkpoint.
 
-Unless you are playing on Wuss mode, you will also have a limited
+Unless you are playing on Training mode, you will also have a limited
 number of lives. This represents your physical vitality, and it will
 be damaged each time you die. When you run out, your body will be
 permanently destroyed and you won't be regenerated.
@@ -329,17 +329,17 @@ improving your physical vitality. Collect enough and your number of
 lives will increase.
 
 ?default?Return to top
-:wuss
+:training
 !---------------------------------------------------------------------
 
-!Wuss Mode
+!Training Mode
 
 !---------------------------------------------------------------------
 
-Available from the title menu, Wuss mode is a reduced-difficulty
-gameplay mode. When playing Wuss mode, you will be able to attack
+Available from the title menu, Training mode is a reduced-difficulty
+gameplay mode. When playing Training mode, you will be able to attack
 faster, enemy bullets will be slower and you will never permanently
-die. However, a victory in Wuss mode is not considered to be an
+die. However, a victory in Training mode is not considered to be an
 actual completion of the game, and as a result the game will not end
 the same way that it would normally.
 
@@ -366,12 +366,18 @@ the same way that it would normally.
     Beta testing:               Terryn
     
     Beta testing:               Wervyn
-    
+
+    Additional patches:         bart9h
+
+    Item randomizer:            KewlioMZX
+
+    Archipelago client:         Black Sliver
+
     Music:
      "Ambient Light"       Vogue of Triton
      "Battle of Ragnarok"  Frostbite
      "Dragon Cave"         TICAZ
-     cavern.xm             Unknown
+      cavern.xm            Unknown
      "Caverns Boss"        Alexis Janson
      "Forest Boss"         Alexis Janson
      "Catacombs Boss"      Alexis Janson
@@ -381,9 +387,5 @@ the same way that it would normally.
      "KnarkLoader 1.0"     Rapacious
      "RPG-Battle"          Cyn
      "Metallic Forest"     Joseph Fox
-
-    Patches:                    bart9h
-
-    Item randomizer:            KewlioMZX
 
 ?default?Return to top

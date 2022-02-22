@@ -1666,6 +1666,7 @@ void BC_BossDying()
             AnnounceVictory(player_shield == 30);
             if (endpics[0] == NULL) {
               if (training) {
+                // TODO: replace "lol ur a wuss" image with something less berating
                 endpics[0] = IMG_Load("dat/i/wuss_ending.png");
               } 
             }

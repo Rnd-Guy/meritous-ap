@@ -575,7 +575,7 @@ int main(int argc, char **argv)
       draw_text(17, 156, MERITOUS_VERSION, 225 + sin((float)ticker_tick / 15)*30);
       if (can_continue) draw_text((SCREEN_W - 14*8)/2, 310, "Continue", 255);
       draw_text((SCREEN_W - 14*8)/2, 310 + can_continue*10, "New Game", 255);
-      draw_text((SCREEN_W - 14*8)/2, 320 + can_continue*10, "New Game (Wuss mode)", 255);
+      draw_text((SCREEN_W - 14*8)/2, 320 + can_continue*10, "New Game (Training mode)", 255);
 
       if (ticker_tick >= 30) {
         draw_text((SCREEN_W - 14*8)/2 - 17, 310 + option * 10, "-", 205 + sin((float)ticker_tick / 5.0)*24);
