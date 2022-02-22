@@ -307,6 +307,10 @@ void ReceiveItem(t_itemTypes item, const char *source) {
   ProcessItem(item, source, 0);
 }
 
+void ReportSentItem(const char *source, const char *player, const char *item) {
+  PostMessage(70, 30, 3, source, player, item);
+}
+
 void SendAPSignal(t_apSignal signal) {
   if (isArchipelago()) SendAPSignalMsg(signal);
 }

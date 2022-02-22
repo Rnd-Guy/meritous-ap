@@ -73,6 +73,12 @@ const char *specialStoreNames[] = {
 
 void DestroyAPStores();
 
+const char *IDToLocation(int locId) {
+  if (locId >= AP_OFFSET) locId -= AP_OFFSET;
+  if (locId < 96) return storeNames[locId / 24];
+  else return specialStoreNames[locId - 96];
+}
+
 bool isEqual(double a, double b)
 {
   return fabs(a - b) < std::numeric_limits<double>::epsilon() * fmax(fabs(a), fabs(b));
@@ -246,15 +252,13 @@ void ConnectAP()
       if (recvCache[item.player].find(item.location) != recvCache[item.player].end()) return;
       recvCache[item.player].insert(item.location);
 
-      std::string itemname = ap->get_item_name(item.item);
-      std::string sender = ap->get_player_alias(item.player) + "'s world";
-      std::string location = ap->get_location_name(item.location);
+      auto itemname = ap->get_item_name(item.item);
+      auto sender = ap->get_player_alias(item.player) + "'s world";
+      auto location = ap->get_location_name(item.location);
 
       if (item.player == ap->get_player_number()) {
         printf("Sender is self\n");
-        int locId = item.location - AP_OFFSET;
-        if (locId < 96) location = storeNames[locId / 24];
-        else location = specialStoreNames[locId - 96];
+        location = IDToLocation(item.location);
       }
       
       printf("  #%d: %s (%" PRId64 ") from %s - %s\n",
@@ -264,6 +268,17 @@ void ConnectAP()
         item.player == ap->get_player_number()
         ? location.c_str()
         : sender.c_str());
+    }
+  });
+  ap->set_location_info_handler([](const std::list<APClient::NetworkItem> &items) {
+    auto me = ap->get_player_number();
+    for (auto item: items) {
+      if (item.player != me) {
+        auto itemname = ap->get_item_name(item.item);
+        auto recipient = ap->get_player_alias(item.player);
+
+        ReportSentItem(IDToLocation(item.item), recipient.c_str(), itemname.c_str());
+      }
     }
   });
   ap->set_data_package_changed_handler([](const json& data) {
@@ -366,6 +381,7 @@ void SendCheck(int locationId)
     std::list<int64_t> check;
     check.push_back(locationId + AP_OFFSET);
     ap->LocationChecks(check);
+    ap->LocationScouts(check);
   }
 }
 

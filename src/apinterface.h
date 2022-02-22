@@ -18,12 +18,6 @@
 #ifndef APINTERFACE_H
 #define APINTERFACE_H
 
-// #ifdef __cplusplus
-// #define EXTERNC extern "C"
-// #else
-// #define EXTERNC
-// #endif
-
 char ReadAPSettings();
 
 void CreateAPStores();

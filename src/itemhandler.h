@@ -45,6 +45,7 @@ void PostCollectNotice(const char *player, const char *itemName, const char *was
 
 void PollAPClient();
 void ReceiveItem(t_itemTypes item, const char *source);
+void ReportSentItem(const char *source, const char *player, const char *item);
 void SendAPSignal(t_apSignal signal);
 void KillPlayer(const char *from);
 void AnnounceDeath();
