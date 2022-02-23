@@ -19,8 +19,9 @@
 #   along with Meritous.  If not, see <http://www.gnu.org/licenses/>.
 #
 LDFLAGS = `sdl-config --libs` -lSDL_image -lSDL_mixer -lz -lpthread
-#CCFLAGS = -O2 -Wall `sdl-config --cflags` -ggdb
+#CCFLAGS = -Wall `sdl-config --cflags` -ggdb
 CCFLAGS = -Os -Wall `sdl-config --cflags`
+#DEFINES = -DDEBUG_KEYS
 
 AP_INCLUDES = -Isrc/submodules/wswrap/include\
               -Isrc/submodules/json/include\
@@ -28,8 +29,8 @@ AP_INCLUDES = -Isrc/submodules/wswrap/include\
               -Isrc/submodules/asio/include\
               -Isrc/submodules/valijson/include\
               -Isrc/submodules
-AP_LIBS = -lwsock32 -lws2_32 # for windows
-DEFINES = -DASIO_STANDALONE
+AP_LIBS     = -lwsock32 -lws2_32 # for windows
+AP_DEFINES  = -DASIO_STANDALONE
 
 #
 OBJS = 	src/levelblit.o \
@@ -51,13 +52,13 @@ default:	meritous
 
 # this is your cpp code that bridges between apclientpp and the game
 apinterface.o: src/apinterface.cpp
-		g++ -c $? -o $@ ${AP_INCLUDES} ${DEFINES} ${CCFLAGS}
+		g++ -c $? -o $@ ${AP_INCLUDES} ${AP_DEFINES} ${CCFLAGS}
 
 wswrap.o: src/submodules/wswrap/src/wswrap.cpp
-		g++ -c $? -o $@ ${AP_INCLUDES} ${DEFINES} ${CCFLAGS}
+		g++ -c $? -o $@ ${AP_INCLUDES} ${AP_DEFINES} ${CCFLAGS}
 
 %.o:		%.c
-		gcc -c -o $@ $? ${CCFLAGS}
+		gcc -c -o $@ $? ${CCFLAGS} ${DEFINES}
 
 meritous.res: meritous.rc
 		windres $? -O coff -o $@
