@@ -1308,6 +1308,12 @@ int DungeonPlay(const char *fname)
     draw_text(252, 236, "G A M E   O V E R", 255);
     VideoUpdate();
     SDL_Delay(2000);
+
+    if (current_boss == 3 && artifacts[11] && player_room == 0) {
+      if (AnnounceVictory(0)) {
+        ShowBadEndingStats();
+      }
+    }
   }
 
   EndRando();
@@ -2655,7 +2661,7 @@ void SpecialTile(int x, int y)
 
       case 70: // Check goes to other player
         sprintf(specialmessage1, "Looting %s restores %s's", msgqueue->params[0], msgqueue->params[1]);
-        sprintf(specialmessage2, msgqueue->params[3]);
+        sprintf(specialmessage2, msgqueue->params[2]);
         break;
       case 71: // Forfeit received
         sprintf(specialmessage1, "As %s's world stabilizes, Virtue receives", msgqueue->params[0]);

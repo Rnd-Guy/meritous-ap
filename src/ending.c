@@ -216,6 +216,7 @@ char *STextV[15] = {"Merit decided to assume the role of custodian over the Orcu
           "",
           ""};
 
+// TODO: consolidate these two functions
 void DrawSText(int t)
 {
   int offset = 540 + (t / 2);
@@ -379,6 +380,19 @@ void DrawStats()
     }
   }
 
+}
+
+void ShowBadEndingStats()
+{
+  for (;;) {
+    draw_text(2, 2, "ESC to end, F to forfeit, C to collect", 192);
+    DrawStats();
+    EndCycle(0);
+    switch (EndingEvents()) {
+      case 2: break;
+      default: return;
+    }
+  }
 }
 
 void DrawCredits()
