@@ -31,8 +31,8 @@ extern "C" {
   #include "save.h"
 }
 
-#define HIDWORD(n) (uint32_t)((n >> 8) & 0xffffffff)
-#define LODWORD(n) (uint32_t)(n & 0xffffffff)
+#define HIDWORD(n) (int32_t)((n >> 8) & 0xffffffff)
+#define LODWORD(n) (int32_t)(n & 0xffffffff)
 
 #define GAME_NAME "Meritous"
 #define DATAPACKAGE_CACHE "datapackage.json"
@@ -46,7 +46,7 @@ bool ap_connect_sent = false;
 double deathtime = -1;
 
 std::vector<ItemStore*> apStores;
-std::map<int, std::set<int>> recvCache;
+std::map<int, std::set<int64_t>> recvCache;
 
 std::string server;
 std::string slotname;
@@ -75,6 +75,14 @@ const char *specialStoreNames[] = {
 };
 
 void DestroyAPStores();
+
+int64_t FRInt64() {
+  return (int64_t)FRInt() << 8 | (int64_t)FRInt();
+}
+void FWInt64(int64_t val) {
+  FWInt(HIDWORD(val));
+  FWInt(LODWORD(val));
+}
 
 const char *IDToLocation(int locId) {
   if (locId >= AP_OFFSET) locId -= AP_OFFSET;
@@ -144,6 +152,7 @@ void CollectAPItem(t_itemStores store)
   if (next >= 0) {
     std::list<int64_t> check;
     check.push_back((store * 24) + next + AP_OFFSET);
+    ap->LocationScouts(check);
     ap->LocationChecks(check);
   } else if (apStores[store]->HasCrystalFallback()) {
     ReceiveItem(MakeCrystals(), storeNames[store]);
@@ -157,6 +166,7 @@ void CollectAPSpecialItem(t_specialStore index)
 
   std::list<int64_t> check;
   check.push_back(index + 96 + AP_OFFSET);
+  ap->LocationScouts(check);
   ap->LocationChecks(check);
 }
 
@@ -250,17 +260,18 @@ void ConnectAP()
       return;
     }
     for (const auto& item: items) {
-      if (recvCache.find(item.player) == recvCache.end())
-        recvCache.insert(std::pair<int, std::set<int>>(item.player, std::set<int>()));
-      if (recvCache[item.player].find(item.location) != recvCache[item.player].end()) return;
-      recvCache[item.player].insert(item.location);
+      if (item.player > 0) {
+        if (recvCache.find(item.player) == recvCache.end())
+          recvCache.insert(std::pair<int, std::set<int64_t>>(item.player, std::set<int64_t>()));
+        if (recvCache[item.player].find(item.location) != recvCache[item.player].end()) return;
+        recvCache[item.player].insert(item.location);
+      }
 
       auto itemname = ap->get_item_name(item.item);
-      auto sender = ap->get_player_alias(item.player) + "'s world";
+      auto sender = item.player ? (ap->get_player_alias(item.player) + "'s world") : "out of nowhere";
       auto location = ap->get_location_name(item.location);
 
       if (item.player == ap->get_player_number()) {
-        printf("Sender is self\n");
         location = IDToLocation(item.location);
       }
       
@@ -280,7 +291,7 @@ void ConnectAP()
         auto itemname = ap->get_item_name(item.item);
         auto recipient = ap->get_player_alias(item.player);
 
-        ReportSentItem(IDToLocation(item.item), recipient.c_str(), itemname.c_str());
+        ReportSentItem(IDToLocation(item.location), recipient.c_str(), itemname.c_str());
       }
     }
   });
@@ -336,7 +347,7 @@ void WriteAPState()
   for (const auto& [key, locList]: recvCache) {
     FWInt(key);
     FWInt(locList.size());
-    for (const auto location: locList) FWInt(location);
+    for (const auto location: locList) FWInt64(location);
   }
   for (const auto store: apStores) {
     FWInt(store->GetCostFactor());
@@ -355,8 +366,8 @@ void ReadAPState()
   int progress = 0;
   for (int x = FRInt(); x > 0; x--) {
     auto player = FRInt();
-    recvCache.insert(std::pair<int, std::set<int>>(player, std::set<int>()));
-    for (int y = FRInt(); y > 0; y--) recvCache[player].insert(FRInt());
+    recvCache.insert(std::pair<int, std::set<int64_t>>(player, std::set<int64_t>()));
+    for (int y = FRInt(); y > 0; y--) recvCache[player].insert(FRInt64());
   }
   for (auto store: apStores) {
     store->SetCostFactor(FRInt());
@@ -388,16 +399,6 @@ void SendAPSignalMsg(t_apSignal signal)
   }
 }
 
-void SendCheck(int locationId)
-{
-  if (ap) {
-    std::list<int64_t> check;
-    check.push_back(locationId + AP_OFFSET);
-    ap->LocationChecks(check);
-    ap->LocationScouts(check);
-  }
-}
-
 void PollServer()
 {
   if (ap) ap->poll();
@@ -420,8 +421,15 @@ void SendDeathLink()
   ap->Bounce(data, {}, {}, {"DeathLink"});
 }
 
-void AnnounceAPVictory(char isFullVictory)
+char AnnounceAPVictory(char winState)
 {
-  if (!ap || ap->get_state() != APClient::State::SLOT_CONNECTED) return;
-  if (goal == 0 || isFullVictory == 1) ap->StatusUpdate(APClient::ClientStatus::GOAL);
+  char retval = 0;
+
+  if (!ap || ap->get_state() != APClient::State::SLOT_CONNECTED) return 0;
+  if (winState >= goal) {
+    retval = 1;
+    ap->StatusUpdate(APClient::ClientStatus::GOAL);
+  }
+
+  return retval;
 }

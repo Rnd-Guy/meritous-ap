@@ -51,7 +51,7 @@ void ReportSentItem(const char *source, const char *player, const char *item);
 void SendAPSignal(t_apSignal signal);
 void KillPlayer(const char *from);
 void AnnounceDeath();
-void AnnounceVictory(char isFullVictory);
+char AnnounceVictory(char isFullVictory);
 
 void WriteStoreData();
 void ReadStoreData();

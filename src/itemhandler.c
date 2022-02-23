@@ -334,8 +334,9 @@ void AnnounceDeath() {
   SendDeathLink();
 }
 
-void AnnounceVictory(char isFullVictory) {
-  if (isArchipelago()) AnnounceAPVictory(isFullVictory);
+char AnnounceVictory(char winState) {
+  if (isArchipelago()) return AnnounceAPVictory(winState);
+  else return winState > 0;
 }
 
 void WriteStoreData() {

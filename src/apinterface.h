@@ -38,11 +38,10 @@ void UpdateLoadingScreen(float value);
 
 uint32_t RetrieveAPSeed();
 void SendAPSignalMsg(t_apSignal signal);
-void SendCheck(int locationId);
 void PollServer();
 
 char isDeathLink();
 void SendDeathLink();
-void AnnounceAPVictory(char isFullVictory);
+char AnnounceAPVictory(char isFullVictory);
 
 #endif
