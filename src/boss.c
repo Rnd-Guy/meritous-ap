@@ -1663,7 +1663,7 @@ void BC_BossDying()
               boss_fight_mode++;
             }
           } else {
-            AnnounceVictory(player_shield == 30);
+            AnnounceVictory(1 + (player_shield == 30));
             if (endpics[0] == NULL) {
               if (training) {
                 // TODO: replace "lol ur a wuss" image with something less berating
