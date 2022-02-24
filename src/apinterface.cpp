@@ -47,6 +47,7 @@ double deathtime = -1;
 
 std::vector<ItemStore*> apStores;
 std::map<int, std::set<int64_t>> recvCache;
+std::list<int64_t> serverRecvCache, serverRecvQueue;
 
 std::string server;
 std::string slotname;
@@ -265,6 +266,13 @@ void ConnectAP()
           recvCache.insert(std::pair<int, std::set<int64_t>>(item.player, std::set<int64_t>()));
         if (recvCache[item.player].find(item.location) != recvCache[item.player].end()) return;
         recvCache[item.player].insert(item.location);
+      } else {
+        if (item.item == serverRecvQueue.front()) {
+          serverRecvQueue.pop_front();
+          return;
+        } else {
+          serverRecvCache.push_back(item.item);
+        }
       }
 
       auto itemname = ap->get_item_name(item.item);
@@ -279,9 +287,11 @@ void ConnectAP()
               item.index, itemname.c_str(), item.item,
               sender.c_str(), location.c_str());
       ReceiveItem((t_itemTypes)(item.item - AP_OFFSET),
-        item.player == ap->get_player_number()
-        ? location.c_str()
-        : sender.c_str());
+        (item.player == 0 && item.location == -2)
+        ? NULL
+        : (item.player == ap->get_player_number()
+          ? location.c_str()
+          : sender.c_str()));
     }
   });
   ap->set_location_info_handler([](const std::list<APClient::NetworkItem> &items) {
@@ -349,6 +359,8 @@ void WriteAPState()
     FWInt(locList.size());
     for (const auto location: locList) FWInt64(location);
   }
+  FWInt(serverRecvCache.size());
+  for (const auto item: serverRecvCache) FWInt64(item);
   for (const auto store: apStores) {
     FWInt(store->GetCostFactor());
     for (size_t x = 0; x < store->GetLength(); x++) {
@@ -368,6 +380,11 @@ void ReadAPState()
     auto player = FRInt();
     recvCache.insert(std::pair<int, std::set<int64_t>>(player, std::set<int64_t>()));
     for (int y = FRInt(); y > 0; y--) recvCache[player].insert(FRInt64());
+  }
+  for (int x = FRInt(); x > 0; x--) {
+    auto item = FRInt64();
+    serverRecvCache.push_back(item);
+    serverRecvQueue.push_back(item);
   }
   for (auto store: apStores) {
     store->SetCostFactor(FRInt());
