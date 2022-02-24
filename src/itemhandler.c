@@ -187,50 +187,52 @@ void ProcessItem(t_itemTypes item, const char *source, char isForfeit) {
   }
 
   // Show the appropriate message
-  if (isForfeit) {
-    char kelka = item >= T_PSI_KEY_1 && item <= T_CURSED_SEAL;
-    PostMessage(71, 50, 2, source, kelka ? artifact_names[item - T_PSI_KEY_1] : itemNames[item]);
-  } else switch (item) {
-    case T_NOTHING:
-      PostMessage(60, 50, 1, source);
-      break;
-    case T_REFLECT_SHIELD:
-      PostMessage(10, 50, 1, source);
-      noise = 1;
-      break;
-    case T_CIRCUIT_CHARGE:
-      PostMessage(11, 50, 1, source);
-      noise = 1;
-      break;
-    case T_CIRCUIT_REFILL:
-      PostMessage(12, 50, 1, source);
-      noise = 1;
-      break;
-    case T_AGATE_KNIFE:
-      PostMessage(50, 150, 0);
-      noise = 2;
-      break;
-    case T_EVOLUTION_TRAP:
-      PostMessage(25, 120, 1, source);
-      break;
-    case T_CRYSTALS_500:
-    case T_CRYSTALS_1000:
-    case T_CRYSTALS_2000:
-      PostMessage(20, 50, 1, source);
-      noise = 1;
-      break;
-    case T_1UP:
-      PostMessage(61, 50, 1, source);
-      noise = 3;
-      break;
-    case T_CURSED_SEAL:
-      PostMessage(33, 180, 0);
-      break;
-    default:
-      if (item >= T_PSI_KEY_1) PostMessage(34, 180, 2, source, artifact_names[item - T_PSI_KEY_1]);
-      else PostMessage(item - T_MAP + 1, 120, 1, source);
-      noise = 2;
-      break;
+  if (source) {
+    if (isForfeit) {
+      char kelka = item >= T_PSI_KEY_1 && item <= T_CURSED_SEAL;
+      PostMessage(71, 50, 2, source, kelka ? artifact_names[item - T_PSI_KEY_1] : itemNames[item]);
+    } else switch (item) {
+      case T_NOTHING:
+        PostMessage(60, 50, 1, source);
+        break;
+      case T_REFLECT_SHIELD:
+        PostMessage(10, 50, 1, source);
+        noise = 1;
+        break;
+      case T_CIRCUIT_CHARGE:
+        PostMessage(11, 50, 1, source);
+        noise = 1;
+        break;
+      case T_CIRCUIT_REFILL:
+        PostMessage(12, 50, 1, source);
+        noise = 1;
+        break;
+      case T_AGATE_KNIFE:
+        PostMessage(50, 150, 0);
+        noise = 2;
+        break;
+      case T_EVOLUTION_TRAP:
+        PostMessage(25, 120, 1, source);
+        break;
+      case T_CRYSTALS_500:
+      case T_CRYSTALS_1000:
+      case T_CRYSTALS_2000:
+        PostMessage(20, 50, 1, source);
+        noise = 1;
+        break;
+      case T_1UP:
+        PostMessage(61, 50, 1, source);
+        noise = 3;
+        break;
+      case T_CURSED_SEAL:
+        PostMessage(33, 180, 0);
+        break;
+      default:
+        if (item >= T_PSI_KEY_1) PostMessage(34, 180, 2, source, artifact_names[item - T_PSI_KEY_1]);
+        else PostMessage(item - T_MAP + 1, 120, 1, source);
+        noise = 2;
+        break;
+    }
   }
 
   if (noise == 1) SND_Pos("dat/a/tone.wav", 128, 0);
