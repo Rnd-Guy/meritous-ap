@@ -2554,58 +2554,66 @@ void SpecialTile(int x, int y)
 
   if (msgqueue != NULL) {
     switch (msgqueue->msgid) {
-      case 1:
+      case 1: // Map
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
         sprintf(specialmessage2, "reveals the labyrinth within the Atlas Dome");
         break;
-      case 2:
+      case 2: // Shield Boost
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
         sprintf(specialmessage2, "enhances Virtue's shield");
         break;
-      case 3:
+      case 3: // Crystal Efficiency
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
         sprintf(specialmessage2, "enriches all crystals within the Dome");
         break;
-      case 4:
+      case 4: // Circuit Booster
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
         sprintf(specialmessage2, "bolsters Virtue's PSI Circuit");
         break;
-      case 5:
+      case 5: // Metabolism
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
         sprintf(specialmessage2, "hastens Virtue's pace");
         break;
-      case 6:
+      case 6: // Dodge Enhancer
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
         sprintf(specialmessage2, "sharpens Virtue's reflexes");
         break;
-      case 7:
+      case 7: // Ethereal Monocle
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
         sprintf(specialmessage2, "reveals nearby threats");
         break;
-      case 8:
+      case 8: // Crystal Gatherer
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
         sprintf(specialmessage2, "draws crystals toward Virtue");
         break;
 
-      case 10:
+      case 10: // Reflect Shield upgrade
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
         sprintf(specialmessage2, "strengthens Virtue's shield");
         break;
-      case 11:
+      case 11: // Circuit Charge upgrade
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
         sprintf(specialmessage2, "strengthens Virtue's PSI Circuit");
         break;
-      case 12:
+      case 12: // Circuit Refill upgrade
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
         sprintf(specialmessage2, "hastens Virtue's PSI Circuit");
         break;
 
-      case 20:
+      case 20: // Crystals
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
         sprintf(specialmessage2, "showers Virtue with PSI crystals");
         break;
+      case 21: // "Nothing" item
+        sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
+        sprintf(specialmessage2, "dissipates and does nothing");
+        break;
+      case 22: // Extra life
+        sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
+        sprintf(specialmessage2, "protects Virtue's life");
+        break;
 
-      case 25:
+      case 25: // Evolution Trap
         sprintf(specialmessage1, "A disruption from %s", msgqueue->params[0]);
         sprintf(specialmessage2, "makes the Atlas Dome more dangerous");
         break;
@@ -2619,44 +2627,35 @@ void SpecialTile(int x, int y)
       case 32: // deprecated
         sprintf(specialmessage1, "Divine Bow 'Gandiva' answers your call");
         break;
-      case 33:
-        sprintf(specialmessage1, "You capture the cursed seal. Return to the entrance.");
-        sprintf(specialmessage2, "A threatening aura surrounds you. Run.");
+      case 33: // Cursed Seal
+        sprintf(specialmessage1, "You capture the cursed seal");
+        sprintf(specialmessage2, "Return to the entrance");
         break;
-      case 34:
+      case 34: // PSI Key
         sprintf(specialmessage1, "A surge from %s beckons", msgqueue->params[0]);
         sprintf(specialmessage2, "the %s to Virtue's aid", msgqueue->params[1]);
         break;
 
-      case 40: //deprecated
+      case 40: // deprecated
         sprintf(specialmessage1, "Balmung will remain here,");
         sprintf(specialmessage2, "where the ley lines are strong");
         break;
-      case 41: //deprecated
+      case 41: // deprecated
         sprintf(specialmessage1, "Amenonuhoko will remain here,");
         sprintf(specialmessage2, "where the ley lines are strong");
         break;
-      case 42: //deprecated
+      case 42: // deprecated
         sprintf(specialmessage1, "Gandiva will remain here,");
         sprintf(specialmessage2, "where the ley lines are strong");
         break;
-      case 43:
+      case 43: // Boss defeated
         sprintf(specialmessage1, "%s will remain here,", msgqueue->params[0]);
         sprintf(specialmessage2, "where the ley lines are strong");
         break;
 
-      case 50:
+      case 50: // Agate Knife
         sprintf(specialmessage1, ". . . . . .");
         sprintf(specialmessage2, "retrieved 'Agate Knife'");
-        break;
-
-      case 60: // "Nothing" item
-        sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage2, "dissipates and does nothing");
-        break;
-      case 61:
-        sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage2, "protects Virtue's life");
         break;
 
       case 70: // Check goes to other player
@@ -2671,9 +2670,17 @@ void SpecialTile(int x, int y)
         sprintf(specialmessage1, msgqueue->params[0]);
         sprintf(specialmessage2, "%s restored to %s's world", msgqueue->params[1], msgqueue->params[2]);
         break;
-      case 73: // DeathLink
+      case 73: // DeathLink received
         sprintf(specialmessage1, "A disruption from %s's world", msgqueue->params[0]);
         sprintf(specialmessage2, "results in Virtue's demise");
+        break;
+      case 74: // DeathLink sent
+        sprintf(specialmessage1, "Virtue's death disrupts reality");
+        sprintf(specialmessage2, "and can be felt across dimensions");
+        break;
+      case 75: // DeathLink disabled
+        sprintf(specialmessage1, "Death seems like less");
+        sprintf(specialmessage2, "of a threat now");
         break;
 
       default: sprintf(specialmessage1, "ERROR: NO/INVALID MESSAGE VALUE GIVEN"); break;
