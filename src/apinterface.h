@@ -41,7 +41,7 @@ void SendAPSignalMsg(t_apSignal signal);
 void PollServer();
 
 char isDeathLink();
-void SendDeathLink();
+char SendDeathLink();
 char AnnounceAPVictory(char isFullVictory);
 
 #endif

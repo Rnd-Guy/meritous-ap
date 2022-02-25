@@ -426,9 +426,9 @@ char isDeathLink()
   return (char)deathlink;
 }
 
-void SendDeathLink()
+char SendDeathLink()
 {
-  if (!ap || !deathlink) return;
+  if (!ap || !deathlink) return 0;
   deathtime = ap->get_server_time();
   json data{
     {"time", deathtime},
@@ -436,6 +436,7 @@ void SendDeathLink()
     {"source", ap->get_slot()}
   };
   ap->Bounce(data, {}, {}, {"DeathLink"});
+  return 1;
 }
 
 char AnnounceAPVictory(char winState)
