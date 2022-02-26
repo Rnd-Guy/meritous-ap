@@ -193,35 +193,35 @@ void ProcessItem(t_itemTypes item, const char *source, char isForfeit) {
       PostMessage(71, 50, 2, source, kelka ? artifact_names[item - T_PSI_KEY_1] : itemNames[item]);
     } else switch (item) {
       case T_NOTHING:
-        PostMessage(60, 50, 1, source);
+        PostMessage(21, 120, 1, source);
         break;
       case T_REFLECT_SHIELD:
-        PostMessage(10, 50, 1, source);
+        PostMessage(10, 120, 1, source);
         noise = 1;
         break;
       case T_CIRCUIT_CHARGE:
-        PostMessage(11, 50, 1, source);
+        PostMessage(11, 120, 1, source);
         noise = 1;
         break;
       case T_CIRCUIT_REFILL:
-        PostMessage(12, 50, 1, source);
+        PostMessage(12, 120, 1, source);
         noise = 1;
         break;
       case T_AGATE_KNIFE:
-        PostMessage(50, 150, 0);
+        PostMessage(50, 180, 0);
         noise = 2;
         break;
       case T_EVOLUTION_TRAP:
-        PostMessage(25, 120, 1, source);
+        PostMessage(25, 180, 1, source);
         break;
       case T_CRYSTALS_500:
       case T_CRYSTALS_1000:
       case T_CRYSTALS_2000:
-        PostMessage(20, 50, 1, source);
+        PostMessage(20, 120, 1, source);
         noise = 1;
         break;
       case T_1UP:
-        PostMessage(61, 50, 1, source);
+        PostMessage(22, 120, 1, source);
         noise = 3;
         break;
       case T_CURSED_SEAL:
@@ -229,7 +229,7 @@ void ProcessItem(t_itemTypes item, const char *source, char isForfeit) {
         break;
       default:
         if (item >= T_PSI_KEY_1) PostMessage(34, 180, 2, source, artifact_names[item - T_PSI_KEY_1]);
-        else PostMessage(item - T_MAP + 1, 120, 1, source);
+        else PostMessage(item - T_MAP + 1, 180, 1, source);
         noise = 2;
         break;
     }
@@ -303,7 +303,7 @@ void SetAPStatus(const char *status, char important) {
 }
 
 void PostCollectNotice(const char *player, const char *itemName, const char *waswere) {
-  PostMessage(72, 30, 3, itemName, waswere, player);
+  PostMessage(72, 60, 3, itemName, waswere, player);
 }
 
 void PollAPClient() {
@@ -315,7 +315,7 @@ void ReceiveItem(t_itemTypes item, const char *source) {
 }
 
 void ReportSentItem(const char *source, const char *player, const char *item) {
-  PostMessage(70, 30, 3, source, player, item);
+  PostMessage(70, 60, 3, source, player, item);
 }
 
 void SendAPSignal(t_apSignal signal) {
@@ -324,7 +324,7 @@ void SendAPSignal(t_apSignal signal) {
 
 void KillPlayer(const char *from) {
   if (player_dying <= 0 && player_hp > 0) {
-    PostMessage(73, 30, 1, from);
+    PostMessage(73, 120, 1, from);
     player_hp = 0;
     player_dying = 1;
     SND_Pos("dat/a/playerhurt.wav", 128, 0);
@@ -333,7 +333,7 @@ void KillPlayer(const char *from) {
 
 void AnnounceDeath() {
   if (!isArchipelago() || !isDeathLink()) return;
-  SendDeathLink();
+  if (SendDeathLink()) PostMessage(74, 120, 0);
 }
 
 char AnnounceVictory(char winState) {
