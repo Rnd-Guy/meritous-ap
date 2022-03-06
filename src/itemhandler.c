@@ -283,6 +283,10 @@ void CollectSpecialItem(t_specialStore itemIndex) {
   }
 }
 
+size_t GetNextItemIndex(t_itemStores store) {
+  return isArchipelago() ? GetAPNextItemIndex(store) : GetNextIndexInStore(store);
+}
+
 char isArchipelago() {
   return apEnabled;
 }

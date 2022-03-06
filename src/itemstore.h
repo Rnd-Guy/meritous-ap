@@ -33,7 +33,7 @@ t_itemTypes GetItemByIndex(t_itemStores store, int index, char collect);
 // enum itemTypes GetItemByIndex(t_itemStores store, int index);
 char HasItemByIndex(t_itemStores store, int index);
 
-int GetNextIndexInStore(t_itemStores store);
+size_t GetNextIndexInStore(t_itemStores store);
 
 void LocalGenerateItemStores(int flags);
 

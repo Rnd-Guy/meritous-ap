@@ -178,6 +178,12 @@ void CollectAPSpecialItem(t_specialStore index)
   InternalCollectAPItem(index + 96);
 }
 
+size_t GetAPNextItemIndex(t_itemStores store)
+{
+  if (!ap || !apStores.size()) return -1;
+  return apStores[store]->GetNextItemIndex();
+}
+
 void ConnectAP()
 {
   std::string uri = server;

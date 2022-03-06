@@ -166,6 +166,12 @@ struct queued_message {
 
 t_queued_message *msgqueue = NULL;
 
+const char *cache_names[3] = {
+  "Alpha",
+  "Beta",
+  "Gamma"
+};
+
 float RandomDir()
 {
   return (float)(rand()%256)*M_PI*2.0/256.0;
@@ -2498,27 +2504,18 @@ void SpecialTile(int x, int y)
       }
       break;
     case 26:
-      sprintf(message, "Press ENTER to open the storage chest");
+      sprintf(message, "Press ENTER to open the storage chest [#%d]", GetNextItemIndex(IS_CHESTS));
       break;
+      // TODO: consolidate
     case 28:
-      if (CostFactor(IS_ALPHA) < 0) {
-        sprintf(message, "Alpha cache is empty");
-      } else {
-        sprintf(message, "Press ENTER to loot Alpha cache (%d crystals)", UpgradePrice(0));
-      }
-      break;
     case 29:
-      if (CostFactor(IS_BETA) < 0) {
-        sprintf(message, "Beta cache is empty");
-      } else {
-        sprintf(message, "Press ENTER to loot Beta cache (%d crystals)", UpgradePrice(1));
-      }
-      break;
     case 30:
-      if (CostFactor(IS_GAMMA) < 0) {
-        sprintf(message, "Gamma cache is empty");
+      int offset = tile - 28;
+      if (CostFactor(IS_ALPHA + offset) < 0) {
+        sprintf(message, "%s cache is empty", cache_names[offset]);
       } else {
-        sprintf(message, "Press ENTER to loot Gamma cache (%d crystals)", UpgradePrice(2));
+        sprintf(message, "Press ENTER to loot %s cache [#%d] (%d crystals)",
+                cache_names[offset], GetNextItemIndex(IS_ALPHA + offset) + 1, UpgradePrice(offset));
       }
       break;
     case 31:
@@ -2533,9 +2530,7 @@ void SpecialTile(int x, int y)
       break;
     case 42:
       if (rooms[player_room].room_type == 5) {
-        if (CanGetArtifact(rooms[player_room].room_param)) {
-
-        } else {
+        if (!CanGetArtifact(rooms[player_room].room_param)) {
           sprintf(message, "The artifact is tainted with shadow. You must slay more of the shadow first.");
         }
       }
@@ -2544,11 +2539,9 @@ void SpecialTile(int x, int y)
       CompassPoint();
       break;
     default:
-      if (first_game) {
-        if (otext < 60) {
-          sprintf(message, "Press H to read the help file");
-          otext++;
-        }
+      if (first_game && otext < 60) {
+        sprintf(message, "Press H to read the help file");
+        otext++;
       }
       break;
   }

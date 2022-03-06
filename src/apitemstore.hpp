@@ -42,15 +42,19 @@ public:
     checks[index] = true;
   }
 
-  int BuyNextItem() {
-    for (size_t x = 0; x < checks.size(); x++) {
-      if (!checks[x]) {
-        costFactor++;
-        checks[x] = true;
-        return x;
-      }
-    }
+  size_t GetNextItemIndex() {
+    for (size_t x = 0; x < checks.size(); x++)
+      if (!checks[x]) return x;
     return -1;
+  }
+
+  size_t BuyNextItem() {
+    auto nextItem = GetNextItemIndex();
+    if (nextItem != (size_t)-1) {
+      costFactor++;
+      checks[nextItem] = true;
+    }
+    return nextItem;
   }
 
   bool StoreItem(size_t index, uint64_t item) {

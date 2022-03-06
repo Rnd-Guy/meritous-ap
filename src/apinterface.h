@@ -26,6 +26,7 @@ void DestroyAPStores();
 int GetAPCostFactor(t_itemStores store);
 void CollectAPItem(t_itemStores store);
 void CollectAPSpecialItem(t_specialStore index);
+size_t GetAPNextItemIndex(t_itemStores store);
 
 void ConnectAP();
 void DisconnectAP();
