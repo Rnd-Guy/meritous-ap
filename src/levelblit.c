@@ -2557,11 +2557,11 @@ void SpecialTile(int x, int y)
     switch (msgqueue->msgid) {
       case 1: // Map
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage2, "reveals the labyrinth within the Atlas Dome");
+        sprintf(specialmessage2, "reveals the labyrinth within the Atlas Dome [TAB]");
         break;
       case 2: // Shield Boost
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage2, "enhances Virtue's shield");
+        sprintf(specialmessage2, "rejuvenates Virtue's shield");
         break;
       case 3: // Crystal Efficiency
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
@@ -2569,7 +2569,7 @@ void SpecialTile(int x, int y)
         break;
       case 4: // Circuit Booster
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage2, "bolsters Virtue's PSI Circuit");
+        sprintf(specialmessage2, "extends Virtue's PSI Circuit range");
         break;
       case 5: // Metabolism
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
@@ -2594,11 +2594,11 @@ void SpecialTile(int x, int y)
         break;
       case 11: // Circuit Charge upgrade
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage2, "strengthens Virtue's PSI Circuit");
+        sprintf(specialmessage2, "increases Virtue's PSI Circuit strength");
         break;
       case 12: // Circuit Refill upgrade
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage2, "hastens Virtue's PSI Circuit");
+        sprintf(specialmessage2, "hastens Virtue's PSI Circuit recharge rate");
         break;
 
       case 20: // Crystals
