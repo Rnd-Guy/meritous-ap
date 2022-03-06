@@ -489,6 +489,7 @@ void DrawRoom(int place_x, int place_y, int room_w, int room_h, int room_id)
     Paint(place_x+1, place_y+1, room_w-2, room_h-2, "dat/d/centre.loc");
   }
   // Power object rooms
+  // TODO: make this code not assume that x499 and x999 are special rooms
   if ((room_id % 1000) == 499) {
     Paint(place_x+1, place_y+1, room_w-2, room_h-2, "dat/d/weapon.loc");
   }

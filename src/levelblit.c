@@ -2303,6 +2303,7 @@ void CompassPoint()
   // Look at the three artifacts
   // Unless the player is going for the place of power
 
+  // TODO: make this code not assume that x499 and x999 are special rooms
   if (current_boss < 3) {
     for (i = 0; i < 3; i++) {
       // Has the player got this artifact already?
