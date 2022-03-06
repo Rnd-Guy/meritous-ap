@@ -23,12 +23,16 @@
 class ItemStore {
 private:
   std::vector<bool> checks;
+  std::vector<std::optional<uint64_t>> items;
   int costFactor;
   bool crystalFallback;
 
 public:
   ItemStore(int length, bool crystalFallbackIn) {
-    for (int x = 0; x < length; x++) checks.push_back(false);
+    for (int x = 0; x < length; x++) {
+      checks.push_back(false);
+      items.push_back(std::nullopt);
+    }
     costFactor = 0;
     crystalFallback = crystalFallbackIn;
   }
@@ -49,6 +53,22 @@ public:
     return -1;
   }
 
+  bool StoreItem(size_t index, uint64_t item) {
+    if (index >= items.size()) return false;
+    items[index] = item;
+    return true;
+  }
+
+  bool HasItemStored(size_t index) {
+    if (index >= items.size()) return false;
+    return items[index].has_value();
+  }
+
+  uint64_t GetStoredItem(size_t index) {
+    if (index >= items.size()) return -1;
+    return items[index].value_or(-1);
+  }
+
   void SetCostFactor(int newFactor) {
     if (costFactor == 0) costFactor = newFactor;
   }
@@ -65,8 +85,8 @@ public:
     return crystalFallback;
   }
 
-  bool operator[](int index) {
-    if (index < 0 || index >= (int)checks.size()) return false;
+  bool operator[](size_t index) {
+    if (index >= checks.size()) return false;
     return checks[index];
   }
 };
