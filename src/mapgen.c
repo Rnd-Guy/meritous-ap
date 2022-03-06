@@ -841,10 +841,23 @@ void MakeSpecialRooms()
   // - Artifact rooms (biggest non-boss room of a given tier)
   //		Tiers: 5-9  10-14  15-19  20-24  25-29  30-34  35-39  40-44
   
-  // boss rooms
+//  // boss rooms
+//   for (i = 0; i < 3; i++) {
+//     c_room = i*1000+999;
+//     rooms[c_room].room_type = 2;
+//     rooms[c_room].room_param = i;
+//   }
+//   // power object rooms
+//   for (i = 0; i < 3; i++) {
+//     c_room = i*1000+499;
+//     rooms[c_room].room_type = 5;
+//     rooms[c_room].room_param = i;
+//   }
+
+  // boss and power object rooms
   for (i = 0; i < 6; i++) {
     c_room = (rooms_to_gen / 6 * (i + 1)) - 1;
-    rooms[c_room].room_type = i % 2 ? 5 : 2;
+    rooms[c_room].room_type = i % 2 ? 2 : 5;
     rooms[c_room].room_param = i / 2;
   }
   
