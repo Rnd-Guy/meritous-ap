@@ -2134,18 +2134,6 @@ void DrawShield()
   }
 }
 
-// void ST_Teleport()
-// {
-// }
-
-int UpgradePrice(int t)
-{
-  // TODO: make upgrade prices configurable
-  int costFactor = CostFactor(t);
-  if (costFactor < 0) return 9999999;
-  else return (80 - training*40) * costFactor + (5<<costFactor) * (4 - training*2);
-}
-
 int GetNearestCheckpoint(int nx, int ny)
 {
   int i;

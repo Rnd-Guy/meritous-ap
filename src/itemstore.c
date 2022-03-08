@@ -27,6 +27,8 @@
 #include "levelblit.h"
 #include "save.h"
 
+int localCostScale[] = {80, 5, 4};
+
 typedef struct itemStore
 {
   t_itemTypes items[24];
@@ -130,6 +132,15 @@ size_t GetNextIndexInStore(t_itemStores store) {
 
   return -1;
 }
+
+int GetLocalUpgradeCost(t_itemStores store, char training) {
+  int costFactor = GetNextIndexInStore(store);
+  if (costFactor < 0) return 9999999;
+  else return (localCostScale[0] - training * (int)((float)localCostScale[0] / 2.f))
+               * costFactor + (localCostScale[1] << costFactor)
+               * (localCostScale[2] - training * (int)((float)localCostScale[2] / 2.f));
+}
+
 
 int GetEmptyPosInStore(t_itemStores store, int index) {
   if (stores == NULL) return -2;

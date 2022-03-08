@@ -24,6 +24,7 @@ void CreateAPStores();
 void DestroyAPStores();
 
 int GetAPCostFactor(t_itemStores store);
+int GetAPUpgradeCost(t_itemStores store, char training);
 void CollectAPItem(t_itemStores store);
 void CollectAPSpecialItem(t_specialStore index);
 size_t GetAPNextItemIndex(t_itemStores store);

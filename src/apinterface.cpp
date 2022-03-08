@@ -54,6 +54,7 @@ std::string password;
 
 int goal = 0;
 bool deathlink = false;
+std::vector<int> apCostScale({80, 5, 4});
 
 const char *storeNames[] = {
   "Alpha cache",
@@ -144,6 +145,15 @@ int GetAPCostFactor(t_itemStores store)
 {
   if (!apStores.size() || store < IS_ALPHA || store > IS_GAMMA) return -1;
   return apStores[store]->GetCostFactor();
+}
+
+int GetAPUpgradeCost(t_itemStores store, char training)
+{
+  int costFactor = GetAPCostFactor(store);
+  if (costFactor < 0) return 9999999;
+  else return (apCostScale[0] - training * (int)((float)apCostScale[0] / 2.f))
+               * costFactor + (apCostScale[1] << costFactor)
+               * (apCostScale[2] - training * (int)((float)apCostScale[2] / 2.f));
 }
 
 void InternalCollectAPItem(uint64_t location)
@@ -240,8 +250,17 @@ void ConnectAP()
     ap_connect_sent = true; // TODO: move to APClient::State ?
   });
   ap->set_slot_connected_handler([](const json& data){
-    deathlink = data["death_link"].is_boolean() ? data["death_link"].get<bool>() : false;
-    goal = data["goal"].is_number_integer() ? data["goal"].get<int>() : 0;
+    if (data.find("death_link") != data.end() && data["death_link"].is_boolean())
+      deathlink = data["death_link"].get<bool>();
+    else deathlink = false;
+
+    if (data.find("goal") != data.end() && data["goal"].is_number_integer())
+      goal = data["goal"].get<int>();
+    else goal = 0;
+
+    if (data.find("cost_scale") != data.end() && data["cost_scale"].is_array())
+      apCostScale = data["cost_scale"].get<std::vector<int>>();
+    else apCostScale = std::vector<int>({80,5,4}); 
 
     if (deathlink) ap->ConnectUpdate(false, 0b111, true, {"AP", "DeathLink"});
     ap->StatusUpdate(APClient::ClientStatus::PLAYING);

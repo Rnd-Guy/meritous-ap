@@ -35,6 +35,8 @@ char HasItemByIndex(t_itemStores store, int index);
 
 size_t GetNextIndexInStore(t_itemStores store);
 
+int GetLocalUpgradeCost(t_itemStores store, char training);
+
 void LocalGenerateItemStores(int flags);
 
 char VerifyItemStores();

@@ -90,6 +90,12 @@ void EndRando() {
   if (isArchipelago()) DisconnectAP();
 }
 
+int UpgradePrice(int t)
+{
+  if (isArchipelago()) return GetAPUpgradeCost((t_itemStores)t, training);
+  else return GetLocalUpgradeCost((t_itemStores)t, training);
+}
+
 int CostFactor(t_itemStores store) {
   if (store < IS_ALPHA || store > IS_GAMMA) return -1;
   else if (isArchipelago()) return GetAPCostFactor(store);
@@ -132,27 +138,27 @@ void ProcessItem(t_itemTypes item, const char *source, char isForfeit) {
   int basemod = 500;
 
   if (HasItem(item)) item = MakeCrystals();
-  printf("Processing %d: ", item);
+  //printf("Processing %d: ", item);
 
   // Process the item effect
   switch (item) {
     case T_NOTHING:
-      printf("Nothing\n");
+      //printf("Nothing\n");
       break;
     case T_REFLECT_SHIELD:
-      printf("Shield\n");
+      //printf("Shield\n");
       player_shield++;
       break;
     case T_CIRCUIT_CHARGE:
-      printf("Charge\n");
+      //printf("Charge\n");
       circuit_fillrate++;
       break;
     case T_CIRCUIT_REFILL:
-      printf("Refill\n");
+      //printf("Refill\n");
       circuit_recoverrate++;
       break;
     case T_AGATE_KNIFE:
-      printf("Knife\n");
+      //printf("Knife\n");
       add_int_stat(STAT_TIME_KNIFE, expired_ms);
       player_shield = 30;
       circuit_fillrate = 30;
@@ -160,7 +166,7 @@ void ProcessItem(t_itemTypes item, const char *source, char isForfeit) {
       player_hp = 6;
       break;
     case T_EVOLUTION_TRAP:
-      printf("EvoTrap\n");
+      //printf("EvoTrap\n");
       SoupUpEnemies();
       break;
     case T_CRYSTALS_500:
@@ -168,19 +174,19 @@ void ProcessItem(t_itemTypes item, const char *source, char isForfeit) {
     case T_CRYSTALS_2000:
       if (item >= T_CRYSTALS_1000) basemod *= 2;
       if (item == T_CRYSTALS_2000) basemod *= 2;
-      printf("Crystals x%d\n", basemod);
+      //printf("Crystals x%d\n", basemod);
       int collect = rand()%((1 << (explored / (rooms_to_gen / 15))) * basemod);
       add_int_stat(STAT_GEMS_COLLECTED, collect);
       player_gems += collect;
       break;
     case T_1UP:
-      printf("1up\n");
+      //printf("1up\n");
       add_int_stat(STAT_LIVES_GAINED, 1);
       player_lives++;
       player_hp = 3 + (player_shield == 30)*3;
       break;
     default:
-      printf("Artifact %d\n", item - T_MAP);
+      //printf("Artifact %d\n", item - T_MAP);
       artifacts[item - T_MAP] = 1;
       if (item == T_CURSED_SEAL) {
         current_boss = 2;
