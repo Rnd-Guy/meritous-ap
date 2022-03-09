@@ -49,7 +49,7 @@
 #define PLAYERW 16
 #define PLAYERH 24
 
-#define MERITOUS_VERSION "v 1.2-AP-0.9.2"
+#define MERITOUS_VERSION "v 1.2-AP-0.9.3"
 
 #define MIN(a,b) (((a) < (b)) ? (a) : (b))
 #define MAX(a,b) (((a) > (b)) ? (a) : (b))
