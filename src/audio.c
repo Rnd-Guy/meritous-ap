@@ -30,6 +30,7 @@
 #include "levelblit.h"
 #include "mapgen.h"
 #include "boss.h"
+#include "itemdefs.h"
 
 char *tracks[13] = {"dat/m/ICEFRONT.S3M",
 					"dat/m/cavern.xm",
@@ -158,7 +159,7 @@ void BackgroundMusic()
 		new_track = 4;
 	}
 	
-	if (artifacts[11]) {
+	if (artifacts[AF_CURSED_SEAL]) {
 		new_track = 6;
 	}
 	

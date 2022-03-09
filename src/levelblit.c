@@ -136,7 +136,7 @@ int checkpoint_y;
 int explored = 0;
 //#define DEBUG_STATS 1
 
-int artifacts[12];
+int artifacts[AF_MAXX];
 SDL_Surface *artifact_spr = NULL;
 
 int player_shield;
@@ -227,7 +227,7 @@ void PlayerDefaultStats()
 
   map_enabled = 0;
 
-  for (i = 0; i < 12; i++) {
+  for (i = 0; i < AF_MAXX; i++) {
     artifacts[i] = 0;
   }
 
@@ -237,7 +237,7 @@ void PlayerDefaultStats()
   circuit_fillrate = 24;
   circuit_recoverrate = 24;
 
-  for (i = 0; i < 12; i++) {
+  for (i = 0; i < AF_MAXX; i++) {
     artifacts[i] = 1;
   }
 
@@ -251,6 +251,7 @@ void ScrollTo(int x, int y);
 #define K_LT 2
 #define K_RT 3
 #define K_SP 4
+#define K_c 5
 
 SDL_Surface *screen;
 
@@ -331,7 +332,7 @@ void WritePlayerData()
   FWInt(training);
   FWInt(agate_knife_loc);
 
-  for (i = 0; i < 12; i++) {
+  for (i = 0; i < AF_MAXX; i++) {
     FWChar(artifacts[i]);
   }
 }
@@ -366,7 +367,7 @@ void ReadPlayerData()
 
   agate_knife_loc = FRInt();
 
-  for (i = 0; i < 12; i++) {
+  for (i = 0; i < AF_MAXX; i++) {
     artifacts[i] = FRChar();
   }
 }
@@ -402,6 +403,7 @@ void ClearInput()
   key_held[K_DN] = 0;
   key_held[K_LT] = 0;
   key_held[K_RT] = 0;
+  key_held[K_c] = 0;
 }
 
 int main(int argc, char **argv)
@@ -895,7 +897,7 @@ int DungeonPlay(const char *fname)
 
     if (magic_circuit > 0) {
       circuit_range = (sqrt(magic_circuit + 1) * 6 + MIN(magic_circuit / 2, 50))*1.66;
-      if (artifacts[3]) circuit_range += circuit_range / 2.4;
+      if (artifacts[AF_CIRCUIT_BOOSTER]) circuit_range += circuit_range / 2.4;
     } else circuit_range = -1;
     player_room = GetRoom(player_x/32, player_y/32);
 
@@ -914,7 +916,7 @@ int DungeonPlay(const char *fname)
         // it's a boss room
         BossRoom(player_room);
       }
-      if (((rooms[player_room].checkpoint)||(player_room==0))&&(!artifacts[11])) {
+      if (((rooms[player_room].checkpoint)||(player_room==0))&&(!artifacts[AF_CURSED_SEAL])) {
         checkpoint_x = rooms[player_room].x * 32 + (rooms[player_room].w / 2 * 32) + 8;
         checkpoint_y = rooms[player_room].y * 32 + (rooms[player_room].h / 2 * 32) + 4;
       }
@@ -934,7 +936,7 @@ int DungeonPlay(const char *fname)
       SetTonedPalette((float)rooms[player_room].s_dist / (float)max_dist);
       last_killed = killed_enemies;
     } else {
-      if ((player_room == 0)&&(artifacts[11] == 1)) {
+      if ((player_room == 0)&&(artifacts[AF_CURSED_SEAL] == 1)) {
         SetTonedPalette(0);
       }
     }
@@ -1059,7 +1061,7 @@ int DungeonPlay(const char *fname)
       if (!game_paused) {
         if (shield_hp < player_shield) {
           shield_recover += player_shield * 3 / (3 - training - (player_shield == 30));
-          if (artifacts[1]) shield_recover += player_shield * 3 / (3 - training - (player_shield == 30));
+          if (artifacts[AF_SHIELD_BOOST]) shield_recover += player_shield * 3 / (3 - training - (player_shield == 30));
           if (shield_recover >= 50) {
             shield_hp++;
             shield_recover -= 50 - (player_shield == 30)*25;
@@ -1222,23 +1224,23 @@ int DungeonPlay(const char *fname)
       off_x = 0;
       off_y = 0;
       if (key_held[K_UP] && !key_held[K_DN]) {
-        iy -= player_walk_speed * (artifacts[4]?1.4:1);
+        iy -= player_walk_speed * (artifacts[AF_METABOLISM]?1.4:1);
         player_dir = 0;
       }
       if (key_held[K_DN] && !key_held[K_UP]) {
-        iy += player_walk_speed * (artifacts[4]?1.4:1);;
+        iy += player_walk_speed * (artifacts[AF_METABOLISM]?1.4:1);;
         player_dir = 1;
         off_y = 24;
       }
       if (key_held[K_LT] && !key_held[K_RT]) {
-        ix -= player_walk_speed * (artifacts[4]?1.4:1);;
+        ix -= player_walk_speed * (artifacts[AF_METABOLISM]?1.4:1);;
         if (!(key_held[K_UP] || key_held[K_DN])) {
           player_dir = 3;
         }
       }
       if (key_held[K_RT] && !key_held[K_LT]) {
         off_x = 16;
-        ix += player_walk_speed * (artifacts[4]?1.4:1);;
+        ix += player_walk_speed * (artifacts[AF_METABOLISM]?1.4:1);;
         if (!(key_held[K_UP] || key_held[K_DN])) {
           player_dir = 2;
 
@@ -1264,13 +1266,13 @@ int DungeonPlay(const char *fname)
         if (((player_x / 32)!=((ix+off_x) / 32)) || ((player_y / 32)!=((iy+off_y) / 32))) {
           //printf("%d\n", tile);
           if (TouchTile(ix, iy)) {
-            player_wlk = (player_wlk + 1 + artifacts[4]*3) % (4*wlk_wait);
+            player_wlk = (player_wlk + 1 + artifacts[AF_METABOLISM]*3) % (4*wlk_wait);
           } else {
             if (TouchTile(player_x, iy)) {
-              player_wlk = (player_wlk + 1 + artifacts[4]*3) % (4*wlk_wait);
+              player_wlk = (player_wlk + 1 + artifacts[AF_METABOLISM]*3) % (4*wlk_wait);
             } else {
               if (TouchTile(ix, player_y)) {
-                player_wlk = (player_wlk + 1 + artifacts[4]*3) % (4*wlk_wait);
+                player_wlk = (player_wlk + 1 + artifacts[AF_METABOLISM]*3) % (4*wlk_wait);
                 if (off_x > 0) player_dir = 2;
                 else player_dir = 3;
               }
@@ -1281,7 +1283,7 @@ int DungeonPlay(const char *fname)
           player_x = ix;
           player_y = iy;
 
-          player_wlk = (player_wlk + 1 + artifacts[4]*3) % (4*wlk_wait);
+          player_wlk = (player_wlk + 1 + artifacts[AF_METABOLISM]*3) % (4*wlk_wait);
         }
       }
     }
@@ -1315,7 +1317,7 @@ int DungeonPlay(const char *fname)
     VideoUpdate();
     SDL_Delay(2000);
 
-    if (current_boss == 3 && artifacts[11] && player_room == 0) {
+    if (current_boss == 3 && artifacts[AF_CURSED_SEAL] && player_room == 0) {
       if (AnnounceVictory(0)) {
         ShowBadEndingStats();
       }
@@ -1409,6 +1411,9 @@ void HandleEvents()
             key_held[K_SP] = 1;
             CancelVoluntaryExit();
             break;
+          case SDLK_c:
+            key_held[K_c] = 1;
+            break;
           case SDLK_RETURN:
             enter_pressed = 1;
             break;
@@ -1474,13 +1479,13 @@ void HandleEvents()
           case SDLK_m:
             {
               int i;
-              for (i = 0; i < 8; i++) {
+              for (i = 0; i < AF_MAXX_NOKEYS; i++) {
                 artifacts[i] = 1;
               }
-              for (i = 8; i < 11; i++) {
+              for (i = AF_MAXX_NOKEYS; i < AF_MAXX; i++) {
                 artifacts[i] = 0;
               }
-              artifacts[11] = 0;
+              //artifacts[AF_CURSED_SEAL] = 0;
             }
             break;
 
@@ -1516,6 +1521,9 @@ void HandleEvents()
             break;
           case SDLK_SPACE:
             key_held[K_SP] = 0;
+            break;
+          case SDLK_c:
+            key_held[K_c] = 0;
             break;
           default:
             break;
@@ -1688,7 +1696,7 @@ void SetTonedPalette(float dct)
       pal[1].b = 0;
     }
   } else {
-    if (artifacts[11]) {
+    if (artifacts[AF_CURSED_SEAL]) {
       if (player_room == 0) {
         tk++;
         pct = sin((float)tk / 33.0 * M_PI) * 0.5 + 0.5;
@@ -1798,7 +1806,7 @@ void ActivateBossDoor(int x, int y)
   } else
     return;
 
-  if (artifacts[8 + rooms[GetRoom(bx, by)].room_param]) {
+  if (artifacts[AF_MAXX_NOKEYS + rooms[GetRoom(bx, by)].room_param]) {
     opening_door_x = x;
     opening_door_y = y;
     opening_door_i = 1;
@@ -2224,7 +2232,7 @@ void ActivateTile(unsigned char tile, int x, int y)
   enter_pressed = 0;
   switch (tile) {
     case 25:
-      if (artifacts[11]) break;
+      if (artifacts[AF_CURSED_SEAL]) break;
 
       c_room = GetNearestCheckpoint(c_scroll_x, c_scroll_y);
       if (tele_select) {
@@ -2301,7 +2309,7 @@ void CompassPoint()
   if (current_boss < 3) {
     for (i = 0; i < 3; i++) {
       // Has the player got this artifact already?
-      if (artifacts[8+i] == 0) { // no
+      if (artifacts[AF_MAXX_NOKEYS+i] == 0) { // no
         // Has the player already destroyed the boss?
         if (rooms[i * 1000 + 999].room_type == 2) { // no
           // Can the player get the artifact?
@@ -2337,7 +2345,7 @@ void CompassPoint()
   // PLACE OF POWER
   if (bosses_defeated == 3) {
     // If the player already has the seal, point them to home
-    if (artifacts[11] == 1) {
+    if (artifacts[AF_CURSED_SEAL] == 1) {
       loc_x = rooms[0].x * 32 + rooms[0].w * 16;
       loc_y = rooms[0].y * 32 + rooms[0].h * 16;
       cdist = dist(rplx, rply, loc_x, loc_y);
@@ -2481,7 +2489,7 @@ void SpecialTile(int x, int y)
   tile = Get(x, y);
   switch (tile) {
     case 25:
-      if (artifacts[11]) {
+      if (artifacts[AF_CURSED_SEAL]) {
         sprintf(message, "This is a checkpoint, but it doesn't seem to be working");
         break;
       }
@@ -2534,6 +2542,8 @@ void SpecialTile(int x, int y)
       break;
   }
 
+  if (tile != 53 && key_held[K_c] && artifacts[AF_PORTABLE_COMPASS]) CompassPoint();
+
   if (msgqueue != NULL) {
     switch (msgqueue->msgid) {
       case 1: // Map
@@ -2567,6 +2577,10 @@ void SpecialTile(int x, int y)
       case 8: // Crystal Gatherer
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
         sprintf(specialmessage2, "draws crystals toward Virtue");
+        break;
+      case 9: // Portable Compass
+        sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
+        sprintf(specialmessage2, "shows Virtue the way forward [C]");
         break;
 
       case 10: // Reflect Shield upgrade
@@ -2734,15 +2748,15 @@ void DrawArtifacts()
     SDL_SetColorKey(artifact_spr, SDL_SRCCOLORKEY | SDL_RLEACCEL, 0);
   }
 
-  for (i = 0; i < 12; i++) {
+  for (i = 0; i < AF_MAXX; i++) {
     if (artifacts[i]) {
       from.x = i * 32;
       from.y = 0;
       from.w = 32;
       from.h = 32;
 
-      to.x = 608;
-      to.y = 47 + i * 35;
+      to.x = 608 - (i / 12) * 35;
+      to.y = 47 + (i % 12) * 35;
       SDL_BlitSurface(artifact_spr, &from, screen, &to);
     }
   }

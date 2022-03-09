@@ -1037,7 +1037,7 @@ int CanEnterRoom(int room)
 	if (rooms[room].room_type == 5) return 0;
 	if (rooms[room].room_type == 6) return 0;
 
-	if (artifacts[11]) {
+	if (artifacts[AF_CURSED_SEAL]) {
 		if (rooms[room].enemies > 3) {
 			return 0;
 		}
@@ -1534,7 +1534,8 @@ void MoveEnemy(struct enemy *e)
 					if (b->firer == e) {
 						// add_int_stat(STAT_BULLETS_CANCELLED, 1);
 						b->delete_me = 1;
-						CreateGem(b->x, b->y, b->room, (e->max_gems + e->min_gems) / 5 + (artifacts[2] * (e->max_gems + e->min_gems) / 4));
+						CreateGem(b->x, b->y, b->room,
+							(e->max_gems + e->min_gems) / 5 + (artifacts[AF_CRYSTAL_EFFICIENCY] * (e->max_gems + e->min_gems) / 4));
 					}
 				}
 				b = b->next;
@@ -1557,7 +1558,8 @@ void MoveEnemy(struct enemy *e)
 				rooms[e->room].enemies--;
 				n_gems = e->min_gems + rand()%(e->max_gems - e->min_gems + 1);
 				for (i = 0; i < n_gems; i++) {
-					CreateGem(e->x - 16 + rand()%32, e->y - 16 + rand()%32, e->room, 1+rand()%4 + (artifacts[2]*rand()%3));
+					CreateGem(e->x - 16 + rand()%32,
+						e->y - 16 + rand()%32, e->room, 1+rand()%4 + (artifacts[T_CRYSTAL_EFFICIENCY]*rand()%3));
 				}
 				if (rooms[e->room].room_type == 3) {
 					ArtifactRoomUnlock(e->room);
@@ -1675,7 +1677,7 @@ void MoveBullet(struct bullet *e)
 									}
 								}
 								
-								if (PlayerDist(fx, fy) < 4 - (2 * artifacts[5])) {
+								if (PlayerDist(fx, fy) < 4 - (2 * artifacts[AF_DODGE_ENHANCER])) {
 									player_dying = 1;
 									SND_Pos("dat/a/playerhurt.wav", 128, 0);
 									e->dying = 1;
@@ -1731,7 +1733,7 @@ void MoveBullet(struct bullet *e)
 				}
 			}
 			if (e->dying == 0) {
-				if (pdist < 6 - (2 * artifacts[5])) {
+				if (pdist < 6 - (2 * artifacts[AF_DODGE_ENHANCER])) {
 					if (player_dying == 0) {
 						SND_Pos("dat/a/playerhurt.wav", 128, 0);
 						player_dying = 1;
@@ -2148,7 +2150,7 @@ void DrawEntities()
 	}
 	
 	// Draw invisible enemies (if possible)
-	if (artifacts[6]) {
+	if (artifacts[AF_ETHEREAL_MONOCLE]) {
 		// Draw the actives
 		t = active_stack;
 		while (t != NULL) {
@@ -2161,7 +2163,7 @@ void DrawEntities()
 			t = t->next_active;
 		}
 		// Draw the inactives
-		if (!artifacts[11]) {
+		if (!artifacts[AF_CURSED_SEAL]) {
 			els = GetEnemyLoc(scroll_x, scroll_y);
 			while (els != NULL) {
 				t = els->e;
@@ -2206,7 +2208,7 @@ void MoveEntities()
 		g = room_gems[player_room];
 		while (g != NULL) {
 			if ((g->room == player_room)&&(g->delete_me == 0)) {
-				if (artifacts[7]) {
+				if (artifacts[AF_CRYSTAL_GATHERER]) {
 					g->x += (player_x+4 - g->x)/10;
 					g->y += (player_y+12 - g->y)/10;
 				}

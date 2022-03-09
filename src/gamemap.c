@@ -51,7 +51,7 @@ void InitAutomap()
 	
 	full_rend = 0;
 	if (game_load) {
-		if (artifacts[0]) {
+		if (artifacts[AF_MAP]) {
 			FullRender();
 		} else {
 			for (i = 0; i < rooms_to_gen; i++) {
@@ -167,7 +167,7 @@ void DisplayAutomap()
 	
 	nearest_checkpoint = GetNearestCheckpoint(c_scroll_x, c_scroll_y);
 
-	if (artifacts[0] && (!full_rend)) FullRender();
+	if (artifacts[AF_MAP] && (!full_rend)) FullRender();
 
 	minimap_scroll_x = c_scroll_x / 32 - 200 / 2;
 	minimap_scroll_y = c_scroll_y / 32 - 229 / 2;
