@@ -41,6 +41,7 @@ const char *itemNames[] = {
   "Dodge Enhancer",
   "Ethereal Monocle",
   "Crystal Gatherer",
+  "Portable Compass",
   "", // get these from artifact_names
   "",
   "",
