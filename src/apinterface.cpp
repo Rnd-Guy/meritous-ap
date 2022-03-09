@@ -46,8 +46,7 @@ bool ap_connect_sent = false;
 double deathtime = -1;
 
 std::vector<ItemStore*> apStores;
-std::map<int, std::set<int64_t>> recvCache;
-std::list<int64_t> serverRecvCache, serverRecvQueue;
+int nextCheckToGet = 0;
 
 std::string server;
 std::string slotname;
@@ -55,6 +54,7 @@ std::string password;
 
 int goal = 0;
 bool deathlink = false;
+std::vector<int> apCostScale({80, 5, 4});
 
 const char *storeNames[] = {
   "Alpha cache",
@@ -128,7 +128,7 @@ void CreateAPStores()
   apStores.push_back(new ItemStore(24, false));
   apStores.push_back(new ItemStore(24, true));
   apStores.push_back(new ItemStore(8, false));
-  recvCache.clear();
+  nextCheckToGet = 0;
 }
 
 void DestroyAPStores()
@@ -138,6 +138,7 @@ void DestroyAPStores()
     apStores.pop_back();
     delete delStore;
   }
+  nextCheckToGet = 0;
 }
 
 int GetAPCostFactor(t_itemStores store)
@@ -146,15 +147,34 @@ int GetAPCostFactor(t_itemStores store)
   return apStores[store]->GetCostFactor();
 }
 
+int GetAPUpgradeCost(t_itemStores store, char training)
+{
+  int costFactor = GetAPCostFactor(store);
+  if (costFactor < 0) return 9999999;
+  else return (apCostScale[0] - training * (int)((float)apCostScale[0] / 2.f))
+               * costFactor + (apCostScale[1] << costFactor)
+               * (apCostScale[2] - training * (int)((float)apCostScale[2] / 2.f));
+}
+
+void InternalCollectAPItem(uint64_t location)
+{
+  if (apStores[location / 24]->HasItemStored(location % 24))
+    ReceiveItem((t_itemTypes)(apStores[location / 24]->GetStoredItem(location % 24) % AP_OFFSET),
+                storeNames[location / 24]);
+  else {
+    std::list<int64_t> check;
+    check.push_back(location + AP_OFFSET);
+    ap->LocationScouts(check);
+    ap->LocationChecks(check);
+  }
+}
+
 void CollectAPItem(t_itemStores store)
 {
   if (!ap || !apStores.size()) return;
   int next = apStores[store]->BuyNextItem();
   if (next >= 0) {
-    std::list<int64_t> check;
-    check.push_back((store * 24) + next + AP_OFFSET);
-    ap->LocationScouts(check);
-    ap->LocationChecks(check);
+    InternalCollectAPItem((store * 24) + next);
   } else if (apStores[store]->HasCrystalFallback()) {
     ReceiveItem(MakeCrystals(), storeNames[store]);
   }
@@ -163,12 +183,15 @@ void CollectAPItem(t_itemStores store)
 void CollectAPSpecialItem(t_specialStore index)
 {
   if (!ap || !apStores.size()) return;
+  if ((*apStores[IS_SPECIAL])[index]) return;
   apStores[IS_SPECIAL]->MarkCollected(index);
+  InternalCollectAPItem(index + 96);
+}
 
-  std::list<int64_t> check;
-  check.push_back(index + 96 + AP_OFFSET);
-  ap->LocationScouts(check);
-  ap->LocationChecks(check);
+size_t GetAPNextItemIndex(t_itemStores store)
+{
+  if (!ap || !apStores.size()) return -1;
+  return apStores[store]->GetNextItemIndex();
 }
 
 void ConnectAP()
@@ -176,6 +199,8 @@ void ConnectAP()
   std::string uri = server;
   // read or generate uuid, required by AP
   std::string uuid = get_uuid();
+
+  deathlink = false;
 
   if (ap) delete ap;
   ap = nullptr;
@@ -185,9 +210,6 @@ void ConnectAP()
   if (uri.empty()) ap = new APClient(uuid, GAME_NAME);
   else ap = new APClient(uuid, GAME_NAME, uri);
   SetAPStatus("Connecting", 1);
-
-  // clear game's cache. read below on socket_connected_handler
-  //if (game) game->clear_cache();
 
   // load DataPackage cache
   FILE* f = fopen(DATAPACKAGE_CACHE, "rb");
@@ -224,15 +246,23 @@ void ConnectAP()
   ap->set_room_info_handler([](){
     printf("Room info received\n");
     std::list<std::string> tags;
-    if (deathlink) tags.push_back("DeathLink");
-    ap->ConnectSlot(slotname, password, 0b111, tags, {0,2,5});
+    ap->ConnectSlot(slotname, password, 0b111, {"AP"}, {0,2,5});
     ap_connect_sent = true; // TODO: move to APClient::State ?
   });
   ap->set_slot_connected_handler([](const json& data){
-    deathlink = data["death_link"].is_boolean() ? data["death_link"].get<bool>() : false;
-    goal = data["goal"].is_number_integer() ? data["goal"].get<int>() : 0;
+    if (data.find("death_link") != data.end() && data["death_link"].is_boolean())
+      deathlink = data["death_link"].get<bool>();
+    else deathlink = false;
 
-    if (deathlink) ap->ConnectUpdate(false, 0b111, true, {"DeathLink"});
+    if (data.find("goal") != data.end() && data["goal"].is_number_integer())
+      goal = data["goal"].get<int>();
+    else goal = 0;
+
+    if (data.find("cost_scale") != data.end() && data["cost_scale"].is_array())
+      apCostScale = data["cost_scale"].get<std::vector<int>>();
+    else apCostScale = std::vector<int>({80,5,4}); 
+
+    if (deathlink) ap->ConnectUpdate(false, 0b111, true, {"AP", "DeathLink"});
     ap->StatusUpdate(APClient::ClientStatus::PLAYING);
     printf("Connected and ready to go as %s\n", ap->get_player_alias(ap->get_player_number()).c_str());
     SetAPStatus("Connected", 0);
@@ -254,6 +284,7 @@ void ConnectAP()
     }
   });
   ap->set_items_received_handler([](const std::list<APClient::NetworkItem>& items) {
+    auto me = ap->get_player_number();
     if (!ap->is_data_package_valid()) {
       // NOTE: this should not happen since we ask for data package before connecting
       if (!ap_sync_queued) ap->Sync();
@@ -261,38 +292,38 @@ void ConnectAP()
       return;
     }
     for (const auto& item: items) {
-      if (item.player > 0) {
-        if (recvCache.find(item.player) == recvCache.end())
-          recvCache.insert(std::pair<int, std::set<int64_t>>(item.player, std::set<int64_t>()));
-        if (recvCache[item.player].find(item.location) != recvCache[item.player].end()) return;
-        recvCache[item.player].insert(item.location);
-      } else {
-        if (item.item == serverRecvQueue.front()) {
-          serverRecvQueue.pop_front();
-          return;
-        } else {
-          serverRecvCache.push_back(item.item);
-        }
-      }
-
       auto itemname = ap->get_item_name(item.item);
       auto sender = item.player ? (ap->get_player_alias(item.player) + "'s world") : "out of nowhere";
       auto location = ap->get_location_name(item.location);
 
-      if (item.player == ap->get_player_number()) {
-        location = IDToLocation(item.location);
-      }
-      
       printf("  #%d: %s (%" PRId64 ") from %s - %s\n",
               item.index, itemname.c_str(), item.item,
               sender.c_str(), location.c_str());
-      ReceiveItem((t_itemTypes)(item.item - AP_OFFSET),
+
+      if (item.index < nextCheckToGet) {
+        printf("Ignoring\n");
+        continue;
+      }
+      nextCheckToGet = item.index + 1;
+
+      if (item.player == me) {
+        auto localLocation = item.location - AP_OFFSET;
+        if (!(*apStores[localLocation / 24])[localLocation % 24]) {
+          printf("Not yet purchased on this save; storing\n");
+          apStores[localLocation / 24]->StoreItem(localLocation % 24, item.item);
+          continue;
+        }
+        location = IDToLocation(item.location);
+      }
+      
+      ReceiveItem((t_itemTypes)(item.item % AP_OFFSET),
         (item.player == 0 && item.location == -2)
         ? NULL
         : (item.player == ap->get_player_number()
           ? location.c_str()
           : sender.c_str()));
     }
+    fflush(stdout);
   });
   ap->set_location_info_handler([](const std::list<APClient::NetworkItem> &items) {
     auto me = ap->get_player_number();
@@ -353,18 +384,14 @@ void DisconnectAP()
 void WriteAPState()
 {
   int progress = 0;
-  FWInt(recvCache.size());
-  for (const auto& [key, locList]: recvCache) {
-    FWInt(key);
-    FWInt(locList.size());
-    for (const auto location: locList) FWInt64(location);
-  }
-  FWInt(serverRecvCache.size());
-  for (const auto item: serverRecvCache) FWInt64(item);
+  FWInt(nextCheckToGet);
   for (const auto store: apStores) {
     FWInt(store->GetCostFactor());
     for (size_t x = 0; x < store->GetLength(); x++) {
+      bool hasItem = (unsigned char)store->HasItemStored(x);
       FWChar((unsigned char)(*store)[x]);
+      FWChar((unsigned char)hasItem);
+      if (hasItem) FWInt64(store->GetStoredItem(x));
     }
     UpdateSavingScreen((float)(++progress + 1) / (IS_MAX + 1));
   }
@@ -373,24 +400,16 @@ void WriteAPState()
 void ReadAPState()
 {
   CreateAPStores();
-  recvCache.clear();
 
   int progress = 0;
-  for (int x = FRInt(); x > 0; x--) {
-    auto player = FRInt();
-    recvCache.insert(std::pair<int, std::set<int64_t>>(player, std::set<int64_t>()));
-    for (int y = FRInt(); y > 0; y--) recvCache[player].insert(FRInt64());
-  }
-  for (int x = FRInt(); x > 0; x--) {
-    auto item = FRInt64();
-    serverRecvCache.push_back(item);
-    serverRecvQueue.push_back(item);
-  }
+  nextCheckToGet = FRInt();
   for (auto store: apStores) {
     store->SetCostFactor(FRInt());
     for (size_t x = 0; x < store->GetLength(); x++) {
       auto collected = FRChar();
       if (collected) store->MarkCollected(x);
+      auto hasItem = (bool)FRChar();
+      if (hasItem) store->StoreItem(x, FRInt64());
     }
     UpdateLoadingScreen((float)(++progress + 1) / (IS_MAX + 1));
   }

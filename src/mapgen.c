@@ -489,6 +489,7 @@ void DrawRoom(int place_x, int place_y, int room_w, int room_h, int room_id)
     Paint(place_x+1, place_y+1, room_w-2, room_h-2, "dat/d/centre.loc");
   }
   // Power object rooms
+  // TODO: make this code not assume that x499 and x999 are special rooms
   if ((room_id % 1000) == 499) {
     Paint(place_x+1, place_y+1, room_w-2, room_h-2, "dat/d/weapon.loc");
   }
@@ -841,10 +842,23 @@ void MakeSpecialRooms()
   // - Artifact rooms (biggest non-boss room of a given tier)
   //		Tiers: 5-9  10-14  15-19  20-24  25-29  30-34  35-39  40-44
   
-  // boss rooms
+//  // boss rooms
+//   for (i = 0; i < 3; i++) {
+//     c_room = i*1000+999;
+//     rooms[c_room].room_type = 2;
+//     rooms[c_room].room_param = i;
+//   }
+//   // power object rooms
+//   for (i = 0; i < 3; i++) {
+//     c_room = i*1000+499;
+//     rooms[c_room].room_type = 5;
+//     rooms[c_room].room_param = i;
+//   }
+
+  // boss and power object rooms
   for (i = 0; i < 6; i++) {
     c_room = (rooms_to_gen / 6 * (i + 1)) - 1;
-    rooms[c_room].room_type = i % 2 ? 5 : 2;
+    rooms[c_room].room_type = i % 2 ? 2 : 5;
     rooms[c_room].room_param = i / 2;
   }
   

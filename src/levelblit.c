@@ -166,6 +166,12 @@ struct queued_message {
 
 t_queued_message *msgqueue = NULL;
 
+const char *cache_names[3] = {
+  "Alpha",
+  "Beta",
+  "Gamma"
+};
+
 float RandomDir()
 {
   return (float)(rand()%256)*M_PI*2.0/256.0;
@@ -2128,18 +2134,6 @@ void DrawShield()
   }
 }
 
-// void ST_Teleport()
-// {
-// }
-
-int UpgradePrice(int t)
-{
-  // TODO: make upgrade prices configurable
-  int costFactor = CostFactor(t);
-  if (costFactor < 0) return 9999999;
-  else return (80 - training*40) * costFactor + (5<<costFactor) * (4 - training*2);
-}
-
 int GetNearestCheckpoint(int nx, int ny)
 {
   int i;
@@ -2303,6 +2297,7 @@ void CompassPoint()
   // Look at the three artifacts
   // Unless the player is going for the place of power
 
+  // TODO: make this code not assume that x499 and x999 are special rooms
   if (current_boss < 3) {
     for (i = 0; i < 3; i++) {
       // Has the player got this artifact already?
@@ -2497,27 +2492,18 @@ void SpecialTile(int x, int y)
       }
       break;
     case 26:
-      sprintf(message, "Press ENTER to open the storage chest");
+      sprintf(message, "Press ENTER to open the storage chest [#%d]", GetNextItemIndex(IS_CHESTS));
       break;
+      // TODO: consolidate
     case 28:
-      if (CostFactor(IS_ALPHA) < 0) {
-        sprintf(message, "Alpha cache is empty");
-      } else {
-        sprintf(message, "Press ENTER to loot Alpha cache (%d crystals)", UpgradePrice(0));
-      }
-      break;
     case 29:
-      if (CostFactor(IS_BETA) < 0) {
-        sprintf(message, "Beta cache is empty");
-      } else {
-        sprintf(message, "Press ENTER to loot Beta cache (%d crystals)", UpgradePrice(1));
-      }
-      break;
     case 30:
-      if (CostFactor(IS_GAMMA) < 0) {
-        sprintf(message, "Gamma cache is empty");
+      int offset = tile - 28;
+      if (CostFactor(IS_ALPHA + offset) < 0) {
+        sprintf(message, "%s cache is empty", cache_names[offset]);
       } else {
-        sprintf(message, "Press ENTER to loot Gamma cache (%d crystals)", UpgradePrice(2));
+        sprintf(message, "Press ENTER to loot %s cache [#%d] (%d crystals)",
+                cache_names[offset], GetNextItemIndex(IS_ALPHA + offset) + 1, UpgradePrice(offset));
       }
       break;
     case 31:
@@ -2532,9 +2518,7 @@ void SpecialTile(int x, int y)
       break;
     case 42:
       if (rooms[player_room].room_type == 5) {
-        if (CanGetArtifact(rooms[player_room].room_param)) {
-
-        } else {
+        if (!CanGetArtifact(rooms[player_room].room_param)) {
           sprintf(message, "The artifact is tainted with shadow. You must slay more of the shadow first.");
         }
       }
@@ -2543,11 +2527,9 @@ void SpecialTile(int x, int y)
       CompassPoint();
       break;
     default:
-      if (first_game) {
-        if (otext < 60) {
-          sprintf(message, "Press H to read the help file");
-          otext++;
-        }
+      if (first_game && otext < 60) {
+        sprintf(message, "Press H to read the help file");
+        otext++;
       }
       break;
   }
@@ -2556,11 +2538,11 @@ void SpecialTile(int x, int y)
     switch (msgqueue->msgid) {
       case 1: // Map
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage2, "reveals the labyrinth within the Atlas Dome");
+        sprintf(specialmessage2, "reveals the labyrinth within the Atlas Dome [TAB]");
         break;
       case 2: // Shield Boost
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage2, "enhances Virtue's shield");
+        sprintf(specialmessage2, "rejuvenates Virtue's shield");
         break;
       case 3: // Crystal Efficiency
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
@@ -2568,7 +2550,7 @@ void SpecialTile(int x, int y)
         break;
       case 4: // Circuit Booster
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage2, "bolsters Virtue's PSI Circuit");
+        sprintf(specialmessage2, "extends Virtue's PSI Circuit range");
         break;
       case 5: // Metabolism
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
@@ -2593,11 +2575,11 @@ void SpecialTile(int x, int y)
         break;
       case 11: // Circuit Charge upgrade
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage2, "strengthens Virtue's PSI Circuit");
+        sprintf(specialmessage2, "increases Virtue's PSI Circuit strength");
         break;
       case 12: // Circuit Refill upgrade
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage2, "hastens Virtue's PSI Circuit");
+        sprintf(specialmessage2, "hastens Virtue's PSI Circuit recharge rate");
         break;
 
       case 20: // Crystals
