@@ -190,7 +190,7 @@ void ProcessItem(t_itemTypes item, const char *source, char isForfeit) {
       //printf("Artifact %d\n", item - T_MAP);
       artifacts[item - T_MAP] = 1;
       if (item == T_CURSED_SEAL) {
-        current_boss = 2;
+        current_boss = 3;
         Curse();
       }
       break;
