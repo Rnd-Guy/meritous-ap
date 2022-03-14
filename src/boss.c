@@ -568,7 +568,7 @@ void DrawPowerObject()
 
   p_y = (rooms[player_room].h * 32 / 2 - 16) + rooms[player_room].y * 32 - off_v + sin((float)tick / 20.0)*hover_v;
 
-  from.x = (8 + p_obj) * 32;
+  from.x = (AF_PSI_KEY_1 + p_obj) * 32;
   from.y = 0;
   from.w = 32;
   from.h = 32;

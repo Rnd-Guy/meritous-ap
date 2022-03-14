@@ -719,7 +719,7 @@ void DrawScrolly(int t)
   }
   
   for (i = 0; i < 4; i++) {
-    draw_from.x = (8 + i) * 32;
+    draw_from.x = (AF_PSI_KEY_1 + i) * 32;
     draw_from.y = 0;
     draw_from.w = 32;
     draw_from.h = 32;
