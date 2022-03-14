@@ -1620,9 +1620,7 @@ void BC_BossDying()
     }
   } else {
     if (boss_fight_mode == 3) {
-      // add_int_stat(STAT_TIMESPENT_BOSS4, expired_ms - boss_engaged);
-      // set_int_stat(STAT_TIME_BOSS4, expired_ms);
-      // add_int_stat(STAT_KILLS, 1);
+      AnnounceVictory(1 + (player_shield == 30));
       
       t_timer = 0;
       boss_fight_mode = 4;
@@ -1669,7 +1667,6 @@ void BC_BossDying()
               boss_fight_mode++;
             }
           } else {
-            AnnounceVictory(1 + (player_shield == 30));
             if (endpics[0] == NULL) {
               if (training) {
                 // TODO: replace "lol ur a wuss" image with something less berating
