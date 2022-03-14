@@ -178,8 +178,9 @@ void ShowEnding()
     DrawCredits();
     EndCycle(0);
     switch (EndingEvents()) {
+      case 1: return;
       case 2: statsmode = !statsmode; break;
-      default: return;
+      default: break;
     }
   }
 }
