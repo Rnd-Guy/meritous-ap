@@ -194,6 +194,12 @@ size_t GetAPNextItemIndex(t_itemStores store)
   return apStores[store]->GetNextItemIndex();
 }
 
+char APHasItemByIndex(t_itemStores store, size_t index)
+{
+  if (!ap || !apStores.size()) return 0;
+  return (char)(*apStores[store])[index];
+}
+
 void ConnectAP()
 {
   std::string uri = server;

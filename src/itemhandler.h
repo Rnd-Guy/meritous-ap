@@ -40,6 +40,7 @@ int CostFactor(t_itemStores store);
 void CollectItem(t_itemStores store);
 void CollectSpecialItem(t_specialStore itemIndex);
 size_t GetNextItemIndex(t_itemStores store);
+char HasItemByIndex(t_itemStores store, size_t index);
 
 char isArchipelago();
 char HasAPStatus();

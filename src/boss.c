@@ -524,7 +524,10 @@ void DrawPowerObject()
 
   if (place_of_power == player_room) p_obj = SS_CURSED_SEAL;
 
-  n_artifacts = current_boss + artifacts[AF_PSI_KEY_1] + artifacts[AF_PSI_KEY_2] + artifacts[AF_PSI_KEY_3];
+  n_artifacts = current_boss
+                + HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_1)
+                + HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_2)
+                + HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_3);
 
   required_enemies = total_enemies * (percent_required[n_artifacts]) / 100;
 
@@ -1812,7 +1815,10 @@ int CanGetArtifact()
 {
   int required_enemies;
   int n_artifacts;
-  n_artifacts = current_boss + artifacts[AF_PSI_KEY_1] + artifacts[AF_PSI_KEY_2] + artifacts[AF_PSI_KEY_3];
+  n_artifacts = current_boss
+                + HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_1)
+                + HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_2)
+                + HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_3);
   required_enemies = total_enemies * (percent_required[n_artifacts]) / 100;
 
   if (killed_enemies >= required_enemies) return 1;

@@ -28,6 +28,7 @@ int GetAPUpgradeCost(t_itemStores store, char training);
 void CollectAPItem(t_itemStores store);
 void CollectAPSpecialItem(t_specialStore index);
 size_t GetAPNextItemIndex(t_itemStores store);
+char APHasItemByIndex(t_itemStores store, size_t index);
 
 void ConnectAP();
 void DisconnectAP();

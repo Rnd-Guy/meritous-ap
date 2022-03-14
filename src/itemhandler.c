@@ -75,7 +75,7 @@ void InitStores() {
 
 void DestroyStores() {
   if (isArchipelago()) DestroyAPStores();
-  else DestroyItemStores();
+  else LocalDestroyItemStores();
 }
 
 uint32_t RetrieveSeed() {
@@ -100,7 +100,7 @@ int UpgradePrice(int t)
 int CostFactor(t_itemStores store) {
   if (store < IS_ALPHA || store > IS_GAMMA) return -1;
   else if (isArchipelago()) return GetAPCostFactor(store);
-  else return GetNextIndexInStore(store);
+  else return LocalGetNextIndexInStore(store);
 }
 
 t_itemTypes MakeCrystals() {
@@ -254,7 +254,7 @@ void CollectItem(t_itemStores store) {
   if (isArchipelago()) {
     CollectAPItem(store);
   } else {
-    t_itemTypes item = GetNextItem(store, 1);
+    t_itemTypes item = LocalGetNextItem(store, 1);
     char source[12] = {0};
 
     switch (store) {
@@ -272,7 +272,7 @@ void CollectSpecialItem(t_specialStore itemIndex) {
   if (isArchipelago()) {
     CollectAPSpecialItem(itemIndex);
   } else {
-    t_itemTypes item = GetItemByIndex(IS_SPECIAL, itemIndex, 1);
+    t_itemTypes item = LocalGetItemByIndex(IS_SPECIAL, itemIndex, 1);
     char source[16] = {0};
 
     switch (itemIndex) {
@@ -291,7 +291,11 @@ void CollectSpecialItem(t_specialStore itemIndex) {
 }
 
 size_t GetNextItemIndex(t_itemStores store) {
-  return isArchipelago() ? GetAPNextItemIndex(store) : GetNextIndexInStore(store);
+  return isArchipelago() ? GetAPNextItemIndex(store) : LocalGetNextIndexInStore(store);
+}
+
+char HasItemByIndex(t_itemStores store, size_t index) {
+  return isArchipelago() ? 0 : LocalHasItemByIndex(store, index);
 }
 
 char isArchipelago() {
@@ -357,12 +361,12 @@ char AnnounceVictory(char winState) {
 
 void WriteStoreData() {
   if (isArchipelago()) WriteAPState();
-  else SaveStores();
+  else LocalSaveStores();
 }
 
 void ReadStoreData() {
   if (isArchipelago()) ReadAPState();
-  else LoadStores();
+  else LocalLoadStores();
 }
 
 void UpdateLoadingScreen(float value) {

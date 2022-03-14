@@ -39,23 +39,23 @@ typedef struct itemStore
 
 t_itemStore *stores = NULL;
 
-void CreateItemStores() {
+void LocalCreateItemStores() {
   if (stores != NULL) free(stores);
   stores = malloc(sizeof(t_itemStore) * IS_MAX);
   memset(stores, 0, sizeof(t_itemStore) * IS_MAX);
 }
 
-void DestroyItemStores() {
+void LocalDestroyItemStores() {
   if (stores != NULL) {
     free(stores);
     stores = NULL;
   }
 }
 
-t_itemTypes GetNextItem(t_itemStores store, char collect) {
+t_itemTypes LocalGetNextItem(t_itemStores store, char collect) {
   if (stores == NULL) return T_NOTHING;
 
-  t_itemStore *thisStore = &stores[(int)store];
+  t_itemStore *thisStore = &stores[(size_t)store];
 
   for (int x = 0; x < thisStore->length; x++) {
     if (thisStore->collected[x] == 0) {
@@ -71,10 +71,10 @@ t_itemTypes GetNextItem(t_itemStores store, char collect) {
 //   return GetNextItem(store, 1);
 // }
 
-char HasNextItem(t_itemStores store) {
+char LocalHasNextItem(t_itemStores store) {
   if (stores == NULL) return 0;
 
-  t_itemStore *thisStore = &stores[(int)store];
+  t_itemStore *thisStore = &stores[(size_t)store];
 
   for (int x = 0; x < thisStore->length; x++) {
     if (thisStore->collected[x] == 0) return 1;
@@ -83,10 +83,10 @@ char HasNextItem(t_itemStores store) {
   return 0;
 }
 
-t_itemTypes GetItemByIndex(t_itemStores store, int index, char collect) {
+t_itemTypes LocalGetItemByIndex(t_itemStores store, size_t index, char collect) {
   if (stores == NULL) return T_NOTHING;
 
-  t_itemStore *thisStore = &stores[(int)store];
+  t_itemStore *thisStore = &stores[(size_t)store];
 
   if (index < 0 || index >= thisStore->length) return T_NOTHING;
   if (thisStore->collected[index] != 0) return T_NOTHING;
@@ -98,10 +98,10 @@ t_itemTypes GetItemByIndex(t_itemStores store, int index, char collect) {
 //   return GetItemByIndex(store, index, 1);
 // }
 
-char HasItemByIndex(t_itemStores store, int index) {
+char LocalHasItemByIndex(t_itemStores store, size_t index) {
   if (stores == NULL) return 0;
 
-  t_itemStore *thisStore = &stores[(int)store];
+  t_itemStore *thisStore = &stores[(size_t)store];
 
   if (index < 0 || index >= thisStore->length) return 0;
   // if (thisStore->collected[index] != 0) return 0;
@@ -109,10 +109,10 @@ char HasItemByIndex(t_itemStores store, int index) {
   return (thisStore->collected[index] != 0);
 }
 
-int EmptySlotsInStore(t_itemStores store) {
+int LocalEmptySlotsInStore(t_itemStores store) {
   if (stores == NULL) return -1;
 
-  t_itemStore *thisStore = &stores[(int)store];
+  t_itemStore *thisStore = &stores[(size_t)store];
 
   int retval = 0;
   for (int x = 0; x < thisStore->length; x++)
@@ -121,7 +121,7 @@ int EmptySlotsInStore(t_itemStores store) {
   return retval;
 }
 
-size_t GetNextIndexInStore(t_itemStores store) {
+size_t LocalGetNextIndexInStore(t_itemStores store) {
   if (stores == NULL) return -1;
 
   t_itemStore *thisStore = &stores[(size_t)store];
@@ -134,7 +134,7 @@ size_t GetNextIndexInStore(t_itemStores store) {
 }
 
 int GetLocalUpgradeCost(t_itemStores store, char training) {
-  int costFactor = GetNextIndexInStore(store);
+  int costFactor = LocalGetNextIndexInStore(store);
   if (costFactor < 0) return 9999999;
   else return (localCostScale[0] - training * (int)((float)localCostScale[0] / 2.f))
                * costFactor + (localCostScale[1] << costFactor)
@@ -142,10 +142,10 @@ int GetLocalUpgradeCost(t_itemStores store, char training) {
 }
 
 
-int GetEmptyPosInStore(t_itemStores store, int index) {
+int LocalGetEmptyPosInStore(t_itemStores store, size_t index) {
   if (stores == NULL) return -2;
 
-  t_itemStore *thisStore = &stores[(int)store];
+  t_itemStore *thisStore = &stores[(size_t)store];
 
   if (index < 0 || index >= thisStore->length) return -1;
 
@@ -161,10 +161,10 @@ int GetEmptyPosInStore(t_itemStores store, int index) {
 
 void LocalGenerateItemStores(int flags) {
   printf("Creating item store containers\n");
-  CreateItemStores();
+  LocalCreateItemStores();
   int leftToAdd[] = {25, 23, 22, 9, 0, 3};
   int leftToFill[] = {24, 24, 24, 24, 3};
-  t_itemStore *specialStore = &stores[(int)IS_SPECIAL];
+  t_itemStore *specialStore = &stores[(size_t)IS_SPECIAL];
 
   printf("Determining flags\n");
   if (flags & GF_INCLUDE_TRAPS) {
@@ -185,17 +185,17 @@ void LocalGenerateItemStores(int flags) {
   }
 
   printf("Placing guaranteed items\n");
-  specialStore->items[(int)SS_CURSED_SEAL] = T_CURSED_SEAL;
-  specialStore->items[(int)SS_AGATE_KNIFE] = T_AGATE_KNIFE;
+  specialStore->items[(size_t)SS_CURSED_SEAL] = T_CURSED_SEAL;
+  specialStore->items[(size_t)SS_AGATE_KNIFE] = T_AGATE_KNIFE;
 
   printf("Defining stores\n");
-  stores[(int)IS_ALPHA].length = 24;
-  stores[(int)IS_BETA].length = 24;
-  stores[(int)IS_GAMMA].length = 24;
-  stores[(int)IS_CHESTS].length = 24;
+  stores[(size_t)IS_ALPHA].length = 24;
+  stores[(size_t)IS_BETA].length = 24;
+  stores[(size_t)IS_GAMMA].length = 24;
+  stores[(size_t)IS_CHESTS].length = 24;
   specialStore->length = 8;
 
-  stores[(int)IS_CHESTS].crystalFallback = 1;
+  stores[(size_t)IS_CHESTS].crystalFallback = 1;
 
   // put down the keys first with this logic:
   // - psi keys can be placed at regular psi key locations (is this even randomized?)
@@ -211,7 +211,7 @@ void LocalGenerateItemStores(int flags) {
       exit(1);
     }
     int offset = (randStore == (int)IS_SPECIAL) ? 0 : rand() % (stores[randStore].length / 2);
-    stores[randStore].items[GetEmptyPosInStore(randStore, offset)] = (t_itemTypes)((int)T_PSI_KEY_1 + --leftToAdd[5]);
+    stores[randStore].items[LocalGetEmptyPosInStore(randStore, offset)] = (t_itemTypes)((int)T_PSI_KEY_1 + --leftToAdd[5]);
     leftToFill[randStore]--;
   }
 
@@ -236,7 +236,7 @@ void LocalGenerateItemStores(int flags) {
         store++;
       }
 
-      int emptyPos = GetEmptyPosInStore(store, randLoc);
+      int emptyPos = LocalGetEmptyPosInStore(store, randLoc);
       if (emptyPos < 0) {
         printf("ERROR: Tried to get empty position %d of store %d, which does not exist.", randLoc, store);
         exit(1);
@@ -259,8 +259,8 @@ void LocalGenerateItemStores(int flags) {
   printf("Filling with random crystals\n");
   int crystalsPlaced = 0;
   for (int x = 0; x < 5; x++) {
-    while (EmptySlotsInStore(x) > 0) {
-      stores[x].items[GetEmptyPosInStore(x, 0)] = MakeCrystals();
+    while (LocalEmptySlotsInStore(x) > 0) {
+      stores[x].items[LocalGetEmptyPosInStore(x, 0)] = MakeCrystals();
       crystalsPlaced++;
     }
   }
@@ -273,7 +273,7 @@ void LocalGenerateItemStores(int flags) {
   printf("Done.\n");
 }
 
-char VerifyItemStores() {
+char LocalVerifyItemStores() {
   if (stores == NULL) {
     printf("ERROR: Stores not initialized.");
     return 1;
@@ -298,7 +298,7 @@ char VerifyItemStores() {
   return retval;
 }
 
-void SaveStores() {
+void LocalSaveStores() {
   if (stores == NULL) return;
   for (int x = 0; x < IS_MAX; x++) {
     t_itemStore *thisStore = &stores[x];
@@ -312,8 +312,8 @@ void SaveStores() {
   }
 }
 
-void LoadStores() {
-  CreateItemStores();
+void LocalLoadStores() {
+  LocalCreateItemStores();
   for (int x = 0; x < IS_MAX; x++) {
     t_itemStore *thisStore = &stores[x];
     thisStore->length = FRInt();
