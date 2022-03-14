@@ -469,6 +469,9 @@ void Curse()
   struct RoomConnection *rc;
   // Upon taking the cursed seal
 
+  // Evolve to maximum
+  while (enemy_evolutions < 3) SoupUpEnemies();
+
   // Make the place of power your checkpoint
 
   checkpoint_x = rooms[place_of_power].w * 16 + rooms[place_of_power].x * 32;
@@ -1792,7 +1795,7 @@ void DrawArtifactOverhead(int p_obj)
   p_x = player_x - 8;
   p_y = player_y - 36 + sin((float)tick / 20.0)*4;
 
-  from.x = (8 + p_obj) * 32;
+  from.x = (AF_PSI_KEY_1 + p_obj) * 32;
   from.y = 0;
   from.w = 32;
   from.h = 32;
