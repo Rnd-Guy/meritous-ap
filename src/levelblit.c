@@ -1316,12 +1316,12 @@ int DungeonPlay(const char *fname)
     draw_text(252, 236, "G A M E   O V E R", 255);
     VideoUpdate();
     SDL_Delay(2000);
+  }
 
-    if (current_boss == 3 && artifacts[AF_CURSED_SEAL] && player_room == 0) {
-      if (AnnounceVictory(0)) {
-        ShowBadEndingStats();
-      }
-    }
+  if (current_boss == 3 && artifacts[AF_CURSED_SEAL] && player_room == 0) {
+    char showStats = 0;
+    if (player_lives == 0) showStats = AnnounceVictory(0);
+    if (showStats) ShowBadEndingStats();
   }
 
   EndRando();
