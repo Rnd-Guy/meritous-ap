@@ -62,7 +62,6 @@ int EndingEvents()
 {
   static SDL_Event event;
   
-  statsmode = 0;
   player_room = 0;
   current_boss = 3;
   boss_fight_mode = 4;
@@ -94,6 +93,8 @@ int EndingEvents()
       return 1;
     }
   }
+
+  if (isArchipelago()) PollAPClient();
   
   return 0;
 }
@@ -101,7 +102,9 @@ int EndingEvents()
 void ShowEnding()
 {
   int i;
-  
+
+  statsmode = 0;
+
   if (streamspr == NULL) {
     streamspr = IMG_Load("dat/i/stream.png");
     SDL_SetColorKey(streamspr, SDL_SRCCOLORKEY | SDL_RLEACCEL, 0);
