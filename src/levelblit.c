@@ -2500,7 +2500,9 @@ void SpecialTile(int x, int y)
       }
       break;
     case 26:
-      sprintf(message, "Press ENTER to open the storage chest [#%d]", GetNextItemIndex(IS_CHESTS));
+      int chestnum = GetNextItemIndex(IS_CHESTS) + 1;
+      if (chestnum > 0) sprintf(message, "Press ENTER to open the storage chest [#%d]", chestnum);
+      else sprintf(message, "Press ENTER to open the storage chest [extra]");
       break;
       // TODO: consolidate
     case 28:
