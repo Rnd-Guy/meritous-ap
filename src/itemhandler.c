@@ -28,6 +28,20 @@
 #include "stats.h"
 #include "apinterface.h"
 
+const char *enemyNames[] = {
+  "Residue",
+  "Warped Ant",
+  "Focus",
+  "Biped",
+  "Lazet",
+  "Amoeba",
+  "Hyperslug",
+  "Diskord",
+  "Chaos",
+  "Unseen",
+  "Hunter"
+};
+
 const char *itemNames[] = {
   "Nothing",
   "Reflect Shield upgrade",

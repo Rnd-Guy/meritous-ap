@@ -20,6 +20,7 @@
 
 #include "itemdefs.h"
 
+extern const char* enemyNames[];
 extern const int rooms_to_gen;
 extern const int rooms_to_knife;
 
