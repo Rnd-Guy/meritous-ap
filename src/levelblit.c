@@ -360,7 +360,7 @@ void ReadPlayerData()
   player_gems = FRInt();
   checkpoints_found = FRInt();
   player_hp = FRInt();
-  player_lives = FRInt();
+  player_lives = MAX(FRInt(), 3);
   player_lives_part = FRInt();
   current_boss = FRInt();
   training = FRInt();
