@@ -68,8 +68,6 @@ int EndingEvents()
   
   MusicUpdate();
   
-  // TODO: Forfeit/collect commands here
-
   while (SDL_PollEvent(&event)) {
     if (event.type == SDL_KEYDOWN) {
       switch (event.key.keysym.sym) {
