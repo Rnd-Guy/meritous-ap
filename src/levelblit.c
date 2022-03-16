@@ -2311,35 +2311,32 @@ void CompassPoint()
   if (current_boss < 3) {
     for (i = 0; i < 3; i++) {
       // Has the player got this artifact already?
-      if (artifacts[AF_MAXX_NOKEYS+i] == 0) { // no
-        // Has the player already destroyed the boss?
-        if (rooms[i * 1000 + 999].room_type == 2) { // no
-          // Can the player get the artifact?
-          if (CanGetArtifact()) {
-            // Point player to this artifact room, if it is the nearest
-            loc_x = rooms[i * 1000 + 499].x * 32 + rooms[i * 1000 + 499].w * 16;
-            loc_y = rooms[i * 1000 + 499].y * 32 + rooms[i * 1000 + 499].h * 16;
-            cdist = dist(rplx, rply, loc_x, loc_y);
-            if (cdist < nearest) {
-              nearest = cdist;
-              n_room = i * 1000 + 499;
-            }
-          }
-        }
-      } else { // has artifact
-        // Has the player already destroyed the boss?
-        if (rooms[i * 1000 + 999].room_type == 2) { // no
-          // Point player to the boss room, if it is the nearest
-          loc_x = rooms[i * 1000 + 999].x * 32 + rooms[i * 1000 + 999].w * 16;
-          loc_y = rooms[i * 1000 + 999].y * 32 + rooms[i * 1000 + 999].h * 16;
+      if (!HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_1 + i)) { // no
+        // Can the player get the artifact?
+        if (CanGetArtifact()) {
+          // Point player to this artifact room, if it is the nearest
+          loc_x = rooms[i * 1000 + 499].x * 32 + rooms[i * 1000 + 499].w * 16;
+          loc_y = rooms[i * 1000 + 499].y * 32 + rooms[i * 1000 + 499].h * 16;
           cdist = dist(rplx, rply, loc_x, loc_y);
           if (cdist < nearest) {
             nearest = cdist;
-            n_room = i * 1000 + 999;
+            n_room = i * 1000 + 499;
           }
-        } else { // yes
-          bosses_defeated++;
         }
+      } 
+
+      // Has the player already destroyed the boss?
+      if (rooms[i * 1000 + 999].room_type == 2) { // no
+        // Point player to the boss room, if it is the nearest
+        loc_x = rooms[i * 1000 + 999].x * 32 + rooms[i * 1000 + 999].w * 16;
+        loc_y = rooms[i * 1000 + 999].y * 32 + rooms[i * 1000 + 999].h * 16;
+        cdist = dist(rplx, rply, loc_x, loc_y);
+        if (cdist < nearest) {
+          nearest = cdist;
+          n_room = i * 1000 + 999;
+        }
+      } else { // yes
+        bosses_defeated++;
       }
     }
   }
