@@ -524,8 +524,7 @@ void DrawPowerObject()
 
   if (place_of_power == player_room) p_obj = SS_CURSED_SEAL;
 
-  n_artifacts = current_boss
-                + HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_1)
+  n_artifacts = HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_1)
                 + HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_2)
                 + HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_3);
 
@@ -1809,8 +1808,8 @@ int CanGetArtifact()
 {
   int required_enemies;
   int n_artifacts;
-  n_artifacts = current_boss
-                + HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_1)
+  // BUG: collection was stuck at 0th index (should now be fixed)
+  n_artifacts = HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_1)
                 + HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_2)
                 + HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_3);
   required_enemies = total_enemies * (percent_required[n_artifacts]) / 100;

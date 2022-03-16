@@ -296,7 +296,7 @@ size_t GetNextItemIndex(t_itemStores store) {
 }
 
 char HasItemByIndex(t_itemStores store, size_t index) {
-  return isArchipelago() ? 0 : LocalHasItemByIndex(store, index);
+  return isArchipelago() ? APHasItemByIndex(store, index) : LocalHasItemByIndex(store, index);
 }
 
 char isArchipelago() {
