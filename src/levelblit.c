@@ -362,7 +362,6 @@ void ReadPlayerData()
   checkpoints_found = FRInt();
   player_hp = FRInt();
   player_lives = FRInt();
-  player_lives = MAX(player_lives, 3);
   player_lives_part = FRInt();
   current_boss = FRInt();
   training = FRInt();
@@ -373,6 +372,8 @@ void ReadPlayerData()
   for (i = 0; i < AF_MAXX; i++) {
     artifacts[i] = FRChar();
   }
+
+  player_lives = MAX(player_lives, training ? 5 : 3);
 }
 
 void DummyEventPoll()
