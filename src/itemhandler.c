@@ -182,6 +182,7 @@ void ProcessItem(t_itemTypes item, const char *source, char isForfeit) {
       break;
     case T_EVOLUTION_TRAP:
       //printf("EvoTrap\n");
+    	enemy_evolutions++;
       SoupUpEnemies();
       break;
     case T_CRYSTALS_500:
@@ -309,7 +310,7 @@ size_t GetNextItemIndex(t_itemStores store) {
 }
 
 char HasItemByIndex(t_itemStores store, size_t index) {
-  return isArchipelago() ? 0 : LocalHasItemByIndex(store, index);
+  return isArchipelago() ? APHasItemByIndex(store, index) : LocalHasItemByIndex(store, index);
 }
 
 char isArchipelago() {

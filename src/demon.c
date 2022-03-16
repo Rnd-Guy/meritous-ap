@@ -898,7 +898,7 @@ void InitEnemies()
 
 	if (game_load) {
 		ReadCreatureData();
-		if (current_boss > 0) SoupUpEnemies();
+		if (enemy_evolutions > 0) SoupUpEnemies();
 	} else {
 		for (c_room = 1; c_room < rooms_to_gen; c_room++) {
 			cr_x = rooms[c_room].x + 1;
@@ -2534,8 +2534,6 @@ void SoupUpEnemies()
 	int str_limit;
 	float str_multiplier;
 	float fr_divider;
-
-	enemy_evolutions++;
 
 	e = enemy_stack;
 	str_limit = 1500;

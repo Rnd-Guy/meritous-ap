@@ -62,15 +62,12 @@ int EndingEvents()
 {
   static SDL_Event event;
   
-  statsmode = 0;
   player_room = 0;
   current_boss = 3;
   boss_fight_mode = 4;
   
   MusicUpdate();
   
-  // TODO: Forfeit/collect commands here
-
   while (SDL_PollEvent(&event)) {
     if (event.type == SDL_KEYDOWN) {
       switch (event.key.keysym.sym) {
@@ -94,6 +91,8 @@ int EndingEvents()
       return 1;
     }
   }
+
+  if (isArchipelago()) PollAPClient();
   
   return 0;
 }
@@ -101,7 +100,9 @@ int EndingEvents()
 void ShowEnding()
 {
   int i;
-  
+
+  statsmode = 0;
+
   if (streamspr == NULL) {
     streamspr = IMG_Load("dat/i/stream.png");
     SDL_SetColorKey(streamspr, SDL_SRCCOLORKEY | SDL_RLEACCEL, 0);
@@ -422,11 +423,11 @@ void DrawCredits()
   }
   
   if (credits_scroll >= (finish_point + 80)) {
-    draw_text(2, 2, "ESC to end, S for stats", 192);
-    if (isArchipelago()) draw_text(2, 12, "F to forfeit, C to collect", 192);
-
     if (statsmode) DrawStats();
     else SDL_BlitSurface(theend[(player_shield == 30)], NULL, screen, NULL);
+
+    draw_text(2, 2, "ESC to end, S for stats", 192);
+    if (isArchipelago()) draw_text(2, 12, "F to forfeit, C to collect", 192);
   } else {
     SDL_BlitSurface(fin, NULL, screen, &draw_to);
     

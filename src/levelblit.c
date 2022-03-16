@@ -330,6 +330,7 @@ void WritePlayerData()
   FWInt(player_lives_part);
   FWInt(current_boss);
   FWInt(training);
+  FWInt(enemy_evolutions);
   FWInt(agate_knife_loc);
 
   for (i = 0; i < AF_MAXX; i++) {
@@ -364,12 +365,15 @@ void ReadPlayerData()
   player_lives_part = FRInt();
   current_boss = FRInt();
   training = FRInt();
+  enemy_evolutions = FRInt();
 
   agate_knife_loc = FRInt();
 
   for (i = 0; i < AF_MAXX; i++) {
     artifacts[i] = FRChar();
   }
+
+  player_lives = MAX(player_lives, training ? 5 : 3);
 }
 
 void DummyEventPoll()
@@ -848,9 +852,9 @@ int DungeonPlay(const char *fname)
   while (game_running) {
     //sprintf(buf, "X: %d  Y: %d", (player_x + PLAYERW/2)/32*32 + PLAYERW/2, (player_y + PLAYERH/2)/32*32 + PLAYERH/2);
     //SDL_WM_SetCaption(buf, "MT");
+
+    PollAPClient();
     if (!game_paused) {
-      // NOTE: not sure if this is the best place for this, but I just learned about polling things
-      PollAPClient();
 
       if (player_dying > 30) {
         add_int_stat(STAT_DAMAGE_TAKEN, 1);
@@ -2309,24 +2313,24 @@ void CompassPoint()
   if (current_boss < 3) {
     for (i = 0; i < 3; i++) {
       // Has the player got this artifact already?
-      if (artifacts[AF_MAXX_NOKEYS+i] == 0) { // no
-        // Has the player already destroyed the boss?
-        if (rooms[i * 1000 + 999].room_type == 2) { // no
-          // Can the player get the artifact?
-          if (CanGetArtifact()) {
-            // Point player to this artifact room, if it is the nearest
-            loc_x = rooms[i * 1000 + 499].x * 32 + rooms[i * 1000 + 499].w * 16;
-            loc_y = rooms[i * 1000 + 499].y * 32 + rooms[i * 1000 + 499].h * 16;
-            cdist = dist(rplx, rply, loc_x, loc_y);
-            if (cdist < nearest) {
-              nearest = cdist;
-              n_room = i * 1000 + 499;
-            }
+      if (!HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_1 + i)) { // no
+        // Can the player get the artifact?
+        if (CanGetArtifact()) {
+          // Point player to this artifact room, if it is the nearest
+          loc_x = rooms[i * 1000 + 499].x * 32 + rooms[i * 1000 + 499].w * 16;
+          loc_y = rooms[i * 1000 + 499].y * 32 + rooms[i * 1000 + 499].h * 16;
+          cdist = dist(rplx, rply, loc_x, loc_y);
+          if (cdist < nearest) {
+            nearest = cdist;
+            n_room = i * 1000 + 499;
           }
         }
-      } else { // has artifact
-        // Has the player already destroyed the boss?
-        if (rooms[i * 1000 + 999].room_type == 2) { // no
+      } 
+
+      // Has the player already destroyed the boss?
+      if (rooms[i * 1000 + 999].room_type == 2) { // no
+        // Has the player got the artifact for this boss room?
+        if (artifacts[AF_MAXX_NOKEYS + i]) { // yes
           // Point player to the boss room, if it is the nearest
           loc_x = rooms[i * 1000 + 999].x * 32 + rooms[i * 1000 + 999].w * 16;
           loc_y = rooms[i * 1000 + 999].y * 32 + rooms[i * 1000 + 999].h * 16;
@@ -2335,9 +2339,9 @@ void CompassPoint()
             nearest = cdist;
             n_room = i * 1000 + 999;
           }
-        } else { // yes
-          bosses_defeated++;
         }
+      } else { // yes
+        bosses_defeated++;
       }
     }
   }
@@ -2500,9 +2504,10 @@ void SpecialTile(int x, int y)
       }
       break;
     case 26:
-      sprintf(message, "Press ENTER to open the storage chest [#%d]", GetNextItemIndex(IS_CHESTS));
+      int chestnum = GetNextItemIndex(IS_CHESTS) + 1;
+      if (chestnum > 0) sprintf(message, "Press ENTER to open the storage chest [#%d]", chestnum);
+      else sprintf(message, "Press ENTER to open the storage chest [extra]");
       break;
-      // TODO: consolidate
     case 28:
     case 29:
     case 30:

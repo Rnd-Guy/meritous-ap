@@ -524,8 +524,7 @@ void DrawPowerObject()
 
   if (place_of_power == player_room) p_obj = SS_CURSED_SEAL;
 
-  n_artifacts = current_boss
-                + HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_1)
+  n_artifacts = HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_1)
                 + HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_2)
                 + HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_3);
 
@@ -942,6 +941,7 @@ void BC_BossIntro()
         DrawBoss();
       } else {
         DrawBoss();
+        add_int_stat(STAT_TRIES_BOSS1 + current_boss, 1);
         if ((final_boss_dlg == 0) && (current_boss == 3)) {
           // NOTE: possibly enable other boss dialogues here?
           boss_dlg = 1;
@@ -949,7 +949,6 @@ void BC_BossIntro()
         } else {
           boss_fight_mode = 2;
           boss_engaged = expired_ms;
-          add_int_stat(STAT_TRIES_BOSS1 + current_boss, 1);
         }
         boss_circle = 0;
         boss_bar_fill = 0;
@@ -1576,10 +1575,7 @@ void BC_BossDying()
   }
 
   if (current_boss < 3) {
-    //PostMessage(40 + rooms[player_room].room_param, 120, 0);
     PostMessage(43, 120, 1, artifact_names[rooms[player_room].room_param]);
-    // specialmessage = 40 + rooms[player_room].room_param;
-    // specialmessagetimer = 120;
     rooms[player_room].room_type = 4;
     boss_fight_mode = 0;
     current_boss += 1;
@@ -1812,8 +1808,8 @@ int CanGetArtifact()
 {
   int required_enemies;
   int n_artifacts;
-  n_artifacts = current_boss
-                + HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_1)
+  // BUG: collection was stuck at 0th index (should now be fixed)
+  n_artifacts = HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_1)
                 + HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_2)
                 + HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_3);
   required_enemies = total_enemies * (percent_required[n_artifacts]) / 100;
