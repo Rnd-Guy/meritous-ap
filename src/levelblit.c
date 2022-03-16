@@ -2327,13 +2327,16 @@ void CompassPoint()
 
       // Has the player already destroyed the boss?
       if (rooms[i * 1000 + 999].room_type == 2) { // no
-        // Point player to the boss room, if it is the nearest
-        loc_x = rooms[i * 1000 + 999].x * 32 + rooms[i * 1000 + 999].w * 16;
-        loc_y = rooms[i * 1000 + 999].y * 32 + rooms[i * 1000 + 999].h * 16;
-        cdist = dist(rplx, rply, loc_x, loc_y);
-        if (cdist < nearest) {
-          nearest = cdist;
-          n_room = i * 1000 + 999;
+        // Has the player got the artifact for this boss room?
+        if (artifacts[AF_MAXX_NOKEYS + i]) { // yes
+          // Point player to the boss room, if it is the nearest
+          loc_x = rooms[i * 1000 + 999].x * 32 + rooms[i * 1000 + 999].w * 16;
+          loc_y = rooms[i * 1000 + 999].y * 32 + rooms[i * 1000 + 999].h * 16;
+          cdist = dist(rplx, rply, loc_x, loc_y);
+          if (cdist < nearest) {
+            nearest = cdist;
+            n_room = i * 1000 + 999;
+          }
         }
       } else { // yes
         bosses_defeated++;
