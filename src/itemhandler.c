@@ -197,8 +197,10 @@ void ProcessItem(t_itemTypes item, const char *source, char isForfeit) {
       break;
     case T_1UP:
       //printf("1up\n");
-      add_int_stat(STAT_LIVES_GAINED, 1);
-      player_lives++;
+      if (!training) {
+        add_int_stat(STAT_LIVES_GAINED, 1);
+        player_lives++;
+      }
       player_hp = 3 + (player_shield == 30)*3;
       break;
     default:
@@ -247,7 +249,7 @@ void ProcessItem(t_itemTypes item, const char *source, char isForfeit) {
         break;
       case T_1UP:
         PostMessage(22, 120, 1, source);
-        noise = 3;
+        noise = training ? 2 : 3;
         break;
       case T_CURSED_SEAL:
         PostMessage(33, 180, 0);
