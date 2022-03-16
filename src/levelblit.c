@@ -330,6 +330,7 @@ void WritePlayerData()
   FWInt(player_lives_part);
   FWInt(current_boss);
   FWInt(training);
+  FWInt(enemy_evolutions);
   FWInt(agate_knife_loc);
 
   for (i = 0; i < AF_MAXX; i++) {
@@ -364,6 +365,7 @@ void ReadPlayerData()
   player_lives_part = FRInt();
   current_boss = FRInt();
   training = FRInt();
+  enemy_evolutions = FRInt();
 
   agate_knife_loc = FRInt();
 
@@ -848,9 +850,9 @@ int DungeonPlay(const char *fname)
   while (game_running) {
     //sprintf(buf, "X: %d  Y: %d", (player_x + PLAYERW/2)/32*32 + PLAYERW/2, (player_y + PLAYERH/2)/32*32 + PLAYERH/2);
     //SDL_WM_SetCaption(buf, "MT");
+
+    PollAPClient();
     if (!game_paused) {
-      // NOTE: not sure if this is the best place for this, but I just learned about polling things
-      PollAPClient();
 
       if (player_dying > 30) {
         add_int_stat(STAT_DAMAGE_TAKEN, 1);

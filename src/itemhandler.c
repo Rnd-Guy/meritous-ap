@@ -168,6 +168,7 @@ void ProcessItem(t_itemTypes item, const char *source, char isForfeit) {
       break;
     case T_EVOLUTION_TRAP:
       //printf("EvoTrap\n");
+    	enemy_evolutions++;
       SoupUpEnemies();
       break;
     case T_CRYSTALS_500:
