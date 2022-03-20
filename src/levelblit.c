@@ -172,6 +172,18 @@ const char *cache_names[3] = {
   "Gamma"
 };
 
+const char *photo_warning[] = {
+  "W A R N I N G",
+  "",
+  "This game contains flashing imagery",
+  "which may cause issues to photosensitive",
+  "people. Play at your discretion.",
+  "If you are streaming, consider providing",
+  "viewers a warning as well.",
+  "",
+  "ENTER to begin, ESC to end"
+};
+
 float RandomDir()
 {
   return (float)(rand()%256)*M_PI*2.0/256.0;
@@ -512,7 +524,7 @@ int main(int argc, char **argv)
   }
   int wm_mask_ok = fread(wm_mask, 1, 128, wm_mask_file);
   fclose(wm_mask_file);
-  SDL_WM_SetCaption("~ m e r i t o u s ~", "MT");
+  SDL_WM_SetCaption("~ m e r i t o u s ~ g a i d e n ~", "MT");
   if (wm_mask_ok)
     SDL_WM_SetIcon(wm_icon, wm_mask);
   SDL_ShowCursor(SDL_DISABLE);
@@ -532,31 +544,51 @@ int main(int argc, char **argv)
   }
   SetGreyscalePalette();
 
-  // asceai logo
-  SDL_BlitSurface(asceai, NULL, screen, NULL);
+  int warning_length = sizeof(photo_warning) / sizeof(*photo_warning);
 
-  for (i = 0; i < 75; i++) {
-    SetTitlePalette(i * 5 - 375, i * 5 - 120);
-    VideoUpdate();
-    DummyEventPoll();
-    EndCycle(20);
+  for (size_t x = 0; x < warning_length; x++) {
+    draw_text((SCREEN_W / 2) - (strlen(photo_warning[x]) * 4),
+              (SCREEN_H / 2) - (warning_length * 5) + (x * 10),
+              photo_warning[x], 255);
   }
-  SDL_Delay(500);
-  for (i = 0; i < 50; i++) {
-    SetTitlePalette(i * 5, 255 - (i * 5));
-    VideoUpdate();
-    DummyEventPoll();
-    EndCycle(20);
-  }
-  SDL_Delay(500);
-  for (i = 0; i < 50; i++) {
-    SetTitlePalette(255, (i * 5)+5);
-    VideoUpdate();
-    DummyEventPoll();
+  VideoUpdate();
+
+  while (warning_length) {
+    HandleEvents();
+
+    if (enter_pressed) warning_length = 0;
+    if (voluntary_exit) warning_length = executable_running = 0;
+
     EndCycle(20);
   }
 
-  InitRando();
+  if (executable_running) {
+    // asceai logo
+    SDL_BlitSurface(asceai, NULL, screen, NULL);
+
+    for (i = 0; i < 75; i++) {
+      SetTitlePalette(i * 5 - 375, i * 5 - 120);
+      VideoUpdate();
+      DummyEventPoll();
+      EndCycle(20);
+    }
+    SDL_Delay(500);
+    for (i = 0; i < 50; i++) {
+      SetTitlePalette(i * 5, 255 - (i * 5));
+      VideoUpdate();
+      DummyEventPoll();
+      EndCycle(20);
+    }
+    SDL_Delay(500);
+    for (i = 0; i < 50; i++) {
+      SetTitlePalette(255, (i * 5)+5);
+      VideoUpdate();
+      DummyEventPoll();
+      EndCycle(20);
+    }
+
+    InitRando();
+  }
 
   while (executable_running) {
     ticker_tick = 0;
@@ -789,7 +821,7 @@ void ComposeTime(char *ptr, int msec, char displayMsec) {
   else sprintf(buf, "%dm %ds", t_minutes, t_seconds);
 
   if (t_days > 0) sprintf(ptr, "%dd %dh %s", t_days, t_hours, buf);
-  else if (t_hours > 0) sprintf(ptr, "%dd %dh %s", t_days, t_hours, buf);
+  else if (t_hours > 0) sprintf(ptr, "%dh %s", t_hours, buf);
   else sprintf(ptr, buf);
 }
 
