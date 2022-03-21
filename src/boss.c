@@ -470,7 +470,11 @@ void Curse()
   // Upon taking the cursed seal
 
   // Evolve to maximum
-  while (enemy_evolutions < 3) SoupUpEnemies();
+  if (enemy_evolutions < 3)
+  {
+    enemy_evolutions = 3;
+    SoupUpEnemies();
+  }
 
   // Make the place of power your checkpoint
 
