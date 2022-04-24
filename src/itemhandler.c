@@ -74,6 +74,7 @@ const int rooms_to_knife = 3000;
 char apEnabled = 0;
 char apStatus[24] = {0};
 time_t apLastStatusUpdate = 0;
+char deathlink_announced = 0;
 
 char isArchipelago();
 
@@ -363,12 +364,14 @@ void KillPlayer(const char *from) {
     player_hp = 0;
     player_dying = 1;
     SND_Pos("dat/a/playerhurt.wav", 128, 0);
+    deathlink_announced = 1;
   }
 }
 
 void AnnounceDeath() {
   if (!isArchipelago() || !isDeathLink()) return;
-  if (SendDeathLink()) PostMessage(74, 120, 0);
+  if (SendDeathLink() && !deathlink_announced) PostMessage(74, 120, 0);
+  deathlink_announced = 0;
 }
 
 char AnnounceVictory(char winState) {
