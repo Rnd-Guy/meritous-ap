@@ -56,7 +56,11 @@ The player configuration file (also known as YAML) will determine the generation
 
 Generally, Meritous Gaiden should be built as a 32-bit executable. Under Windows, it is recommended to use MSYS MinGW x86. Meritous Gaiden depends on the following libraries:
 
-SDL 1.2, SDL-image, SDL-mixer (both for 1.2), zlib, libpng
+- SDL 1.2
+  - SDL-image
+  - SDL-mixer
+- zlib
+- libpng
 
 In addition, under Windows, the Winsock library is required for the Archipelago client component to work, and `windres` is recommended to compile the RC file.
 
