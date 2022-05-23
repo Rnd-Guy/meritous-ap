@@ -2479,7 +2479,7 @@ void PostMessage(int msgid, int duration, int paramcount, ...)
   newmsg->msgid = msgid;
   newmsg->duration = duration;
   newmsg->paramcount = paramcount;
-  newmsg->params = malloc(sizeof(char*) * paramcount);
+  newmsg->params = paramcount > 0 ? malloc(sizeof(char*) * paramcount) : NULL;
 
   if (paramcount > 0) {
     va_list ptr;
