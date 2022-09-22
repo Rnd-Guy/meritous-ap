@@ -436,7 +436,7 @@ void SendAPSignalMsg(t_apSignal signal)
   if (!ap) return;
   switch (signal) {
     case APSIG_COLLECT: ap->Say("!collect"); break;
-    case APSIG_FORFEIT: ap->Say("!forfeit"); break;
+    case APSIG_RELEASE: ap->Say("!release"); break;
     default: break;
   }
 }

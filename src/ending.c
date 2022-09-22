@@ -52,7 +52,7 @@ char statsmode = 0;
 int credits_scroll = 0;
 
 char *PText[10] = {
-  "Activating the seal quickly activated the shutdown sequence",
+  "Activating the seal quickly initiated the shutdown sequence",
   "for the Chaos Engine Archipelago. Chambers throughout the",
   "Atlas Dome started to shatter in flashes of light.",
   "",
@@ -82,7 +82,7 @@ char *SText[15] = {
 };
 
 char *PTextV[10] ={
-  "Activating the seal quickly activated the shutdown sequence",
+  "Activating the seal quickly initiated the shutdown sequence",
   "for the Chaos Engine Archipelago. Chambers throughout the",
   "Atlas Dome started to shatter in flashes of light.",
   "",
@@ -135,8 +135,8 @@ int EndingEvents()
         case SDLK_s:
           return 2;
           break;
-        case SDLK_f:
-          SendAPSignal(APSIG_FORFEIT);
+        case SDLK_r:
+          SendAPSignal(APSIG_RELEASE);
           break;
         case SDLK_c:
           SendAPSignal(APSIG_COLLECT);
@@ -411,7 +411,7 @@ void DrawStats()
 void ShowBadEndingStats()
 {
   for (;;) {
-    draw_text(2, 2, "ESC to end, F to forfeit, C to collect", 192);
+    draw_text(2, 2, "ESC to end, R to release, C to collect", 192);
     DrawStats();
     EndCycle(0);
     switch (EndingEvents()) {
@@ -451,7 +451,7 @@ void DrawCredits()
     else SDL_BlitSurface(theend[(player_shield == 30)], NULL, screen, NULL);
 
     draw_text(2, 2, "ESC to end, S for stats", 192);
-    if (isArchipelago()) draw_text(2, 12, "F to forfeit, C to collect", 192);
+    if (isArchipelago()) draw_text(2, 12, "R to release, C to collect", 192);
   } else {
     SDL_BlitSurface(fin, NULL, screen, &draw_to);
     

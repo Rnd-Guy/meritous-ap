@@ -94,7 +94,7 @@ typedef enum genFlags {
 
 typedef enum apSignal {
   APSIG_NONE,
-  APSIG_FORFEIT,
+  APSIG_RELEASE,
   APSIG_COLLECT
 } t_apSignal;
 

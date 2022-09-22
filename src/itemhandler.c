@@ -149,7 +149,7 @@ char HasItem(t_itemTypes item) {
   }
 }
 
-void ProcessItem(t_itemTypes item, const char *source, char isForfeit) {
+void ProcessItem(t_itemTypes item, const char *source, char isRelease) {
   char noise = 0;
   int basemod = 500;
 
@@ -216,7 +216,7 @@ void ProcessItem(t_itemTypes item, const char *source, char isForfeit) {
 
   // Show the appropriate message
   if (source) {
-    if (isForfeit) {
+    if (isRelease) {
       char kelka = item >= T_PSI_KEY_1 && item <= T_CURSED_SEAL;
       PostMessage(71, 50, 2, source, kelka ? artifact_names[item - T_PSI_KEY_1] : itemNames[item]);
     } else switch (item) {

@@ -2695,7 +2695,7 @@ void SpecialTile(int x, int y)
         sprintf(specialmessage1, "Looting %s restores %s's", msgqueue->params[0], msgqueue->params[1]);
         sprintf(specialmessage2, msgqueue->params[2]);
         break;
-      case 71: // Forfeit received
+      case 71: // Release received
         sprintf(specialmessage1, "As %s's world stabilizes, Virtue receives", msgqueue->params[0]);
         sprintf(specialmessage2, msgqueue->params[1]);
         break;
