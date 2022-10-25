@@ -63,8 +63,8 @@ wswrap.o: src/submodules/wswrap/src/wswrap.cpp
 meritous.res: meritous.rc
 		windres $? -O coff -o $@
 
-meritous:	${OBJS} wswrap.o apinterface.o meritous.res
-		g++ -o $@ ${OBJS} wswrap.o apinterface.o meritous.res ${AP_LIBS} ${LDFLAGS}
+meritous:	${OBJS} apinterface.o meritous.res
+		g++ -o $@ ${OBJS} apinterface.o meritous.res ${AP_LIBS} ${LDFLAGS}
 
 clean:		
 		rm ${OBJS} wswrap.o apinterface.o
