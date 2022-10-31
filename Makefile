@@ -18,9 +18,9 @@
 #   You should have received a copy of the GNU General Public License
 #   along with Meritous.  If not, see <http://www.gnu.org/licenses/>.
 #
-LDFLAGS = `sdl-config --libs` -lSDL_image -lSDL_mixer -lz -lpthread
+LDFLAGS = `sdl2-config --libs` -lSDL2_image -lSDL2_mixer -lz -lpthread
 #CCFLAGS = -Wall `sdl-config --cflags` -ggdb
-CCFLAGS = -Os -Wall `sdl-config --cflags`
+CCFLAGS = -Os -Wall `sdl2-config --cflags`
 #DEFINES = -DDEBUG_KEYS
 
 AP_INCLUDES = -Isrc/submodules/wswrap/include\
@@ -49,6 +49,9 @@ OBJS = 	src/levelblit.o \
 		src/stats.o
 #
 default:	meritous
+
+debug: CCFLAGS += -g -D DEBUG
+debug: meritous
 
 # this is your cpp code that bridges between apclientpp and the game
 apinterface.o: src/apinterface.cpp

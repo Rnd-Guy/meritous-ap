@@ -265,7 +265,11 @@ void ScrollTo(int x, int y);
 #define K_SP 4
 #define K_c 5
 
+SDL_Window *window;
+SDL_Renderer *renderer;
 SDL_Surface *screen;
+SDL_Texture *texture;
+SDL_Color pal[256];
 
 void SetGreyscalePalette();
 void SetTonedPalette(float pct);
@@ -288,7 +292,12 @@ void VideoUpdate()
   static int bmp = 0;
   char bmp_name[256];
 
-  SDL_UpdateRect(screen, 0, 0, 0, 0);
+  SDL_UpdateTexture(texture, NULL, screen->pixels, screen->pitch);
+  ApplyPalette();
+  SDL_RenderCopy(renderer, texture, NULL, NULL);
+  SDL_RenderPresent(renderer);
+  SDL_RenderClear(renderer);
+  //SDL_UpdateRect(screen, 0, 0, 0, 0);
   if (WriteBitmaps) {
     if ((bmp >= WB_StartRange)&&(bmp < WB_EndRange)) {
       sprintf(bmp_name, "v/bmp%d.bmp", bmp);
@@ -296,6 +305,24 @@ void VideoUpdate()
     }
     bmp++;
   }
+}
+
+//Almost certainly a better way to do this using shaders, but this functions right now
+void ApplyPalette()
+{
+  Uint32* pixels = NULL;
+  Uint32* sPixels = (Uint32 *)screen->pixels;
+  int pitch = 0;
+  int format;
+  int i;
+  int oldpix;
+  SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch);
+  for(i = 0; i < SCREEN_W*SCREEN_H; i++)
+  {
+    oldpix = (sPixels[i] >> 8) & 0xFF;
+    pixels[i] = SDL_MapRGBA(screen->format, pal[oldpix].r, pal[oldpix].g, pal[oldpix].b, 255);
+  }
+  SDL_UnlockTexture(texture);
 }
 
 void EndCycle(int n)
@@ -511,22 +538,29 @@ int main(int argc, char **argv)
     }
   }
 
+  SDL_Init(SDL_INIT_EVERYTHING);
   asceai = IMG_Load("dat/i/asceai.png");
   wm_icon = IMG_Load("dat/i/icon.png");
 
-  screen = SDL_SetVideoMode(SCREEN_W, SCREEN_H, 8, SDL_SWSURFACE | (SDL_FULLSCREEN * fullscreen));
+  window = SDL_CreateWindow("~ m e r i t o u s ~ g a i d e n ~", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+  renderer = SDL_CreateRenderer(window, -1, 0);
+  SDL_RenderSetLogicalSize(renderer,640, 480);
+  //screen = SDL_SetVideoMode(SCREEN_W, SCREEN_H, 8, SDL_SWSURFACE | (SDL_FULLSCREEN * fullscreen));
+  screen = SDL_CreateRGBSurfaceWithFormat(0, SCREEN_W, SCREEN_H, 8, SDL_PIXELFORMAT_RGBA8888);
+  texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, 640, 480);
 
-  const char* icon_filename = "dat/d/icon_bitmask.dat";
-  wm_mask_file = fopen(icon_filename, "rb");
-  if (wm_mask_file == NULL) {
-    perror (icon_filename);
-    exit(1);
-  }
-  int wm_mask_ok = fread(wm_mask, 1, 128, wm_mask_file);
-  fclose(wm_mask_file);
-  SDL_WM_SetCaption("~ m e r i t o u s ~ g a i d e n ~", "MT");
-  if (wm_mask_ok)
-    SDL_WM_SetIcon(wm_icon, wm_mask);
+  // const char* icon_filename = "dat/d/icon_bitmask.dat";
+  // wm_mask_file = fopen(icon_filename, "rb");
+  // if (wm_mask_file == NULL) {
+  //   perror (icon_filename);
+  //   exit(1);
+  // }
+  // int wm_mask_ok = fread(wm_mask, 1, 128, wm_mask_file);
+  // fclose(wm_mask_file);
+  //SDL_WM_SetCaption("~ m e r i t o u s ~ g a i d e n ~", "MT");
+  //if (wm_mask_ok)
+    SDL_SetWindowIcon(window, wm_icon);
+    //SDL_WM_SetIcon(wm_icon, wm_mask);
   SDL_ShowCursor(SDL_DISABLE);
   InitAudio();
 
@@ -698,7 +732,10 @@ int main(int argc, char **argv)
 
 //	if (argc >= 2) DungeonPlay(argv[1]);
 //	else DungeonPlay("");
-
+  SDL_FreeSurface(screen);
+  SDL_DestroyTexture(texture);
+  SDL_DestroyWindow(window);
+  SDL_DestroyRenderer(renderer);
   SDL_Quit();
   return 0;
 }
@@ -709,7 +746,7 @@ void DrawMeter(int x, int y, int n)
   SDL_Rect drawfrom, drawto;
   if (meter == NULL) {
     meter = IMG_Load("dat/i/meter.png");
-    SDL_SetColorKey(meter, SDL_SRCCOLORKEY | SDL_RLEACCEL, 0);
+    SDL_SetColorKey(meter, SDL_TRUE | SDL_RLEACCEL, 0);
   }
 
   drawfrom.x = 0;
@@ -730,7 +767,7 @@ void DrawMeter(int x, int y, int n)
 
 void ProgressBarScreen(int part, float progress, const char *message, float t_parts)
 {
-  memset(screen->pixels, 0, 640*480);
+  memset(screen->pixels, 0, 640*480*4);
 
   DrawRect(200, 217, 240, 50, 80);
   DrawRect(202, 219, 236, 46, 20);
@@ -1041,7 +1078,7 @@ int DungeonPlay(const char *fname)
           SDL_Rect draw_to;
           if (agate_knife == NULL) {
             agate_knife = IMG_Load("dat/i/agate.png");
-            SDL_SetColorKey(agate_knife, SDL_SRCCOLORKEY | SDL_RLEACCEL, 0);
+            SDL_SetColorKey(agate_knife, SDL_TRUE | SDL_RLEACCEL, 0);
           }
           xpos = (int)((sin(agate_t * 1.33)*0.5+0.5) * (float)room_w) + room_x;
           ypos = (int)((cos(agate_t * 0.7)*0.5+0.5) * (float)room_h) + room_y;
@@ -1650,7 +1687,7 @@ void DrawPlayer(int x, int y, int pl_dir, int pl_frm)
 
   if (playersprite == NULL) {
     playersprite = IMG_Load("dat/i/player.png");
-    SDL_SetColorKey(playersprite, SDL_SRCCOLORKEY | SDL_RLEACCEL, 0);
+    SDL_SetColorKey(playersprite, SDL_TRUE | SDL_RLEACCEL, 0);
   }
 
   playerrec.x = pl_frm * 16;
@@ -1667,7 +1704,7 @@ void DrawPlayer(int x, int y, int pl_dir, int pl_frm)
 void SetGreyscalePalette()
 {
   SDL_Color grey[256];
-  SDL_Color pal[256];
+  //SDL_Color pal[256];
   int i;
 
   float ip;
@@ -1683,13 +1720,13 @@ void SetGreyscalePalette()
     pal[i].b = sin(ip * M_PI / 2.0) * 255;
   }
 
-  SDL_SetPalette(screen, SDL_LOGPAL, grey, 0, 256);
-  SDL_SetPalette(screen, SDL_PHYSPAL, pal, 0, 256);
+  //SDL_SetPaletteColors(screen->format->palette, pal, 0, 256);
+  //SDL_SetPalette(screen, SDL_PHYSPAL, pal, 0, 256);
 }
 
 void SetTonedPalette(float dct)
 {
-  SDL_Color pal[256];
+  //SDL_Color pal[256];
   float pct = 1.0 - dct;
   float rp_dct, rp_pct;
   float ip;
@@ -1772,12 +1809,12 @@ void SetTonedPalette(float dct)
     }
   }
 
-  SDL_SetPalette(screen, SDL_PHYSPAL, pal, 0, 256);
+  //SDL_SetPaletteColors(screen->format->palette, pal, 0, 256);
 }
 
 void SetTitlePalette(int curve_start, int curve_end)
 {
-  SDL_Color pal[256];
+  //SDL_Color pal[256];
   int ec;
   int i;
 
@@ -1791,12 +1828,12 @@ void SetTitlePalette(int curve_start, int curve_end)
     pal[i].b = ec;
   }
 
-  SDL_SetPalette(screen, SDL_PHYSPAL, pal, 0, 256);
+  //SDL_SetPaletteColors(screen->format->palette, pal, 0, 256);
 }
 
 void SetTitlePalette2(int t)
 {
-  SDL_Color pal[256];
+  //SDL_Color pal[256];
   int i;
 
   float ip;
@@ -1814,7 +1851,7 @@ void SetTitlePalette2(int t)
     pal[i].b = sin(ip * M_PI / 2.0) * 255 * b_coeff + 255*bright;
   }
 
-  SDL_SetPalette(screen, SDL_PHYSPAL, pal, 0, 256);
+  //SDL_SetPaletteColors(screen->format->palette, pal, 0, 256);
 }
 
 int IsSolid(unsigned char tile)
@@ -1932,20 +1969,21 @@ void text_init()
 void draw_char(int cur_x, int cur_y, int c, Uint8 tcol)
 {
   int px, py;
-  Uint8 *pix;
+  Uint32 *pix;
 
   for (py = 0; py < 8; py++) {
-    pix = (Uint8 *)screen->pixels;
-    pix += (py+cur_y)*screen->w;
+    pix = (Uint32 *)screen->pixels;
+    pix += ((py+cur_y)*screen->w);
     pix += cur_x;
 
     if ((cur_x >= 0)&&(py+cur_y >= 0)&&(cur_x < screen->w-8)&&(py+cur_y < screen->h)) {
       for (px = 0; px < 8; px++) {
         if (font_data[c][px][py] == 255) {
-          *pix = tcol;
+          *pix = SDL_MapRGBA(screen->format, tcol, tcol, tcol, 255);
         }
         if ((font_data[c][px][py] < 255)&&(font_data[c][px][py] > 0)) {
-          *pix = ((int)tcol * font_data[c][px][py] / 256) + ((int)*pix * (256-font_data[c][px][py]) / 256);
+          Uint8 col2 = ((int)tcol * font_data[c][px][py] / 256) + ((((int)*pix) >> 24) * (256-font_data[c][px][py]) / 256);
+          *pix = SDL_MapRGBA(screen->format, col2, col2, col2, 255);
         }
         pix++;
       }
@@ -2056,7 +2094,7 @@ void DrawRect(int x, int y, int w, int h, unsigned char c)
   r.w = w;
   r.h = h;
 
-  SDL_FillRect(screen, &r, c);
+  SDL_FillRect(screen, &r, SDL_MapRGBA(screen->format, c, c, c, 255));
 }
 
 void DrawCircuit()
@@ -2782,7 +2820,7 @@ void DrawArtifacts()
 
   if (artifact_spr == NULL) {
     artifact_spr = IMG_Load("dat/i/artifacts.png");
-    SDL_SetColorKey(artifact_spr, SDL_SRCCOLORKEY | SDL_RLEACCEL, 0);
+    SDL_SetColorKey(artifact_spr, SDL_TRUE | SDL_RLEACCEL, 0);
   }
 
   for (i = 0; i < AF_MAXX; i++) {

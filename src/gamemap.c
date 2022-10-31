@@ -47,7 +47,7 @@ void InitAutomap()
 	automap = IMG_Load("dat/i/automap.png"); //520x520
 	overview = IMG_Load("dat/i/overview.png"); //200x200
 	
-	//SDL_SetColorKey(automap, SDL_SRCCOLORKEY | SDL_RLEACCEL, 255);
+	//SDL_SetColorKey(automap, SDL_TRUE | SDL_RLEACCEL, 255);
 	
 	full_rend = 0;
 	if (game_load) {

@@ -400,7 +400,7 @@ SDL_Surface* BossGetSpr (int i)
           SDL_GetError());
       exit(1);
     }
-    SDL_SetColorKey(boss_spr[i], SDL_SRCCOLORKEY | SDL_RLEACCEL, 255);
+    SDL_SetColorKey(boss_spr[i], SDL_TRUE | SDL_RLEACCEL, 255);
   }
 
   return boss_spr[i];

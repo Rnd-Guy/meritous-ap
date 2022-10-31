@@ -34,7 +34,10 @@
 
 extern int expired_ms;
 
+extern SDL_Renderer *renderer;
 extern SDL_Surface *screen;
+extern SDL_Texture *texture;
+extern SDL_Color pal[256];
 
 extern int player_x, player_y;
 extern int scroll_x, scroll_y;
@@ -93,6 +96,7 @@ void Arc(SDL_Surface *s, int x, int y, int r, float dir);
 extern SDL_Surface *artifact_spr;
 
 void VideoUpdate();
+void ApplyPalette();
 void EndCycle(int n);
 
 extern int enter_pressed;

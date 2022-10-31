@@ -316,7 +316,7 @@ void SaveLevel()
   cpalette[2].r = 255; cpalette[2].g = 0; cpalette[2].b = 255;
   cpalette[3].r = 0; cpalette[3].g = 255; cpalette[3].b = 128;
   
-  SDL_SetPalette(map_surf, SDL_LOGPAL | SDL_PHYSPAL, cpalette, 0, 4);
+  //SDL_SetPaletteColors(map_surf->format->palette, cpalette, 0, 4);
   
   for (y = 0; y < map.h; y++) {
     for (x = 0; x < map.w; x++) {

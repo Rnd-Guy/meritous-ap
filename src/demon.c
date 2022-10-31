@@ -803,34 +803,34 @@ struct bullet *FireLaser(int x, int y, struct enemy *firer, float dir, int fire_
 void InitEnemySprites()
 {
 	enemy_sprites[0] = IMG_Load("dat/i/mons1.png");
-	SDL_SetColorKey(enemy_sprites[0], SDL_SRCCOLORKEY | SDL_RLEACCEL, 255);
+	SDL_SetColorKey(enemy_sprites[0], SDL_TRUE | SDL_RLEACCEL, 255);
 	enemy_sprites[1] = IMG_Load("dat/i/mons2.png");
-	SDL_SetColorKey(enemy_sprites[1], SDL_SRCCOLORKEY | SDL_RLEACCEL, 255);
+	SDL_SetColorKey(enemy_sprites[1], SDL_TRUE | SDL_RLEACCEL, 255);
 	enemy_sprites[2] = IMG_Load("dat/i/mons3.png");
-	SDL_SetColorKey(enemy_sprites[2], SDL_SRCCOLORKEY | SDL_RLEACCEL, 255);
+	SDL_SetColorKey(enemy_sprites[2], SDL_TRUE | SDL_RLEACCEL, 255);
 	enemy_sprites[3] = IMG_Load("dat/i/mons4.png");
-	SDL_SetColorKey(enemy_sprites[3], SDL_SRCCOLORKEY | SDL_RLEACCEL, 255);
+	SDL_SetColorKey(enemy_sprites[3], SDL_TRUE | SDL_RLEACCEL, 255);
 	enemy_sprites[4] = IMG_Load("dat/i/mons5.png");
-	SDL_SetColorKey(enemy_sprites[4], SDL_SRCCOLORKEY | SDL_RLEACCEL, 255);
+	SDL_SetColorKey(enemy_sprites[4], SDL_TRUE | SDL_RLEACCEL, 255);
 	enemy_sprites[5] = IMG_Load("dat/i/mons6.png");
-	SDL_SetColorKey(enemy_sprites[5], SDL_SRCCOLORKEY | SDL_RLEACCEL, 255);
+	SDL_SetColorKey(enemy_sprites[5], SDL_TRUE | SDL_RLEACCEL, 255);
 	enemy_sprites[6] = IMG_Load("dat/i/mons7.png");
-	SDL_SetColorKey(enemy_sprites[6], SDL_SRCCOLORKEY | SDL_RLEACCEL, 255);
+	SDL_SetColorKey(enemy_sprites[6], SDL_TRUE | SDL_RLEACCEL, 255);
 	enemy_sprites[7] = IMG_Load("dat/i/mons8.png");
-	SDL_SetColorKey(enemy_sprites[7], SDL_SRCCOLORKEY | SDL_RLEACCEL, 255);
+	SDL_SetColorKey(enemy_sprites[7], SDL_TRUE | SDL_RLEACCEL, 255);
 	enemy_sprites[8] = IMG_Load("dat/i/mons9.png");
-	SDL_SetColorKey(enemy_sprites[8], SDL_SRCCOLORKEY | SDL_RLEACCEL, 255);
+	SDL_SetColorKey(enemy_sprites[8], SDL_TRUE | SDL_RLEACCEL, 255);
 	enemy_sprites[9] = IMG_Load("dat/i/mons10.png");
-	SDL_SetColorKey(enemy_sprites[9], SDL_SRCCOLORKEY | SDL_RLEACCEL, 255);
+	SDL_SetColorKey(enemy_sprites[9], SDL_TRUE | SDL_RLEACCEL, 255);
 
 	reticle = IMG_Load("dat/i/reticle.png");
-	SDL_SetColorKey(reticle, SDL_SRCCOLORKEY | SDL_RLEACCEL, 255);
+	SDL_SetColorKey(reticle, SDL_TRUE | SDL_RLEACCEL, 255);
 
 	inrange = IMG_Load("dat/i/inrange.png");
-	SDL_SetColorKey(inrange, SDL_SRCCOLORKEY | SDL_RLEACCEL, 255);
+	SDL_SetColorKey(inrange, SDL_TRUE | SDL_RLEACCEL, 255);
 
 	invis_enemy = IMG_Load("dat/i/hidden_monster.png");
-	SDL_SetColorKey(invis_enemy, SDL_SRCCOLORKEY | SDL_RLEACCEL, 255);
+	SDL_SetColorKey(invis_enemy, SDL_TRUE | SDL_RLEACCEL, 255);
 }
 
 void ActivateSingleEnemy(struct enemy *t)
@@ -1827,7 +1827,7 @@ void DrawEnemy(struct enemy *e, SDL_Surface *scr)
 	if (e->teleport_v < 24) {
 		if (teleflash == NULL) {
 			teleflash = IMG_Load("dat/i/teleflash.png");
-			SDL_SetColorKey(teleflash, SDL_SRCCOLORKEY | SDL_RLEACCEL, 0);
+			SDL_SetColorKey(teleflash, SDL_TRUE | SDL_RLEACCEL, 0);
 		}
 
 		surf_pos.x = 48*((e->teleport_v) / 3);
@@ -1867,7 +1867,7 @@ void DrawBullet(struct bullet *b)
 	if (b->img == 1) {
 		if (d_star_big == NULL) {
 			d_star_big = IMG_Load("dat/i/star1.png");
-			SDL_SetColorKey(d_star_big, SDL_SRCCOLORKEY | SDL_RLEACCEL, 255);
+			SDL_SetColorKey(d_star_big, SDL_TRUE | SDL_RLEACCEL, 255);
 		}
 		
 		if (b->dying == 0) {
@@ -1954,7 +1954,7 @@ void DrawBullet(struct bullet *b)
 	if (b->img == 3) {
 		if (d_star_small == NULL) {
 			d_star_small = IMG_Load("dat/i/star2.png");
-			SDL_SetColorKey(d_star_small, SDL_SRCCOLORKEY | SDL_RLEACCEL, 255);
+			SDL_SetColorKey(d_star_small, SDL_TRUE | SDL_RLEACCEL, 255);
 		}
 		if (b->dying == 0) {
 			surf_pos.x = b->x - 8 - scroll_x;
@@ -2018,7 +2018,7 @@ void DrawBullet(struct bullet *b)
 	if (b->img == 6) {
 		if (d_star_ls == NULL) {
 			d_star_ls = IMG_Load("dat/i/star3.png");
-			SDL_SetColorKey(d_star_ls, SDL_SRCCOLORKEY | SDL_RLEACCEL, 255);
+			SDL_SetColorKey(d_star_ls, SDL_TRUE | SDL_RLEACCEL, 255);
 		}
 		if (b->dying == 0) {
 			surf_pos.x = b->x - 16 - scroll_x;
@@ -2072,7 +2072,7 @@ void DrawGem(struct diamond *g)
 
 	if (d_sprite == NULL) {
 		d_sprite = IMG_Load("dat/i/gem.png");
-		SDL_SetColorKey(d_sprite, SDL_SRCCOLORKEY | SDL_RLEACCEL, 255);
+		SDL_SetColorKey(d_sprite, SDL_TRUE | SDL_RLEACCEL, 255);
 		hp_icon[0] = 3;
 		hp_icon[1] = 0;
 	}
