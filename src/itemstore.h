@@ -22,24 +22,26 @@
 
 #include "itemdefs.h"
 
-void CreateItemStores();
-void DestroyItemStores();
+void LocalCreateItemStores();
+void LocalDestroyItemStores();
 
-t_itemTypes GetNextItem(t_itemStores store, char collect);
+t_itemTypes LocalGetNextItem(t_itemStores store, char collect);
 // enum itemTypes GetNextItem(t_itemStores store);
-char HasNextItem(t_itemStores store);
+char LocalHasNextItem(t_itemStores store);
 
-t_itemTypes GetItemByIndex(t_itemStores store, int index, char collect);
+t_itemTypes LocalGetItemByIndex(t_itemStores store, size_t index, char collect);
 // enum itemTypes GetItemByIndex(t_itemStores store, int index);
-char HasItemByIndex(t_itemStores store, int index);
+char LocalHasItemByIndex(t_itemStores store, size_t index);
 
-int GetNextIndexInStore(t_itemStores store);
+size_t LocalGetNextIndexInStore(t_itemStores store);
+
+int GetLocalUpgradeCost(t_itemStores store, char training);
 
 void LocalGenerateItemStores(int flags);
 
-char VerifyItemStores();
+char LocalVerifyItemStores();
 
-void SaveStores();
-void LoadStores();
+void LocalSaveStores();
+void LocalLoadStores();
 
 #endif

@@ -20,22 +20,42 @@
 
 #include "itemdefs.h"
 
+extern const char* enemyNames[];
+extern const int rooms_to_gen;
+extern const int rooms_to_knife;
+
+void InitRando();
+
 void InitStores();
 void DestroyStores();
 
+uint32_t RetrieveSeed();
+
+void StartRando();
+void EndRando();
+
 t_itemTypes MakeCrystals();
 
-void AnnounceDeath();
-void AnnounceVictory(char isFullVictory);
-
+int UpgradePrice(int t);
 int CostFactor(t_itemStores store);
 void CollectItem(t_itemStores store);
 void CollectSpecialItem(t_specialStore itemIndex);
+size_t GetNextItemIndex(t_itemStores store);
+char HasItemByIndex(t_itemStores store, size_t index);
 
-char IsArchipelago();
-void PostCollectNotice(char *player, char *itemName, char *waswere);
+char isArchipelago();
+char HasAPStatus();
+const char *GetAPStatus();
+void SetAPStatus(const char *status, char important);
+void PostCollectNotice(const char *player, const char *itemName, const char *waswere);
 
+void PollAPClient();
+void ReceiveItem(t_itemTypes item, const char *source);
+void ReportSentItem(const char *source, const char *player, const char *item);
 void SendAPSignal(t_apSignal signal);
+void KillPlayer(const char *from);
+void AnnounceDeath();
+char AnnounceVictory(char isFullVictory);
 
 void WriteStoreData();
 void ReadStoreData();

@@ -49,7 +49,11 @@
 #define PLAYERW 16
 #define PLAYERH 24
 
-#define MERITOUS_VERSION "v 1.2-AP"
+#define MERITOUS_VERSION "v 1.3"
+
+#define MIN(a,b) (((a) < (b)) ? (a) : (b))
+#define MAX(a,b) (((a) > (b)) ? (a) : (b))
+
 int RECORDING = 0;
 int PLAYBACK = 0;
 
@@ -84,7 +88,7 @@ void DrawArtifacts();
 void HandleEvents();
 
 void text_init();
-void draw_text(int x, int y, char *str, Uint8 tcol);
+void draw_text(int x, int y, const char *str, Uint8 tcol);
 unsigned char font_data[128][8][8];
 
 void DrawShield();
@@ -132,7 +136,7 @@ int checkpoint_y;
 int explored = 0;
 //#define DEBUG_STATS 1
 
-int artifacts[12];
+int artifacts[AF_MAXX];
 SDL_Surface *artifact_spr = NULL;
 
 int player_shield;
@@ -161,6 +165,24 @@ struct queued_message {
 };
 
 t_queued_message *msgqueue = NULL;
+
+const char *cache_names[3] = {
+  "Alpha",
+  "Beta",
+  "Gamma"
+};
+
+const char *photo_warning[] = {
+  "W A R N I N G",
+  "",
+  "This game contains flashing imagery",
+  "which may cause issues to photosensitive",
+  "people. Play at your discretion.",
+  "If you are streaming, consider providing",
+  "viewers a warning as well.",
+  "",
+  "ENTER to begin, ESC to end"
+};
 
 float RandomDir()
 {
@@ -217,7 +239,7 @@ void PlayerDefaultStats()
 
   map_enabled = 0;
 
-  for (i = 0; i < 12; i++) {
+  for (i = 0; i < AF_MAXX; i++) {
     artifacts[i] = 0;
   }
 
@@ -227,7 +249,7 @@ void PlayerDefaultStats()
   circuit_fillrate = 24;
   circuit_recoverrate = 24;
 
-  for (i = 0; i < 12; i++) {
+  for (i = 0; i < AF_MAXX; i++) {
     artifacts[i] = 1;
   }
 
@@ -241,6 +263,7 @@ void ScrollTo(int x, int y);
 #define K_LT 2
 #define K_RT 3
 #define K_SP 4
+#define K_c 5
 
 SDL_Surface *screen;
 
@@ -319,9 +342,10 @@ void WritePlayerData()
   FWInt(player_lives_part);
   FWInt(current_boss);
   FWInt(training);
+  FWInt(enemy_evolutions);
   FWInt(agate_knife_loc);
 
-  for (i = 0; i < 12; i++) {
+  for (i = 0; i < AF_MAXX; i++) {
     FWChar(artifacts[i]);
   }
 }
@@ -353,18 +377,15 @@ void ReadPlayerData()
   player_lives_part = FRInt();
   current_boss = FRInt();
   training = FRInt();
+  enemy_evolutions = FRInt();
 
   agate_knife_loc = FRInt();
 
-  for (i = 0; i < 12; i++) {
+  for (i = 0; i < AF_MAXX; i++) {
     artifacts[i] = FRChar();
   }
-}
 
-int min(int x, int y)
-{
-  if (x<y) return x;
-  return y;
+  player_lives = MAX(player_lives, training ? 5 : 3);
 }
 
 void DummyEventPoll()
@@ -373,7 +394,7 @@ void DummyEventPoll()
   SDL_PollEvent(&e);
 }
 
-int DungeonPlay(char *fname);
+int DungeonPlay(const char *fname);
 
 Uint8 Uint8_Bound(int c)
 {
@@ -398,6 +419,7 @@ void ClearInput()
   key_held[K_DN] = 0;
   key_held[K_LT] = 0;
   key_held[K_RT] = 0;
+  key_held[K_c] = 0;
 }
 
 int main(int argc, char **argv)
@@ -409,7 +431,7 @@ int main(int argc, char **argv)
   Uint8 *src_p, *col_p;
   Uint8 wm_mask[128];
   int i;
-  int light = 0;
+  //int light = 0;
   int x, y;
   int pulse[SCREEN_W * SCREEN_H];
   int precalc_sine[400];
@@ -457,7 +479,7 @@ int main(int argc, char **argv)
   if ((RECORDING) && (PLAYBACK)) {
     exit(1);
   }
-  srand(time(NULL));
+  srand(RetrieveSeed());
   if (RECORDING) {
     record_file = fopen(record_filename, "wb");
     if (record_file == NULL) {
@@ -502,7 +524,7 @@ int main(int argc, char **argv)
   }
   int wm_mask_ok = fread(wm_mask, 1, 128, wm_mask_file);
   fclose(wm_mask_file);
-  SDL_WM_SetCaption("~ m e r i t o u s ~", "MT");
+  SDL_WM_SetCaption("~ m e r i t o u s ~ g a i d e n ~", "MT");
   if (wm_mask_ok)
     SDL_WM_SetIcon(wm_icon, wm_mask);
   SDL_ShowCursor(SDL_DISABLE);
@@ -522,28 +544,50 @@ int main(int argc, char **argv)
   }
   SetGreyscalePalette();
 
-  // asceai logo
-  SDL_BlitSurface(asceai, NULL, screen, NULL);
+  int warning_length = sizeof(photo_warning) / sizeof(*photo_warning);
 
-  for (i = 0; i < 75; i++) {
-    SetTitlePalette(i * 5 - 375, i * 5 - 120);
-    VideoUpdate();
-    DummyEventPoll();
+  for (size_t x = 0; x < warning_length; x++) {
+    draw_text((SCREEN_W / 2) - (strlen(photo_warning[x]) * 4),
+              (SCREEN_H / 2) - (warning_length * 5) + (x * 10),
+              photo_warning[x], 255);
+  }
+  VideoUpdate();
+
+  while (warning_length) {
+    HandleEvents();
+
+    if (enter_pressed) warning_length = 0;
+    if (voluntary_exit) warning_length = executable_running = 0;
+
     EndCycle(20);
   }
-  SDL_Delay(500);
-  for (i = 0; i < 50; i++) {
-    SetTitlePalette(i * 5, 255 - (i * 5));
-    VideoUpdate();
-    DummyEventPoll();
-    EndCycle(20);
-  }
-  SDL_Delay(500);
-  for (i = 0; i < 50; i++) {
-    SetTitlePalette(255, (i * 5)+5);
-    VideoUpdate();
-    DummyEventPoll();
-    EndCycle(20);
+
+  if (executable_running) {
+    // asceai logo
+    SDL_BlitSurface(asceai, NULL, screen, NULL);
+
+    for (i = 0; i < 75; i++) {
+      SetTitlePalette(i * 5 - 375, i * 5 - 120);
+      VideoUpdate();
+      DummyEventPoll();
+      EndCycle(20);
+    }
+    SDL_Delay(500);
+    for (i = 0; i < 50; i++) {
+      SetTitlePalette(i * 5, 255 - (i * 5));
+      VideoUpdate();
+      DummyEventPoll();
+      EndCycle(20);
+    }
+    SDL_Delay(500);
+    for (i = 0; i < 50; i++) {
+      SetTitlePalette(255, (i * 5)+5);
+      VideoUpdate();
+      DummyEventPoll();
+      EndCycle(20);
+    }
+
+    InitRando();
   }
 
   while (executable_running) {
@@ -575,7 +619,7 @@ int main(int argc, char **argv)
       draw_text(17, 156, MERITOUS_VERSION, 225 + sin((float)ticker_tick / 15)*30);
       if (can_continue) draw_text((SCREEN_W - 14*8)/2, 310, "Continue", 255);
       draw_text((SCREEN_W - 14*8)/2, 310 + can_continue*10, "New Game", 255);
-      draw_text((SCREEN_W - 14*8)/2, 320 + can_continue*10, "New Game (Wuss mode)", 255);
+      draw_text((SCREEN_W - 14*8)/2, 320 + can_continue*10, "New Game (Training mode)", 255);
 
       if (ticker_tick >= 30) {
         draw_text((SCREEN_W - 14*8)/2 - 17, 310 + option * 10, "-", 205 + sin((float)ticker_tick / 5.0)*24);
@@ -585,6 +629,8 @@ int main(int argc, char **argv)
         draw_text((SCREEN_W - 14*8)/2 - 18, 310 + option * 10, " >", 165 + sin((float)ticker_tick / 5.0)*24);
         draw_text((SCREEN_W - 14*8)/2 - 22, 310 + option * 10, " >", 165 + sin((float)ticker_tick / 5.0)*24);
       }
+
+      if (isArchipelago()) draw_text(0, 450, "AP Enabled", 255);
 
       VideoUpdate();
 
@@ -618,7 +664,7 @@ int main(int argc, char **argv)
 
       EndCycle(10);
 
-      light = 0;
+      //light = 0;
       tick -= 2;
     }
 
@@ -682,7 +728,7 @@ void DrawMeter(int x, int y, int n)
   SDL_BlitSurface(meter, &drawfrom, screen, &drawto);
 }
 
-void ProgressBarScreen(int part, float progress, char *message, float t_parts)
+void ProgressBarScreen(int part, float progress, const char *message, float t_parts)
 {
   memset(screen->pixels, 0, 640*480);
 
@@ -763,22 +809,23 @@ void Arc(SDL_Surface *s, int x, int y, int r, float dir)
 }
 
 void ComposeTime(char *ptr, int msec, char displayMsec) {
-  int t_msec = msec % 1000;
   int t_days = msec / (1000*60*60*24);
   int t_hours = (msec / (1000*60*60)) % 24;
   int t_minutes = (msec / (1000*60)) % 60;
   int t_seconds = (msec / 1000) % 60;
+  int t_msec = msec % 1000;
 
-  if (displayMsec) sprintf(ptr, "%dm %d.%03ds", t_minutes, t_seconds, t_msec);
-  else sprintf(ptr, "%dm %ds", t_minutes, t_seconds);
+  char buf[16] = {0};
 
-  if (t_hours > 0) {
-    if (t_days > 0) sprintf(ptr, "%dd %dh %s", t_days, t_hours, ptr);
-    else sprintf(ptr, "%dd %dh %s", t_days, t_hours, ptr);
-  }
+  if (displayMsec) sprintf(buf, "%dm %d.%03ds", t_minutes, t_seconds, t_msec);
+  else sprintf(buf, "%dm %ds", t_minutes, t_seconds);
+
+  if (t_days > 0) sprintf(ptr, "%dd %dh %s", t_days, t_hours, buf);
+  else if (t_hours > 0) sprintf(ptr, "%dh %s", t_hours, buf);
+  else sprintf(ptr, buf);
 }
 
-int DungeonPlay(char *fname)
+int DungeonPlay(const char *fname)
 {
   int ix,  iy;
   int off_x, off_y;
@@ -825,17 +872,22 @@ int DungeonPlay(char *fname)
   if (game_load) CloseFile();
 
   max_dist = 0;
-  for (i = 0; i < 3000; i++) {
+  for (i = 0; i < rooms_to_gen; i++) {
     if (rooms[i].s_dist > max_dist) {
       max_dist = rooms[i].s_dist;
     }
   }
 
+  StartRando();
+
   game_running = 1;
   while (game_running) {
     //sprintf(buf, "X: %d  Y: %d", (player_x + PLAYERW/2)/32*32 + PLAYERW/2, (player_y + PLAYERH/2)/32*32 + PLAYERH/2);
     //SDL_WM_SetCaption(buf, "MT");
+
+    PollAPClient();
     if (!game_paused) {
+
       if (player_dying > 30) {
         add_int_stat(STAT_DAMAGE_TAKEN, 1);
         player_hp--;
@@ -880,8 +932,8 @@ int DungeonPlay(char *fname)
     circuit_size = 250 + 50*(circuit_fillrate + circuit_recoverrate);
 
     if (magic_circuit > 0) {
-      circuit_range = (sqrt(magic_circuit + 1) * 6 + min(magic_circuit / 2, 50))*1.66;
-      if (artifacts[3]) circuit_range += circuit_range / 2.4;
+      circuit_range = (sqrt(magic_circuit + 1) * 6 + MIN(magic_circuit / 2, 50))*1.66;
+      if (artifacts[AF_CIRCUIT_BOOSTER]) circuit_range += circuit_range / 2.4;
     } else circuit_range = -1;
     player_room = GetRoom(player_x/32, player_y/32);
 
@@ -900,7 +952,7 @@ int DungeonPlay(char *fname)
         // it's a boss room
         BossRoom(player_room);
       }
-      if (((rooms[player_room].checkpoint)||(player_room==0))&&(!artifacts[11])) {
+      if (((rooms[player_room].checkpoint)||(player_room==0))&&(!artifacts[AF_CURSED_SEAL])) {
         checkpoint_x = rooms[player_room].x * 32 + (rooms[player_room].w / 2 * 32) + 8;
         checkpoint_y = rooms[player_room].y * 32 + (rooms[player_room].h / 2 * 32) + 4;
       }
@@ -908,7 +960,7 @@ int DungeonPlay(char *fname)
         rooms[player_room].visited = 1;
         explored++;
 
-        if (explored == 3000) {
+        if (explored == rooms_to_knife) {
           agate_knife_loc = player_room;
         }
 
@@ -920,7 +972,7 @@ int DungeonPlay(char *fname)
       SetTonedPalette((float)rooms[player_room].s_dist / (float)max_dist);
       last_killed = killed_enemies;
     } else {
-      if ((player_room == 0)&&(artifacts[11] == 1)) {
+      if ((player_room == 0)&&(artifacts[AF_CURSED_SEAL] == 1)) {
         SetTonedPalette(0);
       }
     }
@@ -1045,7 +1097,7 @@ int DungeonPlay(char *fname)
       if (!game_paused) {
         if (shield_hp < player_shield) {
           shield_recover += player_shield * 3 / (3 - training - (player_shield == 30));
-          if (artifacts[1]) shield_recover += player_shield * 3 / (3 - training - (player_shield == 30));
+          if (artifacts[AF_SHIELD_BOOST]) shield_recover += player_shield * 3 / (3 - training - (player_shield == 30));
           if (shield_recover >= 50) {
             shield_hp++;
             shield_recover -= 50 - (player_shield == 30)*25;
@@ -1061,7 +1113,7 @@ int DungeonPlay(char *fname)
     if (!tele_select) {
       sprintf(buf, "Psi Crystals: %d", player_gems);
       draw_text(3, 3, buf, 200);
-      sprintf(buf, "Explored: %.1f%% (%d/%d rooms)", (float)explored/30.0, explored, 3000);
+      sprintf(buf, "Explored: %.1f%% (%d/%d rooms)", (float)explored/30.0, explored, rooms_to_gen);
       draw_text(3, 11, buf, 200);
       sprintf(buf, "Cleared: %.1f%% (%d/%d monsters)", (float)killed_enemies/(float)total_enemies*100.0, killed_enemies, total_enemies);
       draw_text(3, 19, buf, 200);
@@ -1159,6 +1211,14 @@ int DungeonPlay(char *fname)
       draw_text((640 - 23 * 8) / 2, (480 - 8) / 2 + 4, "Press enter to confirm.", 255);
     }
 
+    if (isArchipelago() && HasAPStatus()) {
+      size_t len = strlen(GetAPStatus());
+      if (len > 0) {
+        DrawRect(10, 450, len * 8 + 2, 10, 64);
+        draw_text(11, 451, GetAPStatus(), 192);
+      }
+    }
+
     VideoUpdate();
 
     MusicUpdate();
@@ -1200,23 +1260,23 @@ int DungeonPlay(char *fname)
       off_x = 0;
       off_y = 0;
       if (key_held[K_UP] && !key_held[K_DN]) {
-        iy -= player_walk_speed * (artifacts[4]?1.4:1);
+        iy -= player_walk_speed * (artifacts[AF_METABOLISM]?1.4:1);
         player_dir = 0;
       }
       if (key_held[K_DN] && !key_held[K_UP]) {
-        iy += player_walk_speed * (artifacts[4]?1.4:1);;
+        iy += player_walk_speed * (artifacts[AF_METABOLISM]?1.4:1);;
         player_dir = 1;
         off_y = 24;
       }
       if (key_held[K_LT] && !key_held[K_RT]) {
-        ix -= player_walk_speed * (artifacts[4]?1.4:1);;
+        ix -= player_walk_speed * (artifacts[AF_METABOLISM]?1.4:1);;
         if (!(key_held[K_UP] || key_held[K_DN])) {
           player_dir = 3;
         }
       }
       if (key_held[K_RT] && !key_held[K_LT]) {
         off_x = 16;
-        ix += player_walk_speed * (artifacts[4]?1.4:1);;
+        ix += player_walk_speed * (artifacts[AF_METABOLISM]?1.4:1);;
         if (!(key_held[K_UP] || key_held[K_DN])) {
           player_dir = 2;
 
@@ -1242,13 +1302,13 @@ int DungeonPlay(char *fname)
         if (((player_x / 32)!=((ix+off_x) / 32)) || ((player_y / 32)!=((iy+off_y) / 32))) {
           //printf("%d\n", tile);
           if (TouchTile(ix, iy)) {
-            player_wlk = (player_wlk + 1 + artifacts[4]*3) % (4*wlk_wait);
+            player_wlk = (player_wlk + 1 + artifacts[AF_METABOLISM]*3) % (4*wlk_wait);
           } else {
             if (TouchTile(player_x, iy)) {
-              player_wlk = (player_wlk + 1 + artifacts[4]*3) % (4*wlk_wait);
+              player_wlk = (player_wlk + 1 + artifacts[AF_METABOLISM]*3) % (4*wlk_wait);
             } else {
               if (TouchTile(ix, player_y)) {
-                player_wlk = (player_wlk + 1 + artifacts[4]*3) % (4*wlk_wait);
+                player_wlk = (player_wlk + 1 + artifacts[AF_METABOLISM]*3) % (4*wlk_wait);
                 if (off_x > 0) player_dir = 2;
                 else player_dir = 3;
               }
@@ -1259,7 +1319,7 @@ int DungeonPlay(char *fname)
           player_x = ix;
           player_y = iy;
 
-          player_wlk = (player_wlk + 1 + artifacts[4]*3) % (4*wlk_wait);
+          player_wlk = (player_wlk + 1 + artifacts[AF_METABOLISM]*3) % (4*wlk_wait);
         }
       }
     }
@@ -1294,6 +1354,15 @@ int DungeonPlay(char *fname)
     SDL_Delay(2000);
   }
 
+  if (current_boss == 3 && artifacts[AF_CURSED_SEAL] && player_room == 0) {
+    char showStats = 0;
+    if (player_lives == 0) showStats = AnnounceVictory(0);
+    if (showStats) ShowBadEndingStats();
+  }
+
+  EndRando();
+  DestroyStores();
+
   return 0;
 }
 
@@ -1303,7 +1372,7 @@ void UpRoom()
 
   nd = rooms[player_room].s_dist + 1;
 
-  for (i = 0; i < 3000; i++) {
+  for (i = 0; i < rooms_to_gen; i++) {
     if (rooms[i].s_dist == nd) {
       player_x = rooms[i].x * 32 + 64;
       player_y = rooms[i].y * 32 + 64;
@@ -1378,6 +1447,9 @@ void HandleEvents()
             key_held[K_SP] = 1;
             CancelVoluntaryExit();
             break;
+          case SDLK_c:
+            key_held[K_c] = 1;
+            break;
           case SDLK_RETURN:
             enter_pressed = 1;
             break;
@@ -1427,7 +1499,7 @@ void HandleEvents()
               int i, n, j;
               for (j = 0; j < 1; j++) {
                 for (i = 0; i < 50000; i++) {
-                  n = rand()%3000;
+                  n = rand()%rooms_to_gen;
                   if (rooms[n].visited == 0) {
                     player_x = rooms[n].x * 32 + rooms[n].w * 16;
                     player_y = rooms[n].y * 32 + rooms[n].h * 16;
@@ -1443,13 +1515,13 @@ void HandleEvents()
           case SDLK_m:
             {
               int i;
-              for (i = 0; i < 8; i++) {
+              for (i = 0; i < AF_MAXX_NOKEYS; i++) {
                 artifacts[i] = 1;
               }
-              for (i = 8; i < 11; i++) {
+              for (i = AF_MAXX_NOKEYS; i < AF_MAXX; i++) {
                 artifacts[i] = 0;
               }
-              artifacts[11] = 0;
+              //artifacts[AF_CURSED_SEAL] = 0;
             }
             break;
 
@@ -1486,6 +1558,9 @@ void HandleEvents()
           case SDLK_SPACE:
             key_held[K_SP] = 0;
             break;
+          case SDLK_c:
+            key_held[K_c] = 0;
+            break;
           default:
             break;
         }
@@ -1495,7 +1570,7 @@ void HandleEvents()
       }
     }
 
-  HandleGamepad (key_held);
+  //HandleGamepad (key_held);
 
   if (RECORDING) {
     db = 0;
@@ -1657,7 +1732,7 @@ void SetTonedPalette(float dct)
       pal[1].b = 0;
     }
   } else {
-    if (artifacts[11]) {
+    if (artifacts[AF_CURSED_SEAL]) {
       if (player_room == 0) {
         tk++;
         pct = sin((float)tk / 33.0 * M_PI) * 0.5 + 0.5;
@@ -1767,7 +1842,7 @@ void ActivateBossDoor(int x, int y)
   } else
     return;
 
-  if (artifacts[8 + rooms[GetRoom(bx, by)].room_param]) {
+  if (artifacts[AF_MAXX_NOKEYS + rooms[GetRoom(bx, by)].room_param]) {
     opening_door_x = x;
     opening_door_y = y;
     opening_door_i = 1;
@@ -1878,7 +1953,7 @@ void draw_char(int cur_x, int cur_y, int c, Uint8 tcol)
   }
 }
 
-void draw_text(int x, int y, char *str, Uint8 tcol)
+void draw_text(int x, int y, const char *str, Uint8 tcol)
 {
   int c, cur_x, cur_y;
 
@@ -1897,7 +1972,7 @@ void draw_text(int x, int y, char *str, Uint8 tcol)
   }
 }
 
-void draw_text_f(int x, int y, char *str, Uint8 tcol, ...)
+void draw_text_f(int x, int y, const char *str, Uint8 tcol, ...)
 {
   char buf[255] = {0};
   va_list args;
@@ -1906,7 +1981,7 @@ void draw_text_f(int x, int y, char *str, Uint8 tcol, ...)
   draw_text(x, y, buf, tcol);
 }
 
-void draw_text_ex(int x, int y, char *str, Uint8 tcol, SDL_Surface *srf)
+void draw_text_ex(int x, int y, const char *str, Uint8 tcol, SDL_Surface *srf)
 {
   Uint8 *pix;
   int c, cur_x, cur_y, px, py;
@@ -2103,18 +2178,6 @@ void DrawShield()
   }
 }
 
-// void ST_Teleport()
-// {
-// }
-
-int UpgradePrice(int t)
-{
-  // TODO: make upgrade prices configurable
-  int costFactor = CostFactor(t);
-  if (costFactor < 0) return 9999999;
-  else return (80 - training*40) * costFactor + (5<<costFactor) * (4 - training*2);
-}
-
 int GetNearestCheckpoint(int nx, int ny)
 {
   int i;
@@ -2181,9 +2244,9 @@ void TeleportPlayerToRoom(int c_room)
 void TeleportPlayerToNextRoom()
 {
   int c_room;
-  c_room = (player_room + 1) % 3000;
+  c_room = (player_room + 1) % rooms_to_gen;
   while (! ((rooms[c_room].checkpoint!=0)&&(rooms[c_room].visited!=0))) {
-    c_room = (c_room + 1) % 3000;
+    c_room = (c_room + 1) % rooms_to_gen;
   }
 
   if (c_room == 0) {
@@ -2205,7 +2268,7 @@ void ActivateTile(unsigned char tile, int x, int y)
   enter_pressed = 0;
   switch (tile) {
     case 25:
-      if (artifacts[11]) break;
+      if (artifacts[AF_CURSED_SEAL]) break;
 
       c_room = GetNearestCheckpoint(c_scroll_x, c_scroll_y);
       if (tele_select) {
@@ -2278,27 +2341,28 @@ void CompassPoint()
   // Look at the three artifacts
   // Unless the player is going for the place of power
 
+  // TODO: make this code not assume that x499 and x999 are special rooms
   if (current_boss < 3) {
     for (i = 0; i < 3; i++) {
       // Has the player got this artifact already?
-      if (artifacts[8+i] == 0) { // no
-        // Has the player already destroyed the boss?
-        if (rooms[i * 1000 + 999].room_type == 2) { // no
-          // Can the player get the artifact?
-          if (CanGetArtifact()) {
-            // Point player to this artifact room, if it is the nearest
-            loc_x = rooms[i * 1000 + 499].x * 32 + rooms[i * 1000 + 499].w * 16;
-            loc_y = rooms[i * 1000 + 499].y * 32 + rooms[i * 1000 + 499].h * 16;
-            cdist = dist(rplx, rply, loc_x, loc_y);
-            if (cdist < nearest) {
-              nearest = cdist;
-              n_room = i * 1000 + 499;
-            }
+      if (!HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_1 + i)) { // no
+        // Can the player get the artifact?
+        if (CanGetArtifact()) {
+          // Point player to this artifact room, if it is the nearest
+          loc_x = rooms[i * 1000 + 499].x * 32 + rooms[i * 1000 + 499].w * 16;
+          loc_y = rooms[i * 1000 + 499].y * 32 + rooms[i * 1000 + 499].h * 16;
+          cdist = dist(rplx, rply, loc_x, loc_y);
+          if (cdist < nearest) {
+            nearest = cdist;
+            n_room = i * 1000 + 499;
           }
         }
-      } else { // has artifact
-        // Has the player already destroyed the boss?
-        if (rooms[i * 1000 + 999].room_type == 2) { // no
+      } 
+
+      // Has the player already destroyed the boss?
+      if (rooms[i * 1000 + 999].room_type == 2) { // no
+        // Has the player got the artifact for this boss room?
+        if (artifacts[AF_MAXX_NOKEYS + i]) { // yes
           // Point player to the boss room, if it is the nearest
           loc_x = rooms[i * 1000 + 999].x * 32 + rooms[i * 1000 + 999].w * 16;
           loc_y = rooms[i * 1000 + 999].y * 32 + rooms[i * 1000 + 999].h * 16;
@@ -2307,9 +2371,9 @@ void CompassPoint()
             nearest = cdist;
             n_room = i * 1000 + 999;
           }
-        } else { // yes
-          bosses_defeated++;
         }
+      } else { // yes
+        bosses_defeated++;
       }
     }
   }
@@ -2317,7 +2381,7 @@ void CompassPoint()
   // PLACE OF POWER
   if (bosses_defeated == 3) {
     // If the player already has the seal, point them to home
-    if (artifacts[11] == 1) {
+    if (artifacts[AF_CURSED_SEAL] == 1) {
       loc_x = rooms[0].x * 32 + rooms[0].w * 16;
       loc_y = rooms[0].y * 32 + rooms[0].h * 16;
       cdist = dist(rplx, rply, loc_x, loc_y);
@@ -2353,7 +2417,7 @@ void CompassPoint()
 
   nearest = 1000000;
   // Find the nearest uncleared artifact room
-  for (i = 0; i < 3000; i++) {
+  for (i = 0; i < rooms_to_gen; i++) {
     if (rooms[i].room_type == 3) {
       loc_x = rooms[i].x * 32 + rooms[i].w * 16;
       loc_y = rooms[i].y * 32 + rooms[i].h * 16;
@@ -2415,18 +2479,18 @@ void PostMessage(int msgid, int duration, int paramcount, ...)
   newmsg->msgid = msgid;
   newmsg->duration = duration;
   newmsg->paramcount = paramcount;
-  newmsg->params = malloc(sizeof(char*) * paramcount);
+  newmsg->params = paramcount > 0 ? malloc(sizeof(char*) * paramcount) : NULL;
 
   if (paramcount > 0) {
     va_list ptr;
 
     va_start(ptr, paramcount);
     for (int x = 0; x < paramcount; x++) {
-      char *str = va_arg(ptr, char*);
-      size_t makelen = __min(sizeof(char) * (strlen(str) + 1), 100);
+      const char *str = va_arg(ptr, const char*);
+      size_t makelen = MIN(sizeof(char) * (strlen(str) + 1), 100);
       newmsg->params[x] = malloc(makelen);
-      memset(newmsg->params[x], makelen, 0);
-      snprintf(newmsg->params[x], makelen - 1, str);
+      memset(newmsg->params[x], 0, makelen);
+      snprintf(newmsg->params[x], makelen, str);
     }
     va_end(ptr);
   }
@@ -2461,7 +2525,7 @@ void SpecialTile(int x, int y)
   tile = Get(x, y);
   switch (tile) {
     case 25:
-      if (artifacts[11]) {
+      if (artifacts[AF_CURSED_SEAL]) {
         sprintf(message, "This is a checkpoint, but it doesn't seem to be working");
         break;
       }
@@ -2472,27 +2536,19 @@ void SpecialTile(int x, int y)
       }
       break;
     case 26:
-      sprintf(message, "Press ENTER to open the storage chest");
+      int chestnum = GetNextItemIndex(IS_CHESTS) + 1;
+      if (chestnum > 0) sprintf(message, "Press ENTER to open the storage chest [#%d]", chestnum);
+      else sprintf(message, "Press ENTER to open the storage chest [extra]");
       break;
     case 28:
-      if (CostFactor(IS_ALPHA) < 0) {
-        sprintf(message, "Alpha cache is empty");
-      } else {
-        sprintf(message, "Press ENTER to loot Alpha cache (%d crystals)", UpgradePrice(0));
-      }
-      break;
     case 29:
-      if (CostFactor(IS_BETA) < 0) {
-        sprintf(message, "Beta cache is empty");
-      } else {
-        sprintf(message, "Press ENTER to loot Beta cache (%d crystals)", UpgradePrice(1));
-      }
-      break;
     case 30:
-      if (CostFactor(IS_GAMMA) < 0) {
-        sprintf(message, "Gamma cache is empty");
+      int offset = tile - 28;
+      if (CostFactor(IS_ALPHA + offset) < 0) {
+        sprintf(message, "%s cache is empty", cache_names[offset]);
       } else {
-        sprintf(message, "Press ENTER to loot Gamma cache (%d crystals)", UpgradePrice(2));
+        sprintf(message, "Press ENTER to loot %s cache [#%d] (%d crystals)",
+                cache_names[offset], GetNextItemIndex(IS_ALPHA + offset) + 1, UpgradePrice(offset));
       }
       break;
     case 31:
@@ -2507,9 +2563,7 @@ void SpecialTile(int x, int y)
       break;
     case 42:
       if (rooms[player_room].room_type == 5) {
-        if (CanGetArtifact(rooms[player_room].room_param)) {
-
-        } else {
+        if (!CanGetArtifact(rooms[player_room].room_param)) {
           sprintf(message, "The artifact is tainted with shadow. You must slay more of the shadow first.");
         }
       }
@@ -2518,69 +2572,81 @@ void SpecialTile(int x, int y)
       CompassPoint();
       break;
     default:
-      if (first_game) {
-        if (otext < 60) {
-          sprintf(message, "Press H to read the help file");
-          otext++;
-        }
+      if (first_game && otext < 60) {
+        sprintf(message, "Press H to read the help file");
+        otext++;
       }
       break;
   }
 
+  if (tile != 53 && key_held[K_c] && artifacts[AF_PORTABLE_COMPASS]) CompassPoint();
+
   if (msgqueue != NULL) {
     switch (msgqueue->msgid) {
-      case 1:
+      case 1: // Map
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage2, "reveals the labyrinth within the Atlas Dome");
+        sprintf(specialmessage2, "reveals the labyrinth within the Atlas Dome [TAB]");
         break;
-      case 2:
+      case 2: // Shield Boost
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage2, "enhances Virtue's shield");
+        sprintf(specialmessage2, "rejuvenates Virtue's shield");
         break;
-      case 3:
+      case 3: // Crystal Efficiency
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
         sprintf(specialmessage2, "enriches all crystals within the Dome");
         break;
-      case 4:
+      case 4: // Circuit Booster
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage2, "bolsters Virtue's PSI Circuit");
+        sprintf(specialmessage2, "extends Virtue's PSI Circuit range");
         break;
-      case 5:
+      case 5: // Metabolism
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
         sprintf(specialmessage2, "hastens Virtue's pace");
         break;
-      case 6:
+      case 6: // Dodge Enhancer
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
         sprintf(specialmessage2, "sharpens Virtue's reflexes");
         break;
-      case 7:
+      case 7: // Ethereal Monocle
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
         sprintf(specialmessage2, "reveals nearby threats");
         break;
-      case 8:
+      case 8: // Crystal Gatherer
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
         sprintf(specialmessage2, "draws crystals toward Virtue");
         break;
+      case 9: // Portable Compass
+        sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
+        sprintf(specialmessage2, "shows Virtue the way forward [C]");
+        break;
 
-      case 10:
+      case 10: // Reflect Shield upgrade
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
         sprintf(specialmessage2, "strengthens Virtue's shield");
         break;
-      case 11:
+      case 11: // Circuit Charge upgrade
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage2, "strengthens Virtue's PSI Circuit");
+        sprintf(specialmessage2, "increases Virtue's PSI Circuit strength");
         break;
-      case 12:
+      case 12: // Circuit Refill upgrade
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage2, "hastens Virtue's PSI Circuit");
+        sprintf(specialmessage2, "hastens Virtue's PSI Circuit recharge rate");
         break;
 
-      case 20:
+      case 20: // Crystals
         sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
         sprintf(specialmessage2, "showers Virtue with PSI crystals");
         break;
+      case 21: // "Nothing" item
+        sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
+        sprintf(specialmessage2, "dissipates and does nothing");
+        break;
+      case 22: // Extra life
+        sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
+        sprintf(specialmessage2, "protects Virtue's life");
+        break;
 
-      case 25:
+      case 25: // Evolution Trap
         sprintf(specialmessage1, "A disruption from %s", msgqueue->params[0]);
         sprintf(specialmessage2, "makes the Atlas Dome more dangerous");
         break;
@@ -2594,47 +2660,42 @@ void SpecialTile(int x, int y)
       case 32: // deprecated
         sprintf(specialmessage1, "Divine Bow 'Gandiva' answers your call");
         break;
-      case 33:
-        sprintf(specialmessage1, "You capture the cursed seal. Return to the entrance.");
-        sprintf(specialmessage2, "A threatening aura surrounds you. Run.");
+      case 33: // Cursed Seal
+        sprintf(specialmessage1, "You capture the cursed seal");
+        sprintf(specialmessage2, "Return to the entrance");
         break;
-      case 34:
+      case 34: // PSI Key
         sprintf(specialmessage1, "A surge from %s beckons", msgqueue->params[0]);
         sprintf(specialmessage2, "the %s to Virtue's aid", msgqueue->params[1]);
         break;
 
-      case 40:
+      case 40: // deprecated
         sprintf(specialmessage1, "Balmung will remain here,");
         sprintf(specialmessage2, "where the ley lines are strong");
         break;
-      case 41:
+      case 41: // deprecated
         sprintf(specialmessage1, "Amenonuhoko will remain here,");
         sprintf(specialmessage2, "where the ley lines are strong");
         break;
-      case 42:
+      case 42: // deprecated
         sprintf(specialmessage1, "Gandiva will remain here,");
         sprintf(specialmessage2, "where the ley lines are strong");
         break;
+      case 43: // Boss defeated
+        sprintf(specialmessage1, "%s will remain here,", msgqueue->params[0]);
+        sprintf(specialmessage2, "where the ley lines are strong");
+        break;
 
-      case 50:
+      case 50: // Agate Knife
         sprintf(specialmessage1, ". . . . . .");
         sprintf(specialmessage2, "retrieved 'Agate Knife'");
         break;
 
-      case 60: // "Nothing" item
-        sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage2, "dissipates and does nothing");
-        break;
-      case 61:
-        sprintf(specialmessage1, "A ripple from %s", msgqueue->params[0]);
-        sprintf(specialmessage2, "protects Virtue's life");
-        break;
-
       case 70: // Check goes to other player
         sprintf(specialmessage1, "Looting %s restores %s's", msgqueue->params[0], msgqueue->params[1]);
-        sprintf(specialmessage2, msgqueue->params[3]);
+        sprintf(specialmessage2, msgqueue->params[2]);
         break;
-      case 71: // Forfeit received
+      case 71: // Release received
         sprintf(specialmessage1, "As %s's world stabilizes, Virtue receives", msgqueue->params[0]);
         sprintf(specialmessage2, msgqueue->params[1]);
         break;
@@ -2642,9 +2703,17 @@ void SpecialTile(int x, int y)
         sprintf(specialmessage1, msgqueue->params[0]);
         sprintf(specialmessage2, "%s restored to %s's world", msgqueue->params[1], msgqueue->params[2]);
         break;
-      case 73: // DeathLink
+      case 73: // DeathLink received
         sprintf(specialmessage1, "A disruption from %s's world", msgqueue->params[0]);
         sprintf(specialmessage2, "results in Virtue's demise");
+        break;
+      case 74: // DeathLink sent
+        sprintf(specialmessage1, "Virtue's death disrupts reality");
+        sprintf(specialmessage2, "and can be felt across dimensions");
+        break;
+      case 75: // DeathLink disabled
+        sprintf(specialmessage1, "Death seems like less");
+        sprintf(specialmessage2, "of a threat now");
         break;
 
       default: sprintf(specialmessage1, "ERROR: NO/INVALID MESSAGE VALUE GIVEN"); break;
@@ -2664,7 +2733,7 @@ void SpecialTile(int x, int y)
 
   if (specialmessage1[0] != 0) {
     if (specialmessage2[0] == 0) sprintf(specialmessage2, "test");
-    int longermsg = (int)__max(strlen(specialmessage1), strlen(specialmessage2));
+    int longermsg = (int)MAX(strlen(specialmessage1), strlen(specialmessage2));
     DrawRect(320 - longermsg*8 / 2 - 20, 325, longermsg*8+40, 55, 200);
     DrawRect(320 - longermsg*8 / 2 - 15, 330, longermsg*8+30, 45, 32);
     DrawRect(320 - longermsg*8 / 2 - 10, 335, longermsg*8+20, 35, 64);
@@ -2681,7 +2750,7 @@ void SpecialTile(int x, int y)
 
 void ScrollTo(int x, int y)
 {
-  static int scrollspeed_x = 1, scrollspeed_y = 1;
+  //static int scrollspeed_x = 1, scrollspeed_y = 1;
   if (scroll_home == 0) {
     scroll_x = x;
     scroll_y = y;
@@ -2689,8 +2758,8 @@ void ScrollTo(int x, int y)
   }
 
   if (scroll_home == 1) {
-    scrollspeed_x = (x - scroll_x)/20;
-    scrollspeed_y = (y - scroll_y)/20;
+    // scrollspeed_x = (x - scroll_x)/20;
+    // scrollspeed_y = (y - scroll_y)/20;
     scroll_home = 2;
   }
 
@@ -2716,15 +2785,15 @@ void DrawArtifacts()
     SDL_SetColorKey(artifact_spr, SDL_SRCCOLORKEY | SDL_RLEACCEL, 0);
   }
 
-  for (i = 0; i < 12; i++) {
+  for (i = 0; i < AF_MAXX; i++) {
     if (artifacts[i]) {
       from.x = i * 32;
       from.y = 0;
       from.w = 32;
       from.h = 32;
 
-      to.x = 608;
-      to.y = 47 + i * 35;
+      to.x = 608 - (i / 12) * 35;
+      to.y = 47 + (i % 12) * 35;
       SDL_BlitSurface(artifact_spr, &from, screen, &to);
     }
   }

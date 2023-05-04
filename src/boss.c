@@ -40,7 +40,7 @@ char *boss_names[] = {
   "MERIDIAN",
   "ATARAXIA",
   "MERODACH",
-  "WERVYN ANIXIL"
+  "BERSERKER"
 };
 
 int boss_fight_mode = 0;
@@ -97,7 +97,6 @@ struct dlg_box {
 };
 
 struct dlg_box dtext[5][12] =
-//      "This string of text is precisely seventy eight characters in length, usefully."
 {
   { // Meridian
   {0, 5, 0,
@@ -108,7 +107,7 @@ struct dlg_box dtext[5][12] =
     "  Your PSI is different. Your magic is perverse. Poisonous. Treacherous."
   },
   {1, 5, 0,
-    "MERIT:\n"
+    "VIRTUE:\n"
     "  \n"
     "  Nothing but darkness carried on the wind of a curse. It's amazing that you\n"
     "  are able to communicate with me at all. Surely a statement on the perversity\n"
@@ -133,7 +132,7 @@ struct dlg_box dtext[5][12] =
     "  your doing?"
   },
   {1, 6, 0,
-    "MERIT:\n"
+    "VIRTUE:\n"
     "  \n"
     "  Moving Ochra's Keys from the ley lines was only the start, am I correct?\n"
     "  Nonetheless, what you've already caused is enough. The Keys were placed to\n"
@@ -151,7 +150,7 @@ struct dlg_box dtext[5][12] =
     "  Nothing can be gained by preventing it from taking its natural course."
   },
   {1, 8, 0,
-    "MERIT:\n"
+    "VIRTUE:\n"
     "  \n"
     "  You delude yourself with the crazed whisperings from the muck that spawned\n"
     "  you. You say that this PSI is still PSI, but it is not. PSI is the energy of\n"
@@ -193,189 +192,154 @@ struct dlg_box dtext[5][12] =
   }
   },
   
-  { // Wervyn Anixil
-    {1, 6, 0,
-    "MERIT:\n"
+  { // Berserker
+  {1, 5, 0,
+    "VIRTUE:\n"
     "  \n"
-    "  ANIXIL? So, that's how it is. I assume you worked out a way of using the\n"
-    "  PSI in this state. So, not happy with your allotted PSI from the Dome, you\n"
-    "  decided to render it in this form and take it all for yourself.\n"
-    "  What was your reasoning for doing something this rash, though?"
-  },
-
-  {0, 9, 0,
-    "WERVYN ANIXIL:\n"
-    "  \n"
-    "  All you seem to do is complain. That's what I've discovered through this,\n"
-    "  and it's definitely part of the reason I did it. I do creative things like\n"
-    "  this sort of 'punishment' because it lets me better understand the nature of\n"
-    "  all the forces involved. It tells me that you, MERIT, really do not have a\n"
-    "  clue how to relate to other PSI users, and that for the most part you're\n"
-    "  entirely self-absorbed. It tells me that, while PSI users in general doesn't\n"
-    "  really 'get' the ethos of the forces involved here, and that the rerendered"
-  },
-
-  {0, 9, 0,
-    "WERVYN ANIXIL:\n"
-    "  \n"
-    "  PSI, as intelligent as it is, pretty much entirely understands it, though it\n"
-    "  was mistaken that the rendering of this form was intentional.\n"
-    "  \n"
-    "  Regarding that, by the way, THAT is the reason I thought you needed a\n"
-    "  punishment. Making ridiculously inefficient, wasteful use of the limited PSI\n"
-    "  we have available wouldn't have been a problem if it was just the normal PSI\n"
-    "  like we'd planned it to be. But you knew full well that PSI users who wanted"
-  },
-
-  {0, 9, 0,
-      "WERVYN ANIXIL:\n"
-    "  \n"
-    "  nothing to do with it were being greatly inconvenienced by usage clogging up\n"
-    "  the limited ley-lines we have. That makes you an asshole, a deliberate prick\n"
-    "  to everyone in the world because you thought you could get away with it, and\n"
-    "  that it wouldn't matter.\n"
-    "  \n"
-    "  I also take issue with this nonsense about your punishment being severe,\n"
-    "  because it's not. You can still use your PSI as you used it before, to a"
-  },
-
-  {0, 9, 0,
-    "WERVYN ANIXIL:\n"
-    "  \n"
-    "  similar level of effectiveness. I specifically allowed access to THIS form\n"
-    "  of PSI so that you couldn't complain that you couldn't use magic. Now\n"
-    "  exiling you to the Dome had multiple meanings. One was to effectively tell\n"
-    "  you, 'I don't think you have anything of value to do, so I'm putting you in\n"
-    "  a place where no one does anything of value.' I still think that, by the\n"
-    "  way. Another was, like I said, to see what you would do. Maybe you would\n"
-    "  actually cast something worth the PSI, then. Or maybe you would take the"
+    "  Enough, BERSERKER. I see now what's been happening in this place. All these\n"
+    "  strange otherwordly objects which seem to evaporate at a mere touch? These\n"
+    "  are to blame for the world vanishing before us, aren't they?"
   },
 
   {0, 8, 0,
-    "WERVYN ANIXIL:\n"
+    "BERSERKER:\n"
     "  \n"
-    "  hint and just stop it for the week until I decided you'd had enough. But you\n"
-    "  couldn't do either of those things, because all you do is complain.\n"
+    "  Have you heard of multiverse theory? The idea that there is an innumerable\n"
+    "  amount of different worlds, different realities, different timelines. Using\n"
+    "  the Chaos Engine Archipelago, I've been able to tap into these other\n"
+    "  timelines. It's a tricky process; you must find just the right point in time\n"
+    "  when a crisis strong enough to disrupt reality is happening, and from there,\n"
+    "  it's possible to make changes. Substitute things from that reality into ours"
+  },
+
+  {0, 8, 0,
+    "BERSERKER:\n"
     "  \n"
-    "  I want you to take a look at yourself and ask what you want to accomplish\n"
-    "  here, and what you think is keeping you here. Obviously you have some\n"
-    "  attachment, even though you keep saying the new PSI is worthless. This isn't"
+    "  which we can then research and integrate into our own technology.\n"
+    "  \n"
+    "  I'm sure you must have noticed it by now, right? New advancements in leaps\n"
+    "  and bounds. Gloves that radically increase the wearer's strength; clothes\n"
+    "  that protect against extreme heat or cold; mechanical devices to drastically\n"
+    "  increase the speed and quantity of production."
+  },
+
+  {0, 7, 0,
+    "BERSERKER:\n"
+    "  \n"
+    "  These other histories have also been fascinating to research, for that\n"
+    "  matter. A couple of them are on the brink of annihilation. A few more seem\n"
+    "  focused around making something out of nothing. One of them sees generations\n"
+    "  go by in a matter of minutes. Some pocket dimensions are being discovered as\n"
+    "  well, which seems to tie some of them together."
   },
 
   {0, 9, 0,
-    "WERVYN ANIXIL:\n"
+    "BERSERKER:\n"
     "  \n"
-    "  true, of course, ATARAXIA really captures a good point here. For the most\n"
-    "  part, PSI users just find you extremely annoying because you continually set\n"
-    "  yourself at odds with pretty much every kind of PSI usage but your own, and\n"
-    "  then complain about it. Do you want things to be different? They certainly\n"
-    "  can be. 'EVEN IF I DO CHANGE, THEN MY PSI WON'T BE GOOD ENOUGH!' That's\n"
-    "  bullshit. All other PSI users seem to be on the path to figuring out how to\n"
-    "  just use it. You can too."
+    "  On top of everything, it seems like, the more we do this, the more timelines\n"
+    "  become accessible. And it's not as though I'm alone in this endeavor; there\n"
+    "  is an entire research team back on the planet devoted to unlocking the paths\n"
+    "  to these worlds.\n"
+    "  \n"
+    "  Of course, I won't tell you who. Seeing as you have that damn seal, it seems\n"
+    "  you're intent on stopping me."
   },
 
-  {0, 9, 0,
-    "WERVYN ANIXIL:\n"
+  {1, 7, 0,
+    "VIRTUE:\n"
     "  \n"
-    "  Your 'punishment' is up tomorrow, I'd only planned to do it for a week. Of\n"
-    "  course, you can continue complaining, and I may have to think of something\n"
-    "  else to do to you. But I'm not going to kill you. If you want to leave this\n"
-    "  mortal coil because you can't take it anymore, then leave. If you don't want\n"
-    "  to leave, then start working out your issues with the new PSI, I actually\n"
-    "  would love to help. And if you don't want to do that, then I'm sorry, but\n"
-    "  you're going to continue being useless at magic, because the way you are"
+    "  Have you not looked at the state of the world? The more you've been doing\n"
+    "  this, the more it has been disappearing. The longer this has been going on,\n"
+    "  the worse the damage has been. I can't even begin to imagine how this has\n"
+    "  affected these other worlds. Of course I'm here to stop this, before\n"
+    "  the entire universe collapses upon itself."
   },
 
-  {0, 4, 0,
-    "WERVYN ANIXIL:\n"
+  {0, 9, 1,
+    "BERSERKER:\n"
     "  \n"
-    "  now, it's not surprising at all that your PSI ability is as stunted as it\n"
-    "  is."
-  },
-
-  {1, 4, 0,
-    "MERIT:\n"
+    "  Psh. What proof have you that any such thing is going to happen? Yes, there\n"
+    "  is a bit of necessary equivalent exchange that must happen in order to\n"
+    "  retrieve these otherworldly artifacts, but how can you prove that this is\n"
+    "  causing any sort of rift or tear?\n"
     "  \n"
-    "  The tainted PSI has driven even you mad. Mad with power. This is a blow I\n"
-    "  I must strike, for everyone. For humanity."
-  },
-
-  {0, 3, 1,
-    "WERVYN ANIXIL:\n"
-    "  \n"
-    "  I'll meet you at the point of diminishing returns."
+    "  I'd ask you to leave me to my research now, but I presume you've no\n"
+    "  intention of doing so. Looks like it's my turn, then."
   }
   },
   
   { // Wervyn Anixil???? (with Agate Knife)
-    {1, 8, 0,
-    "MERIT:\n"
+  {1, 5, 0,
+    "VIRTUE:\n"
     "  \n"
-    "  ANIXIL? So, that's how it is. I assume you worked out a way of using the\n"
-    "  PSI in this state. So, not happy with your allotted PSI from the Dome, you\n"
-    "  decided to render it in this form and take it all for yourself.\n"
-    "  What was your reasoning for doing something this rash, though?\n"
-    "  \n"
-    "  That was what you wanted to hear, right?"
+    "  Enough, BERSERKER. I see now what's been happening in this place. All these\n"
+    "  strange otherwordly objects which seem to evaporate at a mere touch? These\n"
+    "  are to blame for the world vanishing before us, aren't they?"
   },
 
-  {0, 7, 0,
-    "WERVYN ANIXIL????:\n"
+  {0, 8, 0,
+    "BERSERKER:\n"
     "  \n"
-    "  All you seem to do is complain. That's what I've discovered through this,\n"
-    "  and it's definitely part of the ... ... ... ... ... ... ... ... ... ... ...\n"
+    "  Have you heard of multiverse theory? The idea that there is an innumerable\n"
+    "  amount of different worlds, different.. ... ... ... ... ... ... ... ... ...\n"
     "  ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...\n"
     "  ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ... ...\n"
-    "  ... ... oh."
+    "  ... ... wait, where did you find that?!"
   },
 
-  {1, 6, 0,
-    "MERIT:\n"
+  {1, 9, 0,
+    "VIRTUE:\n"
     "  \n"
-    "  If I've learned anything in life, it's that things are often not quite as\n"
-    "  they seem. You couldn't use the Agate Knife, so you attempted to hide it.\n"
+    "  It's my understanding that the Atlas Dome is an almost exact replica of the\n"
+    "  Orcus Dome back on the planet. This would require there to be PSI on the\n"
+    "  moon, a phenomenon that has not been observed in the past. So, in order to\n"
+    "  form this new PSI dome, a seed was needed. Likewise, an unnamed artifact was\n"
+    "  reported missing from the Orcus Dome.\n"
     "  \n"
     "  Unfortunately for you, I found it and recognised it."
   },
 
-  {0, 7, 0,
-      "WERVYN ANIXIL????:\n"
+  {0, 4, 0,
+    "BERSERKER:\n"
     "  \n"
-    "  . . . . no. It's not just recognising the Knife at all. You were actually\n"
-    "  able to use it, too.\n"
-    "  \n"
-    "  So. You too knew the secret?"
+    "  Finding and recognising it is one thing. The fact that you're able to use it\n"
+    "  as well is fascinating."
   },
 
-  {1, 5, 0,
-    "MERIT:\n"
+  {1, 6, 0,
+    "VIRTUE:\n"
     "  \n"
-    "  I was one of the few that he told.\n"
-    "  \n"
-    "  And so I know."
+    "  If you have such knowledge about PSI that you're able to connect to other\n"
+    "  worlds and steal their artifacts, you should also know that using this knife\n"
+    "  would allow this to happen far more stably. As it stands, it might be the\n"
+    "  only way to prevent any further damage and begin restoring our reality."
   },
 
-  {0, 3, 0,
-    "????:\n"
+  {0, 5, 0,
+    "BERSERKER:\n"
     "  \n"
-    "  Umm..."
+    "  Our developments depend largely on these artifacts staying in our world.\n"
+    "  Surely you don't intend to send everything back? We'd practically be back\n"
+    "  where we started."
   },
 
   {1, 7, 0,
-    "MERIT:\n"
+    "VIRTUE:\n"
     "  \n"
-    "  Well, it wasn't a bad attempt. If I hadn't found THAT, I would never have\n"
-    "  known.\n"
+    "  I've already sent almost everything back, and recovered the artifact you\n"
+    "  purloined from the Orcus Dome.\n"
     "  \n"
     "  Now that that's taken care of, I might as well finish what I came here for.\n"
     "  Prepare yourself."
   },
 
-  {0, 3, 1,
-    "????:\n"
+  {0, 4, 1,
+    "BERSERKER:\n"
     "  \n"
-    "  I won't hold back! There's not a lot of point, now."
+    "  Ugh, you're just like all the others. You want to terminate this project?\n"
+    "  Then come at me, and understand why they call me Berserker!"
   }
+//  "This string of text is precisely seventy eight characters in length, usefully.\n"
   }
 };
 
@@ -399,7 +363,7 @@ void BossDialog()
       boss_dlg = 0;
       boss_fight_mode = 2;
       boss_engaged = expired_ms;
-      add_int_stat(STAT_TRIES_BOSS1 + rooms[player_room].room_param, 1);
+      //add_int_stat(STAT_TRIES_BOSS1 + current_boss, 1);
     } else {
       boss_dlg++;
     }
@@ -469,6 +433,13 @@ void Curse()
   struct RoomConnection *rc;
   // Upon taking the cursed seal
 
+  // Evolve to maximum
+  if (enemy_evolutions < 3)
+  {
+    enemy_evolutions = 3;
+    SoupUpEnemies();
+  }
+
   // Make the place of power your checkpoint
 
   checkpoint_x = rooms[place_of_power].w * 16 + rooms[place_of_power].x * 32;
@@ -481,7 +452,7 @@ void Curse()
 
   // Lock all unvisited rooms off
 
-  for (i = 0; i < 3000; i++) {
+  for (i = 0; i < rooms_to_gen; i++) {
     if (!rooms[i].visited) {
       rc = rooms[i].con;
 
@@ -521,7 +492,9 @@ void DrawPowerObject()
 
   if (place_of_power == player_room) p_obj = SS_CURSED_SEAL;
 
-  n_artifacts = current_boss + artifacts[8] + artifacts[9] + artifacts[10];
+  n_artifacts = HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_1)
+                + HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_2)
+                + HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_3);
 
   required_enemies = total_enemies * (percent_required[n_artifacts]) / 100;
 
@@ -565,7 +538,7 @@ void DrawPowerObject()
 
   p_y = (rooms[player_room].h * 32 / 2 - 16) + rooms[player_room].y * 32 - off_v + sin((float)tick / 20.0)*hover_v;
 
-  from.x = (8 + p_obj) * 32;
+  from.x = (AF_PSI_KEY_1 + p_obj) * 32;
   from.y = 0;
   from.w = 32;
   from.h = 32;
@@ -936,13 +909,14 @@ void BC_BossIntro()
         DrawBoss();
       } else {
         DrawBoss();
+        add_int_stat(STAT_TRIES_BOSS1 + current_boss, 1);
         if ((final_boss_dlg == 0) && (current_boss == 3)) {
+          // NOTE: possibly enable other boss dialogues here?
           boss_dlg = 1;
           final_boss_dlg = 1;
         } else {
           boss_fight_mode = 2;
           boss_engaged = expired_ms;
-          add_int_stat(STAT_TRIES_BOSS4, 1);
         }
         boss_circle = 0;
         boss_bar_fill = 0;
@@ -1562,18 +1536,18 @@ void BC_BossDying()
   static SDL_Surface *endpics[1] = {NULL};
   static float dr = 0;
 
-  if (current_boss < 3) {
-    add_int_stat(STAT_TIMESPENT_BOSS1 + rooms[player_room].room_param, expired_ms - boss_engaged);
-    set_int_stat(STAT_TIME_BOSS1 + rooms[player_room].room_param, expired_ms);
+  if (boss_fight_mode == 3) {
+    add_int_stat(STAT_TIMESPENT_BOSS1 + current_boss, expired_ms - boss_engaged);
+    set_int_stat(STAT_TIME_BOSS1 + current_boss, expired_ms);
     add_int_stat(STAT_KILLS, 1);
+  }
 
-    PostMessage(40 + rooms[player_room].room_param, 120, 0);
-    // specialmessage = 40 + rooms[player_room].room_param;
-    // specialmessagetimer = 120;
+  if (current_boss < 3) {
+    PostMessage(43, 120, 1, artifact_names[rooms[player_room].room_param]);
     rooms[player_room].room_type = 4;
     boss_fight_mode = 0;
     current_boss += 1;
-    artifacts[8 + rooms[player_room].room_param] = 0;
+    artifacts[AF_MAXX_NOKEYS + rooms[player_room].room_param] = 0;
 
     CullEnemies(4);
 
@@ -1610,6 +1584,8 @@ void BC_BossDying()
     }
   } else {
     if (boss_fight_mode == 3) {
+      AnnounceVictory(1 + (player_shield == 30));
+      
       t_timer = 0;
       boss_fight_mode = 4;
       magic_circuit = 0;
@@ -1619,10 +1595,6 @@ void BC_BossDying()
 
       if (training) t_timer = 2000;
     } else {
-      add_int_stat(STAT_TIMESPENT_BOSS4, expired_ms - boss_engaged);
-      set_int_stat(STAT_TIME_BOSS4, expired_ms);
-      add_int_stat(STAT_KILLS, 1);
-      
       DrawArtifactOverhead(3);
       if (bdef > 0) {
         DrawCircleEx(boss_x-scroll_x, boss_y-scroll_y, bxp, bxp-bdef, 0);
@@ -1659,10 +1631,9 @@ void BC_BossDying()
               boss_fight_mode++;
             }
           } else {
-            AnnounceVictory(player_shield == 30);
             if (endpics[0] == NULL) {
               if (training) {
-                endpics[0] = IMG_Load("dat/i/wuss_ending.png");
+                endpics[0] = IMG_Load("dat/i/training_end.png");
               } 
             }
 
@@ -1750,7 +1721,7 @@ void BossControl()
 {
   if ((player_room != current_boss_room)) {
     // Player left, so roll back the boss
-    add_int_stat(STAT_TIMESPENT_BOSS1 + rooms[current_boss_room].room_param, expired_ms - boss_engaged);
+    add_int_stat(STAT_TIMESPENT_BOSS1 + current_boss, expired_ms - boss_engaged);
     boss_engaged = 0;
     resetboss = 0;
     current_boss_room = 0;
@@ -1787,7 +1758,7 @@ void DrawArtifactOverhead(int p_obj)
   p_x = player_x - 8;
   p_y = player_y - 36 + sin((float)tick / 20.0)*4;
 
-  from.x = (8 + p_obj) * 32;
+  from.x = (AF_PSI_KEY_1 + p_obj) * 32;
   from.y = 0;
   from.w = 32;
   from.h = 32;
@@ -1804,7 +1775,10 @@ int CanGetArtifact()
 {
   int required_enemies;
   int n_artifacts;
-  n_artifacts = current_boss + artifacts[8] + artifacts[9] + artifacts[10];
+  // BUG: collection was stuck at 0th index (should now be fixed)
+  n_artifacts = HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_1)
+                + HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_2)
+                + HasItemByIndex(IS_SPECIAL, SS_PSI_KEY_3);
   required_enemies = total_enemies * (percent_required[n_artifacts]) / 100;
 
   if (killed_enemies >= required_enemies) return 1;

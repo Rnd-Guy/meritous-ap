@@ -2,7 +2,7 @@
 :default
 !---------------------------------------------------------------------
 
-!MERITOUS HELP FILE
+!MERITOUS GAIDEN HELP FILE
 
 !---------------------------------------------------------------------
 
@@ -15,7 +15,8 @@ access this help file at any time by pressing 'H'.
 ?intro?Introduction
 ?background?Background
 ?controls?Controls
-?wuss?Wuss Mode
+?rando?Item Randomizer & Archipelago Multiworld
+?training?Training Mode
 ?dungeon?The Dome
 ?circuit?Your PSI Circuit and You
 ?cred?Credits
@@ -26,16 +27,16 @@ access this help file at any time by pressing 'H'.
 
 !---------------------------------------------------------------------
 
-     "     Far below the surface of the planet is a secret.     
-           A place of limitless power. Those that seek to
-             control such a utopia will soon bring an end        
-                            to themselves.                      "
+    "    Five generations after the Orcus Dome incident,
+            strange experiments conducted in a new
+              structure on the moon are tearing
+              at the very fabric of reality...             "
 
-MERITOUS is a top-view dungeon crawl action/adventure game. As MERIT,
-a PSI user, your task is to investigate the Orcus Dome, an ancient
-underground shrine.
+MERITOUS GAIDEN is a top-view dungeon crawl action/adventure game.
+As VIRTUE, a PSI user, your task is to investigate the Atlas Dome, a
+research facility built on the moon.
 
-In your way are the shadowy creatures that wander the shrine. Using
+In your way are the shadowy creatures that wander the Dome. Using
 your PSI circuit, you must cut through any that come between you and
 your goal.
 
@@ -106,8 +107,6 @@ Dome to both ensure the existing reserves would last as long as
 possible and to make sure that each PSI user would receive a fair
 allocation.
 
-!-- Strange events --
-
 For several years, there was no problem with the ongoing use of the
 Orcus Dome to provide PSI. However, for some reason, the PSI extracted
 from the Dome began to behave strangely. It worked unpredictably, and
@@ -118,6 +117,32 @@ Dome for PSI.
 Not happy with this decision, one PSI user, MERIT, decided to use his
 own reserves of PSI to ethereally warp into the Dome itself to find
 out what the problem was and restore the Dome to its original state.
+
+He discovered that a traitor had infiltrated the Orcus Dome,
+assassinated its keeper Wervyn Anixil, and quietly took his place.
+The traitor's experiments had filled the Orcus Dome with shadow,
+which bore creatures of chaos. MERIT, using a powerful PSI artifact
+as a focus, was able to kill the traitor, flush the Dome of shadow,
+and take on the role of custodian of the Dome.
+
+!-- Atlas Dome --
+
+Five generations later, a facility was created on the planet's moon,
+modeled after the Orcus Dome. Its designer and maintainer, a man
+known only as "Berserker", had labeled it as an extraplanetary
+research facility, though was tight-lipped on any specific activities
+carried out there.
+
+For the first few years, things seemed mostly normal, other than the
+rare occasion of someone ambiguously reporting that something was
+not quite right. Perhaps a missing tool, perhaps a vagrant patch of
+foliage.
+
+Eventually, the reports grew in quantity and severity, to the point
+where people, structures, and even chunks of land disappeared into
+nothingness. The Atlas Dome was suspected of these happenings, and
+VIRTUE, one of the more promising PSI students, was selected to
+investigate the matter directly.
 
 ?default?Return to top
 :controls
@@ -132,9 +157,8 @@ Arrow keys - Move around. To walk through doors, simply walk up to
 
 Space      - Charge your PSI circuit.
 
-Escape     - Exit the game.
-
-H          - View the help file.
+C          - A certain artifact will be enabled while this key is
+             held.
 
 Tab        - View the map (you can then use the arrow keys to scroll
              around the map.
@@ -145,6 +169,13 @@ Enter      - Activate a trigger tile that you are standing on.
              
 P          - Pause the game.
 
+H          - View this help file.
+
+Escape     - Exit the game.
+
+Some controllers may be supported, but there is currently no
+guarantee that this support will work.
+
 ?default?Return to top
 :dungeon
 !---------------------------------------------------------------------
@@ -153,7 +184,7 @@ P          - Pause the game.
 
 !---------------------------------------------------------------------
 
-The Orcus Dome is made up of a series of rooms, connected with short
+The Atlas Dome is made up of a series of rooms, connected with short
 passages. The rooms are mostly uniform in design, however, there are
 some points of interest to look out for.
 
@@ -174,10 +205,12 @@ Dome.
 The process can also be used to warp yourself between tiles with no
 cost, by pressing Enter while on one of them.
 
-!PSI Enhancement tiles
+!Item cache tiles
 
-These tiles will, at the cost of some of your PSI crystals, enhance
-your PSI abilities in one of three different areas.
+These tiles will, at the cost of some of your PSI crystals, release
+an item from one of the three storage caches. These could enhance
+your PSI abilities, provide you with an artifact, or, if you're
+playing in a multiworld game, send an item to another player.
 
 More on PSI abilities can be found in the chapter 'Your PSI Circuit
 and You'
@@ -317,7 +350,7 @@ Last, but not least, your PSI also maintains your body vitality.
 In the top-right corner, the three hearts represent this. If you lose
 all three you will die and be regenerated at the last checkpoint.
 
-Unless you are playing on Wuss mode, you will also have a limited
+Unless you are playing on Training mode, you will also have a limited
 number of lives. This represents your physical vitality, and it will
 be damaged each time you die. When you run out, your body will be
 permanently destroyed and you won't be regenerated.
@@ -329,17 +362,87 @@ improving your physical vitality. Collect enough and your number of
 lives will increase.
 
 ?default?Return to top
-:wuss
+:rando
 !---------------------------------------------------------------------
 
-!Wuss Mode
+!Item Randomizer & Archipelago Multiworld
 
 !---------------------------------------------------------------------
 
-Available from the title menu, Wuss mode is a reduced-difficulty
-gameplay mode. When playing Wuss mode, you will be able to attack
+This game comes equipped with an item randomizer which is also
+compatible with Archipelago Multiworld. For players who have played
+the original ("vanilla") version of MERITOUS, you will notice that
+PSI Enhancement tiles have been replaced with item cache tiles. Each
+one of these may contain any sort of item, including artifacts, PSI
+enhancements, crystals, or, in the case of a multiworld, items for
+other players.
+
+!----------------------------------
+!meritous-ap.json
+!----------------------------------
+
+Currently, in order to configure the randomizer, meritous-ap.json
+must be modified to suit your playing environment. The values are as
+follows:
+
+ap-enable      - Enables the Archipelago multiworld client. If it is
+                 not enabled, the local randomizer will be used.
+                 Default: false
+
+server         - The server to which the Archipelago client will
+                 connect. May be a domain name or IP address.
+                 Default: archipelago.gg
+
+port           - The port to which the Archipelago client will
+                 connect.
+                 Default: 38281
+
+password       - If applicable, the password to use to connect to
+                 the Archpelago instance. If one is used, provide it
+                 within quotation marks. If not, omit this value or
+                 provide null without quotation marks.
+                 Default: null (no password will be used)
+
+slotname       - The slot name to connect to. This would be your
+                 player name, as provided in the configuration file
+                 (YAML) for this Archipelago session.
+                 No default (must be provided if AP is enabled)
+
+In a future update, for ease of use, this process will be moved into
+in-game menus.
+
+!----------------------------------
+!YAML configuration file
+!----------------------------------
+
+The player configuration file (also known as YAML) will determine
+the generation parameters for the game. To obtain one, refer to
+either the official Archipelago settings page for this game at
+!archipelago.gg/games/Meritous/player-settings
+or the unofficial Archipelago Settings Tool at
+!lowbiasgaming.net/archipelago
+for more advanced options, including the option to randomize which
+game will be played.
+
+Here's a hint for reading this far: Only the first eighteen purchases
+of each cache, as well as the first eighteen chests, may contain
+something especially interesting to other players. Beyond this, these
+locations may contain items that are helpful, but not crucial, to
+players' missions. In addition, every chest beyond the twenty-fourth
+will always contain a cache of PSI Crystals.
+
+?default?Return to top
+:training
+!---------------------------------------------------------------------
+
+!Training Mode
+
+!---------------------------------------------------------------------
+
+Available from the title menu, Training mode is a reduced-difficulty
+gameplay mode. When playing Training mode, you will be able to attack
 faster, enemy bullets will be slower and you will never permanently
-die. However, a victory in Wuss mode is not considered to be an
+die. However, a victory in Training mode is not considered to be an
 actual completion of the game, and as a result the game will not end
 the same way that it would normally.
 
@@ -366,12 +469,28 @@ the same way that it would normally.
     Beta testing:               Terryn
     
     Beta testing:               Wervyn
-    
+
+    Additional patches:         bart9h
+
+    Additional story:           KewlioMZX
+
+    Item randomizer:            KewlioMZX
+
+    Archipelago client:         Black Sliver
+
+    Additional graphics:        Riafeir
+
+    AP Beta testing:            MazukiTskiven
+
+    AP Beta testing:            alwaysintreble
+
+    AP Beta testing:            Archipelago community
+
     Music:
      "Ambient Light"       Vogue of Triton
      "Battle of Ragnarok"  Frostbite
      "Dragon Cave"         TICAZ
-     cavern.xm             Unknown
+      cavern.xm            Unknown
      "Caverns Boss"        Alexis Janson
      "Forest Boss"         Alexis Janson
      "Catacombs Boss"      Alexis Janson
@@ -381,9 +500,5 @@ the same way that it would normally.
      "KnarkLoader 1.0"     Rapacious
      "RPG-Battle"          Cyn
      "Metallic Forest"     Joseph Fox
-
-    Patches:                    bart9h
-
-    Item randomizer:            KewlioMZX
 
 ?default?Return to top

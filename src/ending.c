@@ -39,38 +39,93 @@ void DrawSText(int t);
 void DrawSTextV(int t);
 void DrawCircuitFlash(int t, int method);
 void DrawStream(int t);
+void DrawCredits();
 
 void InitParticleStorm();
 void RunParticleStorm(int offset);
 
 SDL_Surface *streamspr = NULL, *glitter = NULL;
-
 SDL_Color ending_pal[256];
 
 char statsmode = 0;
+
+int credits_scroll = 0;
+
+char *PText[10] = {
+  "Activating the seal quickly initiated the shutdown sequence",
+  "for the Chaos Engine Archipelago. Chambers throughout the",
+  "Atlas Dome started to shatter in flashes of light.",
+  "",
+  "In one final act, Berserker had focused a burst of PSI at the",
+  "machine's control panel, rendering it inoperable, before",
+  "he himself flashing away into nothingness.",
+  "",
+  "With no other option at his disposal, Virtue's only course of",
+  "action was to attempt to escape. However . . ."
+};
+char *SText[15] = {
+  "The only exit from the Atlas Dome broken off from its very",
+  "existence, and too much damage had been inflicted upon",
+  "reality.",
+  "The Atlas Dome project had shattered reality into endless",
+  "timelines, and sadly, many of those were doomed to their",
+  "destruction from the very beginning.",
+  "",
+  "For what seemed like a moment, or could as well have been an",
+  "eternity, nothing was. It felt as though Virtue floated in an",
+  "empty void, uncertain of their fate.",
+  "",
+  "It would come to be that someone calling herself the Goddess",
+  "of Time, living in one of the worlds affected by the project,",
+  "would have the ability to stitch reality back together,",
+  "restoring it to a semblance of normalcy."
+};
+
+char *PTextV[10] ={
+  "Activating the seal quickly initiated the shutdown sequence",
+  "for the Chaos Engine Archipelago. Chambers throughout the",
+  "Atlas Dome started to shatter in flashes of light.",
+  "",
+  "Virtue acted quickly, focusing the Agate Knife upon the machine",
+  "before them, as reality warped around them and threatened to",
+  "collapse at a moment's notice.",
+  "",
+  "Then, a sense of serenity fell upon them. Was the Agate Knife",
+  "the missing piece of this project the entire time?"
+};
+char *STextV[15] = {
+  "Piece by piece, reality began to fall back into place. In a",
+  "moment, everything purloined from other realities had been",
+  "returned to their origins. Meanwhile, Berserker seemed to have",
+  "vanished, as though he had never been there.",
+  "",
+  "Virtue realized that, with the stability offered by the Knife,",
+  "the Archipelago project could carry on without risking the",
+  "destruction of myriad universes.",
+  "",
+  "Thus, rather than terminating the project, it continued on,",
+  "the world below still oblivious to the happenings within the",
+  "Atlas Dome.",
+  "",
+  "                      [[ BEST ENDING ]]",
+  ""
+};
 
 void UpdatePalette()
 {
   SDL_SetPalette(screen, SDL_PHYSPAL, ending_pal, 0, 256);
 }
 
-void DrawCredits();
-
-int credits_scroll = 0;
-
 int EndingEvents()
 {
   static SDL_Event event;
   
-  statsmode = 0;
   player_room = 0;
   current_boss = 3;
   boss_fight_mode = 4;
   
   MusicUpdate();
   
-  // TODO: Forfeit/collect commands here
-
   while (SDL_PollEvent(&event)) {
     if (event.type == SDL_KEYDOWN) {
       switch (event.key.keysym.sym) {
@@ -80,8 +135,8 @@ int EndingEvents()
         case SDLK_s:
           return 2;
           break;
-        case SDLK_f:
-          SendAPSignal(APSIG_FORFEIT);
+        case SDLK_r:
+          SendAPSignal(APSIG_RELEASE);
           break;
         case SDLK_c:
           SendAPSignal(APSIG_COLLECT);
@@ -94,6 +149,8 @@ int EndingEvents()
       return 1;
     }
   }
+
+  if (isArchipelago()) PollAPClient();
   
   return 0;
 }
@@ -101,7 +158,9 @@ int EndingEvents()
 void ShowEnding()
 {
   int i;
-  
+
+  statsmode = 0;
+
   if (streamspr == NULL) {
     streamspr = IMG_Load("dat/i/stream.png");
     SDL_SetColorKey(streamspr, SDL_SRCCOLORKEY | SDL_RLEACCEL, 0);
@@ -178,44 +237,14 @@ void ShowEnding()
     DrawCredits();
     EndCycle(0);
     switch (EndingEvents()) {
+      case 1: return;
       case 2: statsmode = !statsmode; break;
-      default: return;
+      default: break;
     }
   }
 }
 
-char *SText[15] = {	"Merit released the locks on the PSI flowing through the Dome,",
-          "releasing the flow of PSI into the atmosphere.",
-          "",
-          "The Orcus Dome was originally built to centralise the limited",
-          "PSI available to everyone. However, this made the existing",
-          "reserves more vulnerable to malicious PSI users",
-          "",
-          "While other PSI users initially resented Merit for his rash",
-          "behaviour, they eventually adjusted to the decentralisation.",
-          "",
-          "Eventually, PSI users grew so adept at manipulating the",
-          "diluted flows of PSI that they were capable of the same things",
-          "as before. Each PSI user would keep their own individual",
-          "reserves of PSI for when they needed to weild greater power,",
-          "and the balance of power was restored." };
-          
-char *STextV[15] = {"Merit decided to assume the role of custodian over the Orcus",
-          "Dome, in Wervyn Anixil's place. He resumed the experiments on",
-          "PSI and found ways of making the Dome's remaining supply go as",
-          "far as it could.",
-          "",
-          "Other PSI users were suspicious of MERIT, just as they were",
-          "wary of Wervyn Anixil before him, but they soon adjusted.",
-          "",
-          "The balance of power was quickly restored, and stabilised for",
-          "eternity due to the work of Wervyn Anixil and now MERIT.",
-          "",
-          "",
-          "                      [[ BEST ENDING ]]",
-          "",
-          ""};
-
+// TODO: consolidate these two functions
 void DrawSText(int t)
 {
   int offset = 540 + (t / 2);
@@ -303,19 +332,18 @@ void InitParticleStorm()
   }
 }
 
-// TODO: Is this fixed?
 char *credits[] = {
-  "Concept:                    Lancer-X/Asceai",
-  "Game design:                Lancer-X/Asceai",
-  "Graphics:                   Lancer-X/Asceai",
-  "Programming:                Lancer-X/Asceai",
+  "Concept, design, graphics, programming:",
+  "                            Lancer-X/Asceai",
   "Sound Effects:              Various (public domain) sources",
-  "Music:                      Various artists",
-  "Beta testing:               Quasar",
-  "Beta testing:               Terryn",
-  "Beta testing:               Wervyn",
+  "Original beta testing:      Quasar, Terryn, Wervyn",
   "Additional patches:         bart9h",
   "Item randomizer:            KewlioMZX",
+  "Archipelago client:         Black Sliver",
+  "Additional gfx:             Riafeir",
+  "AP beta testing:            MazukiTskiven, alwaysontreble,",
+  "                            Archipelago community",
+  "Music:                      ",
   "\"Ambient Light\"             Vogue of Triton",
   "\"Battle of Ragnarok\"        Frostbite",
   "\"Dragon Cave\"               TICAZ",
@@ -335,48 +363,62 @@ void DrawStats()
 {
   char buf[30] = {0};
 
-  draw_text_f(66, 30, "Circuit bursts     %7d", 192, get_int_stat(STAT_BURSTS));
-  draw_text_f(66, 40, "Successful hits    %7d", 168, get_int_stat(STAT_HITS));
-  draw_text_f(66, 50, "Kills              %7d", 192, get_int_stat(STAT_KILLS));
-  draw_text_f(66, 60, "Resisted hits      %7d", 168, get_int_stat(STAT_RESISTS));
-  draw_text_f(66, 70, "Misses             %7d", 192, get_int_stat(STAT_WHIFFS));
-  draw_text_f(66, 80, "Total discharged     %5.1f", 168, get_float_stat(STAT_CIRCUIT_VALUE));
-  draw_text_f(66, 90, "Bullets cancelled  %7d", 192, get_int_stat(STAT_BULLETS_CANCELLED));
+  draw_text_f(66, 30, "Circuit bursts     %9d", 192, get_int_stat(STAT_BURSTS));
+  draw_text_f(66, 40, "Successful hits    %9d", 168, get_int_stat(STAT_HITS));
+  draw_text_f(66, 50, "Kills              %9d", 192, get_int_stat(STAT_KILLS));
+  draw_text_f(66, 60, "Resisted hits      %9d", 168, get_int_stat(STAT_RESISTS));
+  draw_text_f(66, 70, "Misses             %9d", 192, get_int_stat(STAT_WHIFFS));
+  draw_text_f(66, 80, "Total discharged     %7.1f", 168, get_float_stat(STAT_CIRCUIT_VALUE));
+  draw_text_f(66, 90, "Bullets cancelled  %9d", 192, get_int_stat(STAT_BULLETS_CANCELLED));
 
-  draw_text_f(66, 110, "Hearts gathered    %7d", 192, get_int_stat(STAT_HEARTS_GATHERED));
-  draw_text_f(66, 120, "Shielded hits      %7d", 168, get_int_stat(STAT_SHIELD_HITS));
-  draw_text_f(66, 130, "Damage taken       %7d", 192, get_int_stat(STAT_DAMAGE_TAKEN));
-  draw_text_f(66, 140, "Lives gained       %7d", 168, get_int_stat(STAT_LIVES_GAINED));
-  draw_text_f(66, 150, "Lives lost         %7d", 192, get_int_stat(STAT_LIVES_LOST));
+  draw_text_f(66, 110, "Hearts gathered    %9d", 192, get_int_stat(STAT_HEARTS_GATHERED));
+  draw_text_f(66, 120, "Shielded hits      %9d", 168, get_int_stat(STAT_SHIELD_HITS));
+  draw_text_f(66, 130, "Damage taken       %9d", 192, get_int_stat(STAT_DAMAGE_TAKEN));
+  draw_text_f(66, 140, "Lives gained       %9d", 168, get_int_stat(STAT_LIVES_GAINED));
+  draw_text_f(66, 150, "Lives lost         %9d", 192, get_int_stat(STAT_LIVES_LOST));
 
-  draw_text_f(366, 30, "Crystals collected %7d", 168, get_int_stat(STAT_GEMS_COLLECTED));
-  draw_text_f(366, 40, "Crystals spent     %7d", 192, get_int_stat(STAT_GEMS_SPENT));
-  draw_text_f(366, 50, "Crys lost on death %7d", 168, get_int_stat(STAT_GEMS_LOST_ON_DEATH));
-  draw_text_f(366, 60, "Store purchases    %7d", 192, get_int_stat(STAT_PURCHASES));
-  draw_text_f(366, 70, "Chests opened      %7d", 168, get_int_stat(STAT_CHESTS));
-  draw_text_f(366, 80, "Room transitions   %7d", 192, get_int_stat(STAT_ROOM_TRANSITIONS));
-  draw_text_f(366, 90, "Checkpoint warps   %7d", 168, get_int_stat(STAT_CHECKPOINT_WARPS));
-  draw_text_f(366, 100, "Saves              %7d", 192, get_int_stat(STAT_SAVES));
+  draw_text_f(350, 30, "Crystals collected %9d", 168, get_int_stat(STAT_GEMS_COLLECTED));
+  draw_text_f(350, 40, "Crystals spent     %9d", 192, get_int_stat(STAT_GEMS_SPENT));
+  draw_text_f(350, 50, "Crys lost on death %9d", 168, get_int_stat(STAT_GEMS_LOST_ON_DEATH));
+  draw_text_f(350, 60, "Store purchases    %9d", 192, get_int_stat(STAT_PURCHASES));
+  draw_text_f(350, 70, "Chests opened      %9d", 168, get_int_stat(STAT_CHESTS));
+  draw_text_f(350, 80, "Room transitions   %9d", 192, get_int_stat(STAT_ROOM_TRANSITIONS));
+  draw_text_f(350, 90, "Checkpoint warps   %9d", 168, get_int_stat(STAT_CHECKPOINT_WARPS));
+  draw_text_f(350, 100, "Saves              %9d", 192, get_int_stat(STAT_SAVES));
 
   if (player_shield == 30) {
-    draw_text(366, 130, "Time to Agate Knife", 168);
+    draw_text(350, 130, "Time to Agate Knife", 168);
     ComposeTime(buf, get_int_stat(STAT_TIME_KNIFE), 1);
-    draw_text_f(366, 140, "%26s", 192, buf);
-  } else draw_text_f(366, 130, "Rooms explored     %7d", 168, explored);
+    draw_text_f(350, 140, "%28s", 192, buf);
+  } else draw_text_f(350, 130, "Rooms explored     %9d", 168, explored);
 
   draw_text(176, 200, "Tries      Time spent fighting              Time beaten", 192);
   for (int x = 0; x < 4; x++) {
-    if (get_int_stat(STAT_TRIES_BOSS1 + x)) {
+    int bosstries = get_int_stat(STAT_TRIES_BOSS1 + x);
+    if (bosstries) {
       char sent[25] = {0}, beat[25] = {0};
       ComposeTime(sent, get_int_stat(STAT_TIMESPENT_BOSS1 + x), 1);
       ComposeTime(beat, get_int_stat(STAT_TIME_BOSS1 + x), 1);
       draw_text(20, 210 + (x * 10), boss_names[x], x % 2 ? 192 : 168);
-      draw_text_f(176, 210 + (x * 10), "%5d %24s %24s", x % 2 ? 192 : 168, get_int_stat(STAT_TRIES_BOSS1 + x), sent, beat);
+      draw_text_f(176, 210 + (x * 10), "%5d %24s %24s", x % 2 ? 192 : 168, bosstries, sent, beat);
     } else {
       draw_text(20, 210 + (x * 10), "????????", x % 2 ? 192 : 168);
     }
   }
 
+}
+
+void ShowBadEndingStats()
+{
+  for (;;) {
+    draw_text(2, 2, "ESC to end, R to release, C to collect", 192);
+    DrawStats();
+    EndCycle(0);
+    switch (EndingEvents()) {
+      case 2: break;
+      default: return;
+    }
+  }
 }
 
 void DrawCredits()
@@ -405,11 +447,11 @@ void DrawCredits()
   }
   
   if (credits_scroll >= (finish_point + 80)) {
-    draw_text(2, 2, "ESC to end, S for stats", 192);
-    if (IsArchipelago()) draw_text(2, 12, "F to forfeit, C to collect", 192);
-
     if (statsmode) DrawStats();
     else SDL_BlitSurface(theend[(player_shield == 30)], NULL, screen, NULL);
+
+    draw_text(2, 2, "ESC to end, S for stats", 192);
+    if (isArchipelago()) draw_text(2, 12, "R to release, C to collect", 192);
   } else {
     SDL_BlitSurface(fin, NULL, screen, &draw_to);
     
@@ -581,27 +623,6 @@ void DrawStream(int t)
   VideoUpdate();
 }
 
-char *PText[10] = {	"Activating the seal quickly unblocked the ley lines and allowed",
-          "PSI to flow through the Dome again. The remaining shadows were",
-          "quickly flushed out.",
-          "",
-          "Wervyn Anixil's unconventional use of the PSI resulted in him",
-          "being burned out and rendered powerless. Merit will see to it",
-          "that he faces judgement for his crimes.",
-          "",
-          "Neither of the two PSI weapons housed within the Dome had been",
-          "touched. However . . ." };
-char *PTextV[10] ={	"Activating the seal quickly unblocked the ley lines and allowed",
-          "PSI to flow through the Dome again. The remaining shadows were",
-          "quickly flushed out.",
-          "",
-          "The traitor, who was never identified, perished in the Sealing.",
-          "It soon became clear that the traitor had managed to betray and",
-          "kill the real Wervyn Anixil during his experiments on the PSI.",
-          "If the Agate Knife was never found, nobody would have been any",
-          "the wiser, and things could have turned out very differently.",
-          "However, there was one last thing for MERIT to do."};
-
 void DrawPText(int t)
 {
   int i;
@@ -703,7 +724,7 @@ void DrawScrolly(int t)
   }
   
   for (i = 0; i < 4; i++) {
-    draw_from.x = (8 + i) * 32;
+    draw_from.x = (AF_PSI_KEY_1 + i) * 32;
     draw_from.y = 0;
     draw_from.w = 32;
     draw_from.h = 32;

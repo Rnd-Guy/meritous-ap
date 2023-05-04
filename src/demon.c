@@ -33,6 +33,7 @@
 #include "boss.h"
 #include "tiles.h"
 #include "stats.h"
+#include "itemhandler.h"
 
 SDL_Surface *reticle;
 SDL_Surface *inrange;
@@ -202,7 +203,7 @@ void DestroyThings()
 	gem_stack = NULL;
 	active_stack = NULL;
 	
-	for (i = 0; i < 3000; i++) {
+	for (i = 0; i < rooms_to_gen; i++) {
 		room_gems[i] = NULL;
 	}
 }
@@ -424,12 +425,12 @@ void ActivateVisited()
 	int i;
 
 
-	for (i = 0; i < 3000; i++) {
+	for (i = 0; i < rooms_to_gen; i++) {
 		if (rooms[i].visited) {
 			ActivateEnemies(i);
 		}
 		if (i % 10 == 9) {
-			LoadingScreen(4, (float)i / 3000.0);
+			LoadingScreen(4, (float)i / (const float)rooms_to_gen);
 		}
 	}
 	LoadingScreen(4, 1);
@@ -891,15 +892,15 @@ void InitEnemies()
 	active_enemies = 0;
 	total_gems = 0;
 	
-	for (i = 0; i < 3000; i++) {
+	for (i = 0; i < rooms_to_gen; i++) {
 		room_active[i] = 0;
 	}
 
 	if (game_load) {
 		ReadCreatureData();
-		if (current_boss > 0) SoupUpEnemies();
+		if (enemy_evolutions > 0) SoupUpEnemies();
 	} else {
-		for (c_room = 1; c_room < 3000; c_room++) {
+		for (c_room = 1; c_room < rooms_to_gen; c_room++) {
 			cr_x = rooms[c_room].x + 1;
 			cr_y = rooms[c_room].y + 1;
 			cr_w = rooms[c_room].w - 2;
@@ -935,7 +936,7 @@ void InitEnemies()
 				}
 			}
 			if (c_room % 100 == 99) {
-				LoadingScreen(2, (float)c_room / 3000.0);
+				LoadingScreen(2, (float)c_room / (const float)rooms_to_gen);
 			}
 		}
 	}
@@ -1036,7 +1037,7 @@ int CanEnterRoom(int room)
 	if (rooms[room].room_type == 5) return 0;
 	if (rooms[room].room_type == 6) return 0;
 
-	if (artifacts[11]) {
+	if (artifacts[AF_CURSED_SEAL]) {
 		if (rooms[room].enemies > 3) {
 			return 0;
 		}
@@ -1531,9 +1532,10 @@ void MoveEnemy(struct enemy *e)
 			while (b != NULL) {
 				if (!b->delete_me) {
 					if (b->firer == e) {
-						add_int_stat(STAT_BULLETS_CANCELLED, 1);
+						// add_int_stat(STAT_BULLETS_CANCELLED, 1);
 						b->delete_me = 1;
-						CreateGem(b->x, b->y, b->room, (e->max_gems + e->min_gems) / 5 + (artifacts[2] * (e->max_gems + e->min_gems) / 4));
+						CreateGem(b->x, b->y, b->room,
+							(e->max_gems + e->min_gems) / 5 + (artifacts[AF_CRYSTAL_EFFICIENCY] * (e->max_gems + e->min_gems) / 4));
 					}
 				}
 				b = b->next;
@@ -1556,7 +1558,8 @@ void MoveEnemy(struct enemy *e)
 				rooms[e->room].enemies--;
 				n_gems = e->min_gems + rand()%(e->max_gems - e->min_gems + 1);
 				for (i = 0; i < n_gems; i++) {
-					CreateGem(e->x - 16 + rand()%32, e->y - 16 + rand()%32, e->room, 1+rand()%4 + (artifacts[2]*rand()%3));
+					CreateGem(e->x - 16 + rand()%32,
+						e->y - 16 + rand()%32, e->room, 1+rand()%4 + (artifacts[T_CRYSTAL_EFFICIENCY]*rand()%3));
 				}
 				if (rooms[e->room].room_type == 3) {
 					ArtifactRoomUnlock(e->room);
@@ -1674,7 +1677,7 @@ void MoveBullet(struct bullet *e)
 									}
 								}
 								
-								if (PlayerDist(fx, fy) < 4 - (2 * artifacts[5])) {
+								if (PlayerDist(fx, fy) < 4 - (2 * artifacts[AF_DODGE_ENHANCER])) {
 									player_dying = 1;
 									SND_Pos("dat/a/playerhurt.wav", 128, 0);
 									e->dying = 1;
@@ -1730,7 +1733,7 @@ void MoveBullet(struct bullet *e)
 				}
 			}
 			if (e->dying == 0) {
-				if (pdist < 6 - (2 * artifacts[5])) {
+				if (pdist < 6 - (2 * artifacts[AF_DODGE_ENHANCER])) {
 					if (player_dying == 0) {
 						SND_Pos("dat/a/playerhurt.wav", 128, 0);
 						player_dying = 1;
@@ -2147,7 +2150,7 @@ void DrawEntities()
 	}
 	
 	// Draw invisible enemies (if possible)
-	if (artifacts[6]) {
+	if (artifacts[AF_ETHEREAL_MONOCLE]) {
 		// Draw the actives
 		t = active_stack;
 		while (t != NULL) {
@@ -2160,7 +2163,7 @@ void DrawEntities()
 			t = t->next_active;
 		}
 		// Draw the inactives
-		if (!artifacts[11]) {
+		if (!artifacts[AF_CURSED_SEAL]) {
 			els = GetEnemyLoc(scroll_x, scroll_y);
 			while (els != NULL) {
 				t = els->e;
@@ -2205,7 +2208,7 @@ void MoveEntities()
 		g = room_gems[player_room];
 		while (g != NULL) {
 			if ((g->room == player_room)&&(g->delete_me == 0)) {
-				if (artifacts[7]) {
+				if (artifacts[AF_CRYSTAL_GATHERER]) {
 					g->x += (player_x+4 - g->x)/10;
 					g->y += (player_y+12 - g->y)/10;
 				}
@@ -2412,7 +2415,7 @@ void CrystalSummon()
 
 	g = gem_stack;
 	
-	for (i = 0; i < 3000; i++) {
+	for (i = 0; i < rooms_to_gen; i++) {
 		room_gems[i] = NULL;
 	}
 	
@@ -2531,15 +2534,15 @@ void SoupUpEnemies()
 	int str_limit;
 	float str_multiplier;
 	float fr_divider;
-	
+
 	e = enemy_stack;
 	str_limit = 1500;
 	if (circuit_size > 1500) {
 		str_limit = 1500;
 	}
 	
-	str_multiplier = 1.0 + (1.0/3.0)*(float)current_boss;
-	fr_divider = 1.0 + (2.0/3.0)*(float)current_boss;
+	str_multiplier = 1.0 + (1.0/3.0)*(float)enemy_evolutions;
+	fr_divider = 1.0 + (2.0/3.0)*(float)enemy_evolutions;
 	
 	while (e != NULL) {
 		if (e->delete_me == 0) {
@@ -2559,7 +2562,6 @@ void SoupUpEnemies()
 		}
 		e = e->next;
 	}
-	enemy_evolutions++;
 }
 
 void CurseSingleEnemy(struct enemy *e)
@@ -2570,7 +2572,7 @@ void CurseSingleEnemy(struct enemy *e)
 	int rm;
 	
 	if (NActiveRooms == 0) {
-		for (i = 0; i < 3000; i++) {
+		for (i = 0; i < rooms_to_gen; i++) {
 			if ((rooms[i].room_type == 0) || (rooms[i].room_type == 4)) {
 				ActiveRooms[NActiveRooms++] = i;
 			}

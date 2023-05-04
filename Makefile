@@ -18,8 +18,21 @@
 #   You should have received a copy of the GNU General Public License
 #   along with Meritous.  If not, see <http://www.gnu.org/licenses/>.
 #
-LDFLAGS = `sdl-config --libs` -lSDL_image -lSDL_mixer -lz
-CCFLAGS = -O2 -Wall `sdl-config --cflags` -ggdb
+LDFLAGS = `sdl-config --libs` -lSDL_image -lSDL_mixer -lz -lpthread
+#CCFLAGS = -Wall `sdl-config --cflags` -ggdb
+CCFLAGS = -Os -Wall `sdl-config --cflags`
+#DEFINES = -DDEBUG_KEYS
+
+AP_INCLUDES = -Isrc/submodules/wswrap/include\
+              -Isrc/submodules/json/include\
+              -Isrc/submodules/websocketpp\
+              -Isrc/submodules/asio/include\
+              -Isrc/submodules/valijson/include\
+              -Isrc/submodules
+AP_LIBS     = -lwsock32 -lws2_32\
+              -lssl -lcrypto -lcrypt32
+AP_DEFINES  = -DASIO_STANDALONE
+
 #
 OBJS = 	src/levelblit.o \
 		src/mapgen.o \
@@ -38,12 +51,22 @@ OBJS = 	src/levelblit.o \
 #
 default:	meritous
 
-%.o:		%.c
-		gcc -c -o $@ $? ${CCFLAGS}
+# this is your cpp code that bridges between apclientpp and the game
+apinterface.o: src/apinterface.cpp
+		g++ -c $? -o $@ ${AP_INCLUDES} ${AP_DEFINES} ${CCFLAGS}
 
-meritous:	${OBJS}
-		gcc -o $@ $+ ${LDFLAGS}
+wswrap.o: src/submodules/wswrap/src/wswrap.cpp
+		g++ -c $? -o $@ ${AP_INCLUDES} ${AP_DEFINES} ${CCFLAGS}
+
+%.o:		%.c
+		gcc -c -o $@ $? ${CCFLAGS} ${DEFINES}
+
+meritous.res: meritous.rc
+		windres $? -O coff -o $@
+
+meritous:	${OBJS} apinterface.o meritous.res
+		g++ -o $@ ${OBJS} apinterface.o meritous.res ${AP_LIBS} ${LDFLAGS}
 
 clean:		
-		rm ${OBJS}
+		rm ${OBJS} wswrap.o apinterface.o
 

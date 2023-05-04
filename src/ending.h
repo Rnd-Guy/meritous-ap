@@ -25,6 +25,7 @@
 #define ENDING_H
 
 void ShowEnding();
+void ShowBadEndingStats();
 void DrawStats();
 
 #endif

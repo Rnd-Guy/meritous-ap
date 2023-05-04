@@ -337,7 +337,7 @@ void SaveLevel()
       draw_text_ex(x*8, y*8, cs, cl, map_surf);
     }
   }
-  for (i = 0; i < 3000; i++) {
+  for (i = 0; i < rooms_to_gen; i++) {
     sprintf(rnum, "%d", i);
     draw_text_ex(rooms[i].x * 8, rooms[i].y * 8, rnum, 0, map_surf);
   }
@@ -489,6 +489,7 @@ void DrawRoom(int place_x, int place_y, int room_w, int room_h, int room_id)
     Paint(place_x+1, place_y+1, room_w-2, room_h-2, "dat/d/centre.loc");
   }
   // Power object rooms
+  // TODO: make this code not assume that x499 and x999 are special rooms
   if ((room_id % 1000) == 499) {
     Paint(place_x+1, place_y+1, room_w-2, room_h-2, "dat/d/weapon.loc");
   }
@@ -791,12 +792,12 @@ void RecurseSetDist()
   int queue[10000];
   int q_top = 1;
   int q_bot = 0;
-  int rooms_left = 3000;
+  int rooms_left = rooms_to_gen;
   int c_room;
   queue[0] = 0;
   
   if (rooms_left % 100 == 0) {
-    LoadingScreen(1, 1.0 - ((float)rooms_left / 3000.0));
+    LoadingScreen(1, 1.0 - ((float)rooms_left / (const float)rooms_to_gen));
   }
   
   rooms[0].s_dist = 0;
@@ -809,7 +810,7 @@ void RecurseSetDist()
     rc = rooms[c_room].con;
     
     while (rc != NULL) {
-      //assert(qp < 3000);
+      //assert(qp < rooms_to_gen);
       if (rooms[rc->c].s_dist == -1) {
         queue[q_top] = rc->c;
         q_top++;
@@ -841,23 +842,30 @@ void MakeSpecialRooms()
   // - Artifact rooms (biggest non-boss room of a given tier)
   //		Tiers: 5-9  10-14  15-19  20-24  25-29  30-34  35-39  40-44
   
-  // boss rooms
-  for (i = 0; i < 3; i++) {
-    c_room = i*1000+999;
-    rooms[c_room].room_type = 2;
-    rooms[c_room].room_param = i;
-  }
-  // power object rooms
-  for (i = 0; i < 3; i++) {
-    c_room = i*1000+499;
-    rooms[c_room].room_type = 5;
-    rooms[c_room].room_param = i;
+//  // boss rooms
+//   for (i = 0; i < 3; i++) {
+//     c_room = i*1000+999;
+//     rooms[c_room].room_type = 2;
+//     rooms[c_room].room_param = i;
+//   }
+//   // power object rooms
+//   for (i = 0; i < 3; i++) {
+//     c_room = i*1000+499;
+//     rooms[c_room].room_type = 5;
+//     rooms[c_room].room_param = i;
+//   }
+
+  // boss and power object rooms
+  for (i = 0; i < 6; i++) {
+    c_room = (rooms_to_gen / 6 * (i + 1)) - 1;
+    rooms[c_room].room_type = i % 2 ? 2 : 5;
+    rooms[c_room].room_param = i / 2;
   }
   
   // artifact rooms
   for (c_tier = 0; c_tier < 8; c_tier++) {
     biggest_room_sz = 0;
-    for (c_room = 0; c_room < 3000; c_room++) {
+    for (c_room = 0; c_room < rooms_to_gen; c_room++) {
       if (rooms[c_room].room_type == 0) {
         if (rooms[c_room].s_dist >= (c_tier*5+5)) {
           if (rooms[c_room].s_dist <= (c_tier*5+9)) {
@@ -888,7 +896,7 @@ void MakeSpecialRooms()
   // place of power
   // The room with the highest s_dist that is not of any other type
   
-  for (i = 0; i < 3000; i++) {
+  for (i = 0; i < rooms_to_gen; i++) {
     if (rooms[i].s_dist > rooms[place_of_power].s_dist) {
       if (rooms[i].room_type == 0) {
         place_of_power = i;
@@ -939,12 +947,12 @@ int Generate()
         assert(map.w == 512);
     AddChild(rndval(rndval(0, total_rooms-1), total_rooms-1));
     if (total_rooms % 100 == 99) {
-      LoadingScreen(0, (float)total_rooms / 3000.0);
+      LoadingScreen(0, (float)total_rooms / (const float)rooms_to_gen);
     }
-    if (total_rooms == 3000) break;
+    if (total_rooms == rooms_to_gen) break;
   }
   
-  if ((total_rooms < 3000)||(DoRepeat == 1)) {
+  if ((total_rooms < rooms_to_gen)||(DoRepeat == 1)) {
     DoRepeat = 0;
     ResetLevel();
     return 0;
@@ -952,7 +960,7 @@ int Generate()
   
   RecurseSetDist();
   
-  for (i = 0; i < 3000; i++) {
+  for (i = 0; i < rooms_to_gen; i++) {
     if (rooms[i].s_dist > maxdist) {
       maxdist = rooms[i].s_dist;
     }

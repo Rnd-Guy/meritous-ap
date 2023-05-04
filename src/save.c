@@ -120,7 +120,7 @@ float FRFloat()
 	return i;
 }
 
-void SaveGame(char *filename)
+void SaveGame(const char *filename)
 {
 	add_int_stat(STAT_SAVES, 1);
 
@@ -138,7 +138,7 @@ void SaveGame(char *filename)
 	gzclose(Filefp);
 }
 
-void LoadGame(char *filename)
+void LoadGame(const char *filename)
 {
 	unsigned char parity;
 	fpos = 0;

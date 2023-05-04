@@ -18,6 +18,25 @@
 #ifndef ITEMDEFS_H
 #define ITEMDEFS_H
 
+typedef enum artifacts {
+  AF_MAP,
+  AF_SHIELD_BOOST,
+  AF_CRYSTAL_EFFICIENCY,
+  AF_CIRCUIT_BOOSTER,
+  AF_METABOLISM,
+  AF_DODGE_ENHANCER,
+  AF_ETHEREAL_MONOCLE,
+  AF_CRYSTAL_GATHERER,
+  AF_PORTABLE_COMPASS,
+  AF_PSI_KEY_1,
+  AF_PSI_KEY_2,
+  AF_PSI_KEY_3,
+  AF_CURSED_SEAL,
+
+  AF_MAXX,
+  AF_MAXX_NOKEYS = AF_PSI_KEY_1
+} t_artifacts;
+
 typedef enum itemTypes {
   T_NOTHING,
   T_REFLECT_SHIELD,
@@ -31,6 +50,7 @@ typedef enum itemTypes {
   T_DODGE_ENHANCER,
   T_ETHEREAL_MONOCLE,
   T_CRYSTAL_GATHERER,
+  T_PORTABLE_COMPASS,
   T_PSI_KEY_1,
   T_PSI_KEY_2,
   T_PSI_KEY_3,
@@ -74,7 +94,7 @@ typedef enum genFlags {
 
 typedef enum apSignal {
   APSIG_NONE,
-  APSIG_FORFEIT,
+  APSIG_RELEASE,
   APSIG_COLLECT
 } t_apSignal;
 
