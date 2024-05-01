@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <SDL/SDL.h>
+#include <SDL.h>
 
 #define K_UP 0
 #define K_DN 1

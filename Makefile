@@ -74,7 +74,7 @@ meritous:	${OBJS} apinterface.o meritous.res
 		g++ -o $@ ${OBJS} apinterface.o meritous.res ${AP_LIBS} ${AP_WIN_LIBS} ${LDFLAGS}
 
 meritous_linux: ${OBJS} apinterface.o
-		g++ -o $@ ${OBJS} apinterface.o ${AP_LIBS} ${LDFLAGS}
+		g++ -o meritous ${OBJS} apinterface.o ${AP_LIBS} ${LDFLAGS}
 
 clean:		
 		rm ${OBJS} wswrap.o apinterface.o
