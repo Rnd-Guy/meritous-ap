@@ -29,8 +29,8 @@ AP_INCLUDES = -Isrc/submodules/wswrap/include\
               -Isrc/submodules/asio/include\
               -Isrc/submodules/valijson/include\
               -Isrc/submodules
-AP_LIBS     = -lwsock32 -lws2_32\
-              -lssl -lcrypto -lcrypt32
+AP_LIBS     = -lssl -lcrypto 
+AP_WIN_LIBS = -lwsock32 -lws2_32 -lcrypt32
 AP_DEFINES  = -DASIO_STANDALONE
 
 #
@@ -54,6 +54,9 @@ default:	meritous
 debug: CCFLAGS += -g -D DEBUG
 debug: meritous
 
+debug_linux: CCFLAGS += -g -D DEBUG
+debug_linux: meritous_linux
+
 # this is your cpp code that bridges between apclientpp and the game
 apinterface.o: src/apinterface.cpp
 		g++ -c $? -o $@ ${AP_INCLUDES} ${AP_DEFINES} ${CCFLAGS}
@@ -68,7 +71,10 @@ meritous.res: meritous.rc
 		windres $? -O coff -o $@
 
 meritous:	${OBJS} apinterface.o meritous.res
-		g++ -o $@ ${OBJS} apinterface.o meritous.res ${AP_LIBS} ${LDFLAGS}
+		g++ -o $@ ${OBJS} apinterface.o meritous.res ${AP_LIBS} ${AP_WIN_LIBS} ${LDFLAGS}
+
+meritous_linux: ${OBJS} apinterface.o
+		g++ -o $@ ${OBJS} apinterface.o ${AP_LIBS} ${LDFLAGS}
 
 clean:		
 		rm ${OBJS} wswrap.o apinterface.o
