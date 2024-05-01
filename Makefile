@@ -29,7 +29,8 @@ AP_INCLUDES = -Isrc/submodules/wswrap/include\
               -Isrc/submodules/asio/include\
               -Isrc/submodules/valijson/include\
               -Isrc/submodules
-AP_LIBS     = -lwsock32 -lws2_32 # for windows
+AP_LIBS     = -lwsock32 -lws2_32\
+              -lssl -lcrypto -lcrypt32
 AP_DEFINES  = -DASIO_STANDALONE
 
 #
