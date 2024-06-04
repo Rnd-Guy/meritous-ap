@@ -71,3 +71,7 @@ In addition, under Windows, the Winsock library is required for the Archipelago 
 Thanks to Lancer-X's beta testers: Quasar, Terryn and Wervyn, for their hard work in assisting him in keeping Meritous fairly stable.
 
 Thanks to Kewlio's beta testers: MazukiTskiven, alwaysontreble, and the Archipelago community in general, for continuing support in this endeavor.
+
+Thanks to code contributors: @jknorr1992
+
+Special thanks to Frankomatic for streaming Meritous at just the right time to give Kewlio the idea to do this in the first place.
