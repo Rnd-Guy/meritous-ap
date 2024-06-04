@@ -287,6 +287,24 @@ void LockDoors(int r);
 #define SCREEN_W 640
 #define SCREEN_H 480
 
+//Almost certainly a better way to do this using shaders, but this functions right now
+void ApplyPalette()
+{
+  Uint32* pixels = NULL;
+  Uint32* sPixels = (Uint32 *)screen->pixels;
+  int pitch = 0;
+  int format;
+  int i;
+  int oldpix;
+  SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch);
+  for(i = 0; i < SCREEN_W*SCREEN_H; i++)
+  {
+    oldpix = (sPixels[i] >> 8) & 0xFF;
+    pixels[i] = SDL_MapRGBA(screen->format, pal[oldpix].r, pal[oldpix].g, pal[oldpix].b, 255);
+  }
+  SDL_UnlockTexture(texture);
+}
+
 void VideoUpdate()
 {
   static int bmp = 0;
@@ -305,24 +323,6 @@ void VideoUpdate()
     }
     bmp++;
   }
-}
-
-//Almost certainly a better way to do this using shaders, but this functions right now
-void ApplyPalette()
-{
-  Uint32* pixels = NULL;
-  Uint32* sPixels = (Uint32 *)screen->pixels;
-  int pitch = 0;
-  int format;
-  int i;
-  int oldpix;
-  SDL_LockTexture(texture, NULL, (void**)&pixels, &pitch);
-  for(i = 0; i < SCREEN_W*SCREEN_H; i++)
-  {
-    oldpix = (sPixels[i] >> 8) & 0xFF;
-    pixels[i] = SDL_MapRGBA(screen->format, pal[oldpix].r, pal[oldpix].g, pal[oldpix].b, 255);
-  }
-  SDL_UnlockTexture(texture);
 }
 
 void EndCycle(int n)
