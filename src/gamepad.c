@@ -44,8 +44,9 @@ void HandleGamepad (int key_held[])
 		// select joystick
 		int num_joysticks = SDL_NumJoysticks();
 		int i;
-		for (i = 0; i < num_joysticks; i++)
-			printf ("joystick %d = \"%s\"\n", i, SDL_JoystickName (i));
+		/// NOTE: commented out to allow compiling; gamepad code not currently used anyway
+		// for (i = 0; i < num_joysticks; i++)
+		// 	printf ("joystick %d = \"%s\"\n", i, SDL_JoystickName (i));
 
 		if (num_joysticks != 1) {
 			printf ("error: %d joysticks detected\n", num_joysticks);
