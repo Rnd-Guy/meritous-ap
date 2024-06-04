@@ -113,7 +113,11 @@ char *STextV[15] = {
 
 void UpdatePalette()
 {
-  SDL_SetPalette(screen, SDL_PHYSPAL, ending_pal, 0, 256);
+  for(int i = 0; i < 256; i++)
+  {
+    pal[i] = ending_pal[i];
+  }
+  //SDL_SetPaletteColors(screen->format->palette, ending_pal, 0, 256);
 }
 
 int EndingEvents()
@@ -163,9 +167,9 @@ void ShowEnding()
 
   if (streamspr == NULL) {
     streamspr = IMG_Load("dat/i/stream.png");
-    SDL_SetColorKey(streamspr, SDL_SRCCOLORKEY | SDL_RLEACCEL, 0);
+    SDL_SetColorKey(streamspr, SDL_TRUE | SDL_RLEACCEL, 0);
     glitter = IMG_Load("dat/i/glitter.png");
-    SDL_SetColorKey(glitter, SDL_SRCCOLORKEY | SDL_RLEACCEL, 0);
+    SDL_SetColorKey(glitter, SDL_TRUE | SDL_RLEACCEL, 0);
   }
   
   for (i = 0; i < 500; i += 1) {
