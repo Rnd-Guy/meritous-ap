@@ -229,9 +229,10 @@ void ConnectAP()
         (len == fread(buf, 1, len, f)))
     {
       buf[len] = 0;
-      try {
-        ap->set_data_package(json::parse(buf));
-      } catch (std::exception&) { /* ignore */ }
+      /// NOTE: deprecated
+      // try {
+      //   ap->set_data_package(json::parse(buf));
+      // } catch (std::exception&) { /* ignore */ }
     }
     free(buf);
     fclose(f);
@@ -298,7 +299,7 @@ void ConnectAP()
       return;
     }
     for (const auto& item: items) {
-      auto itemname = ap->get_item_name(item.item);
+      auto itemname = ap->get_item_name(item.item, ap->get_player_game(item.player));
       auto sender = item.player ? (ap->get_player_alias(item.player) + "'s world") : "out of nowhere";
       auto location = ap->get_location_name(item.location);
 
@@ -335,7 +336,7 @@ void ConnectAP()
     auto me = ap->get_player_number();
     for (auto item: items) {
       if (item.player != me) {
-        auto itemname = ap->get_item_name(item.item);
+        auto itemname = ap->get_item_name(item.item, ap->get_player_game(item.player));
         auto recipient = ap->get_player_alias(item.player);
 
         ReportSentItem(IDToLocation(item.location), recipient.c_str(), itemname.c_str());
