@@ -313,7 +313,8 @@ void ConnectAP()
       }
       nextCheckToGet = item.index + 1;
 
-      if (item.player == me) {
+      // Note: !GetItem has item.player == me but has location == -1 which crashes due to negative array indexing
+      if (item.player == me && item.location != -1) {
         auto localLocation = item.location - AP_OFFSET;
         if (!(*apStores[localLocation / 24])[localLocation % 24]) {
           printf("Not yet purchased on this save; storing\n");
