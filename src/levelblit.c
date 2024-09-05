@@ -799,6 +799,26 @@ void SavingScreen(int part, float progress)
   ClearInput();
 }
 
+void ConnectionScreen(char* message)
+{
+  ProgressBarScreen(0, 0.0, message, 3.0);
+  ClearInput();
+}
+
+void ConnectionFailedScreen(char* line1, char* line2, char* line3)
+{
+  memset(screen->pixels, 0, 640 * 480 * 4);
+
+  DrawRect(150, 217, 340, 60, 80);
+  DrawRect(152, 219, 336, 56, 20);
+  draw_text(252, 228, line1, 255);
+  draw_text(182, 244, line2, 255);
+  draw_text(182, 260, line3, 255);
+
+  VideoUpdate();
+  DummyEventPoll();
+}
+
 void Arc(SDL_Surface *s, int x, int y, int r, float dir)
 {
   int bright;
@@ -880,7 +900,13 @@ int DungeonPlay(const int continueGame)
   char buf[50];
 
   expired_ms = 0;
-  LoadingScreen(0, 0.0);
+
+  if (isArchipelago()) {
+    ConnectionScreen("Connecting to AP server...");
+  }
+  else {
+    LoadingScreen(0, 0.0);
+  }
 
   // start the ap connection early as we need the room count before we generate
   StartRando();
@@ -892,6 +918,8 @@ int DungeonPlay(const int continueGame)
   if (aborted) {
     return;
   }
+
+  LoadingScreen(1, 0.0);
 
   if (continueGame) {
     LoadGame();
@@ -2899,10 +2927,25 @@ void ThinLine(SDL_Surface *scr, int x1, int y1, int x2, int y2, Uint8 col)
 int WaitForConnection() {
   if (!isArchipelago()) return 0;
 
+  char* currentStatus = GetAPStatus();
+  int displayedScreen = 0;
+
   while (strcmp(GetAPStatus(), "Connected") != 0) {
     PollAPClient();
     VideoUpdate();
     HandleEvents();
+    currentStatus = GetAPStatus();
+    
+
+    if (strcmp(currentStatus, "InvalidSlot") == 0 && displayedScreen != 1) {
+      displayedScreen = 1;
+      ConnectionFailedScreen("Connection refused", "Please check your meritous-ap.json", "then restart the game");
+    }
+
+    if (strcmp(currentStatus, "Disconnected") == 0 && displayedScreen != 2) {
+      displayedScreen = 2;
+      ConnectionFailedScreen("Connection disconnected", "Please try again", "");
+    }
 
     // go back to title screen if connection aborted (esc or pressing x on window)
     if (voluntary_exit) {

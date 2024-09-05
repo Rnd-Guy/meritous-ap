@@ -124,7 +124,7 @@ float FRFloat()
 char* GetSaveFileName()
 {
 	char* filename = calloc(32, sizeof(char));
-	strcpy(filename, "saveAP");
+	strcpy(filename, "SaveAP");
 	if (isArchipelago()) {
 		strcat(filename, "_");
 		strcat(filename, GetSlotName());

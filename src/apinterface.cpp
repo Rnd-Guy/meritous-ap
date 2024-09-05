@@ -303,6 +303,7 @@ void ConnectAP()
     ap_connect_sent = false;
     if (std::find(errors.begin(), errors.end(), "InvalidSlot") != errors.end()) {
       //bad_slot(game?game->get_slot():"");
+      SetAPStatus("InvalidSlot", 1);
     } else {
       printf("AP: Connection refused:");
       for (const auto& error: errors) printf(" %s", error.c_str());
