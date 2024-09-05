@@ -18,6 +18,8 @@
 #ifndef APINTERFACE_H
 #define APINTERFACE_H
 
+const char* GetSlotName();
+
 char ReadAPSettings();
 
 void CreateAPStores();

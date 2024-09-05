@@ -421,7 +421,7 @@ void DummyEventPoll()
   SDL_PollEvent(&e);
 }
 
-int DungeonPlay(const char *fname);
+int DungeonPlay(const int continueGame);
 
 Uint8 Uint8_Bound(int c)
 {
@@ -708,14 +708,14 @@ int main(int argc, char **argv)
       SDL_FreeSurface(title);
       SDL_FreeSurface(title_pr);
       if ((option == 0) && can_continue) {
-        DungeonPlay("SaveAP.sav");
+        DungeonPlay(1);
       } else {
         if (option == (0 + can_continue)) {
           training = 0;
-          DungeonPlay("");
+          DungeonPlay(0);
         } else {
           training = 1;
-          DungeonPlay("");
+          DungeonPlay(0);
         }
       }
       // clean up
@@ -862,7 +862,7 @@ void ComposeTime(char *ptr, int msec, char displayMsec) {
   else sprintf(ptr, buf);
 }
 
-int DungeonPlay(const char *fname)
+int DungeonPlay(const int continueGame)
 {
   int ix,  iy;
   int off_x, off_y;
@@ -881,9 +881,6 @@ int DungeonPlay(const char *fname)
 
   expired_ms = 0;
   LoadingScreen(0, 0.0);
-  if (fname[0] != 0) {
-    LoadGame(fname);
-  }
 
   // start the ap connection early as we need the room count before we generate
   StartRando();
@@ -894,6 +891,10 @@ int DungeonPlay(const char *fname)
   int aborted = WaitForConnection();
   if (aborted) {
     return;
+  }
+
+  if (continueGame) {
+    LoadGame();
   }
 
   RandomGenerateMap();
