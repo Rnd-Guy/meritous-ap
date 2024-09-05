@@ -885,6 +885,17 @@ int DungeonPlay(const char *fname)
     LoadGame(fname);
   }
 
+  // start the ap connection early as we need the room count before we generate
+  StartRando();
+
+  // needs to be done before connection is fully established
+  InitStores();
+
+  int aborted = WaitForConnection();
+  if (aborted) {
+    return;
+  }
+
   RandomGenerateMap();
   InitEnemies();
   InitBossVars();
@@ -914,8 +925,6 @@ int DungeonPlay(const char *fname)
       max_dist = rooms[i].s_dist;
     }
   }
-
-  StartRando();
 
   game_running = 1;
   while (game_running) {
@@ -1150,7 +1159,7 @@ int DungeonPlay(const char *fname)
     if (!tele_select) {
       sprintf(buf, "Psi Crystals: %d", player_gems);
       draw_text(3, 3, buf, 200);
-      sprintf(buf, "Explored: %.1f%% (%d/%d rooms)", (float)explored/30.0, explored, rooms_to_gen);
+      sprintf(buf, "Explored: %.1f%% (%d/%d rooms)", (float)explored/((float)rooms_to_gen/100.0), explored, rooms_to_gen);
       draw_text(3, 11, buf, 200);
       sprintf(buf, "Cleared: %.1f%% (%d/%d monsters)", (float)killed_enemies/(float)total_enemies*100.0, killed_enemies, total_enemies);
       draw_text(3, 19, buf, 200);
@@ -2883,5 +2892,26 @@ void ThinLine(SDL_Surface *scr, int x1, int y1, int x2, int y2, Uint8 col)
       DrawRect(j+x1, i+y1, 1, 1, col);
     }
   }
+}
+
+// waits until a successful connection is made to the archipelago server. Requires stores to be initialised beforehand
+int WaitForConnection() {
+  if (!isArchipelago()) return 0;
+
+  while (strcmp(GetAPStatus(), "Connected") != 0) {
+    PollAPClient();
+    VideoUpdate();
+    HandleEvents();
+
+    // go back to title screen if connection aborted (esc or pressing x on window)
+    if (voluntary_exit) {
+      voluntary_exit = 0;
+      EndRando();
+      DestroyStores();
+      return 1;
+    }
+    EndCycle(0);
+  }
+  return 0;
 }
 

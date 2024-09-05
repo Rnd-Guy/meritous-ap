@@ -474,6 +474,15 @@ void Curse()
   // Every 25th monster becomes a curse. All other monsters are deleted
 
   CurseEnemies();
+
+  // if the player picks up the cursed seal inside the starting room, start the boss fight
+  // this code is from the game loop when we transition into a room
+  if (player_room == 0) {
+    // lock the doors
+    LockDoors(player_room);
+    // it's a boss room
+    BossRoom(player_room);
+  }
 }
 
 void DrawPowerObject()
