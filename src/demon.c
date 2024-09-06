@@ -48,6 +48,8 @@ int fc_open = 0;
 
 int max_activate_dist = 0;
 
+const int hp_gem_value = 31337; // this specific value is checked against to determine if a crystal is actually a heart
+
 // enemy
 
 int sqr(int x)
@@ -467,11 +469,11 @@ struct enemy *CreateEnemy(int enemy_x, int enemy_y, int enemy_room)
 {
 	int enemy_type;
 	
-	enemy_type = rand() % (rooms[enemy_room].s_dist / 5 + 1);
+	enemy_type = rand() % (int)((rooms[enemy_room].s_dist * dist_scaling) / 5 + 1);
 	if (rooms[enemy_room].room_type == 5) enemy_type += rand()%3;
 	if (enemy_type > 8) enemy_type = rand()%3+6;
 	
-	if (rooms[enemy_room].s_dist >= 15) {
+	if (rooms[enemy_room].s_dist * dist_scaling >= 15) {
 		if (rand()%64 == 0) {
 			enemy_type = 9;
 		}
@@ -603,7 +605,7 @@ struct enemy *CreateEnemyEx(int enemy_x, int enemy_y, int enemy_room, int enemy_
 		case 9:
 			new_enemy->image = enemy_sprites[0];
 			new_enemy->lives = 1;
-			new_enemy->str = rooms[enemy_room].s_dist * 20;
+			new_enemy->str = rooms[enemy_room].s_dist * dist_scaling * 20;
 			new_enemy->speed = 3;
 			new_enemy->fire_rate = 21;
 			new_enemy->min_gems = 300;
@@ -667,7 +669,7 @@ void SCreateGem(int x, int y, int r, int v)
 	new_gem->x = x;
 	new_gem->y = y;
 	new_gem->room = r;
-new_gem->delete_me = 0;
+	new_gem->delete_me = 0;
 	new_gem->t = rand()%65536;
 	new_gem->next = gem_stack;
 	new_gem->next_in_room = room_gems[r];
@@ -688,9 +690,15 @@ void CreateGem(int x, int y, int r, int v)
 {
 	if (v == 0) return;
 	if ( (rand()%1000) < ((int)log(v)/4 + (player_hp == 1)*5 + 2) ) {
-		SCreateGem(x, y, r, 31337);
+		SCreateGem(x, y, r, hp_gem_value);
 	} else {
-		SCreateGem(x, y, r, v);
+		int value = (int)(v * room_crystal_scaling); // scale crystal gain based on room count
+
+		// just in case scaling accidentally makes a crystal hit the magic number for hearts
+		if (value == hp_gem_value) {
+			value -= 1;
+		}
+		SCreateGem(x, y, r, value);
 	}
 }
 
@@ -1000,8 +1008,9 @@ void ActivateEnemies(int room)
 
 	t = enemy_stack;
 	
-	if (rooms[room].s_dist > max_activate_dist) {
-		max_activate_dist = rooms[room].s_dist;
+	// max_activate_dist is used to determine the enemy types that can be activated, the higher it is, the stronger the enemy can be
+	if ((int)(rooms[room].s_dist * dist_scaling) > max_activate_dist) {
+		max_activate_dist = rooms[room].s_dist * dist_scaling;
 	}
 
 	while (t != NULL) {
@@ -1216,7 +1225,7 @@ void ArtifactRoomUnlock(int room)
 	
 	// place treasure
 	placed = 0;
-	tot_treasures = 2 + rand() % (rooms[room].s_dist / 8 + 1);
+	tot_treasures = 2 + rand() % (int)((rooms[room].s_dist * dist_scaling) / 8 + 1);
 	while (placed < tot_treasures) {
 		x = rooms[room].x + (rand() % (rooms[room].w - 2));
 		y = rooms[room].y + (rand() % (rooms[room].h - 2));
@@ -2543,7 +2552,7 @@ void SoupUpEnemies()
 	
 	str_multiplier = 1.0 + (1.0/3.0)*(float)enemy_evolutions;
 	fr_divider = 1.0 + (2.0/3.0)*(float)enemy_evolutions;
-	
+
 	while (e != NULL) {
 		if (e->delete_me == 0) {
 			if (e->enemy_type != 10) {
