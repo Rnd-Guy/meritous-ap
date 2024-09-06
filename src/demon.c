@@ -2570,7 +2570,9 @@ void CurseSingleEnemy(struct enemy *e)
 	static int NActiveRooms = 0;
 	int i;
 	int rm;
-	
+	int attempts;
+
+	// get the list of normal/post-special rooms that we can place cursed enemies in
 	if (NActiveRooms == 0) {
 		for (i = 0; i < rooms_to_gen; i++) {
 			if ((rooms[i].room_type == 0) || (rooms[i].room_type == 4)) {
@@ -2579,9 +2581,13 @@ void CurseSingleEnemy(struct enemy *e)
 		}
 	}
 
-	rm = ActiveRooms[rand()%NActiveRooms];
-	while ((rooms[rm].enemies > 3) || (rooms[rm].visited == 0)) {
-		rm = ActiveRooms[rand()%NActiveRooms];
+	attempts = 0;
+	rm = ActiveRooms[rand() % NActiveRooms];
+	// with the list we made earlier, find a low populated room we've visited to put a cursed enemy in
+	// limit the attempts because this may be impossible if cursed seal was picked up early or if no/few rooms were visited
+	while (((rooms[rm].enemies > 3) || (rooms[rm].visited == 0)) && attempts < 3000) {
+		rm = ActiveRooms[rand() % NActiveRooms];
+		attempts += 1;
 	}
 
 	e->x = rooms[rm].w * 16 + rooms[rm].x * 32;
@@ -2589,18 +2595,18 @@ void CurseSingleEnemy(struct enemy *e)
 	rooms[e->room].enemies--;
 	e->room = rm;
 	rooms[e->room].enemies++;
-	
+
 	e->image = enemy_sprites[9];
 	e->lives = 8;
 	e->str = 500;
 	e->speed = 1;
-	e->fire_rate = (rand()%4)+1;
+	e->fire_rate = (rand() % 4) + 1;
 	e->min_gems = 5000;
 	e->max_gems = 6000;
 	e->followdepth = 12;
 	e->creationcost = 6;
 	e->enemy_type = 10;
-	
+
 	ActivateSingleEnemy(e);
 }
 
