@@ -472,12 +472,12 @@ void Curse()
   }
 
   // Every 25th monster becomes a curse. All other monsters are deleted
-
-  CurseEnemies();
-
-  // if the player picks up the cursed seal inside the starting room, start the boss fight immediately just incase they cannot get out
-  // this is the same code that triggers when we enter a boss room
-  if (player_room == 0) {
+  if (player_room != 0) {
+    CurseEnemies();
+  }
+  else {
+    // if the player picks up the cursed seal inside the starting room, start the boss fight immediately just incase they cannot get out
+    // this is the same code that triggers when we enter a boss room
     LockDoors(player_room);
     BossRoom(player_room);
   }
