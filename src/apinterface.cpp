@@ -120,6 +120,10 @@ char ReadAPSettings() {
   } else return 0;
 }
 
+const char* GetSlotName() {
+  return slotname.c_str();
+}
+
 void CreateAPStores()
 {
   if (apStores.size() > 0) DestroyAPStores();
