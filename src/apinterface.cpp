@@ -424,8 +424,6 @@ void WriteAPState()
 
 void ReadAPState()
 {
-  CreateAPStores();
-
   int progress = 0;
   nextCheckToGet = FRInt();
   for (auto store: apStores) {
