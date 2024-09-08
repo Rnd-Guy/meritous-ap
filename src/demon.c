@@ -49,6 +49,7 @@ int fc_open = 0;
 int max_activate_dist = 0;
 
 const int hp_gem_value = 31337; // this specific value is checked against to determine if a crystal is actually a heart
+float fractional_crystals = 0.0; // get back the crystals we lose due to casting crystal_value*room_crystal_scaling back to an int
 
 // enemy
 
@@ -692,7 +693,14 @@ void CreateGem(int x, int y, int r, int v)
 	if ( (rand()%1000) < ((int)log(v)/4 + (player_hp == 1)*5 + 2) ) {
 		SCreateGem(x, y, r, hp_gem_value);
 	} else {
-		int value = (int)(v * room_crystal_scaling); // scale crystal gain based on room count
+		float float_value = v * room_crystal_scaling; // scale crystal gain based on enemy count
+		int value = (int)float_value;
+		
+		// reduce crystals lost from rounding errors
+		fractional_crystals += float_value - value;
+		int whole_crystals = (int)fractional_crystals;
+		value += whole_crystals;
+		fractional_crystals -= whole_crystals;
 
 		// just in case scaling accidentally makes a crystal hit the magic number for hearts
 		if (value == hp_gem_value) {
@@ -949,7 +957,9 @@ void InitEnemies()
 		}
 	}
 
-
+	// make up for the reduced number of enemies
+	if (total_enemies < 10000) room_crystal_scaling = 10000.0 / (float)total_enemies;
+	else room_crystal_scaling = 1.0;
 }
 
 int EnemyMovement(struct enemy *e, int move_x, int move_y)

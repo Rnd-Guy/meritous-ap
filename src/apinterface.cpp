@@ -274,7 +274,6 @@ void ConnectAP()
       if (rooms_to_gen > 3000) rooms_to_gen = 3000;
     }
     else rooms_to_gen = 3000;
-    room_crystal_scaling = 3000 / (float)rooms_to_gen;
 
     if (data.find("agate_knife_percent") != data.end() && data["agate_knife_percent"].is_number_integer()) {
       int agate_knife_percent = data["agate_knife_percent"].get<int>();

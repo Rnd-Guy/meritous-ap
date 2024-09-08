@@ -394,7 +394,12 @@ void DrawStats()
     draw_text(350, 130, "Time to Agate Knife", 168);
     ComposeTime(buf, get_int_stat(STAT_TIME_KNIFE), 1);
     draw_text_f(350, 140, "%28s", 192, buf);
-  } else draw_text_f(350, 130, "Rooms explored     %9d", 168, explored);
+  }
+  else {
+    char explored_fraction[10] = { '\0' };
+    sprintf(explored_fraction, "%d/%d", explored, rooms_to_gen);
+    draw_text_f(350, 130, "Rooms explored     %9s", 168, explored_fraction);
+  }
 
   draw_text(176, 200, "Tries      Time spent fighting              Time beaten", 192);
   for (int x = 0; x < 4; x++) {
