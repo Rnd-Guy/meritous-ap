@@ -49,7 +49,7 @@ int fc_open = 0;
 int max_activate_dist = 0;
 
 const int hp_gem_value = 31337; // this specific value is checked against to determine if a crystal is actually a heart
-float fractional_crystals = 0.0; // get back the crystals we lose due to casting crystal_value*room_crystal_scaling back to an int
+float fractional_crystals = 0.0f; // get back the crystals we lose due to casting crystal_value*room_crystal_scaling back to an int
 
 // enemy
 
@@ -693,21 +693,29 @@ void CreateGem(int x, int y, int r, int v)
 	if ( (rand()%1000) < ((int)log(v)/4 + (player_hp == 1)*5 + 2) ) {
 		SCreateGem(x, y, r, hp_gem_value);
 	} else {
-		float float_value = v * room_crystal_scaling; // scale crystal gain based on enemy count
-		int value = (int)float_value;
-		
-		// reduce crystals lost from rounding errors
-		fractional_crystals += float_value - value;
-		int whole_crystals = (int)fractional_crystals;
-		value += whole_crystals;
-		fractional_crystals -= whole_crystals;
-
-		// just in case scaling accidentally makes a crystal hit the magic number for hearts
-		if (value == hp_gem_value) {
-			value -= 1;
-		}
-		SCreateGem(x, y, r, value);
+		SCreateGem(x, y, r, v);
 	}
+}
+
+// creates a gem that gets scaled based on enemy count, for smaller dungeon balancing
+void CreateEnemyGem(int x, int y, int r, int v)
+{
+	if (v == 0) return;
+
+	float float_value = (float)v * room_crystal_scaling;
+	int value = (int)float_value;
+
+	// keep track of crystals lost from rounding errors, and add to the value if so
+	fractional_crystals += float_value - (float)value;
+	int whole_crystals = (int)fractional_crystals;
+	value += whole_crystals;
+	fractional_crystals -= (float)whole_crystals;
+
+	// just in case scaling accidentally makes a crystal hit the magic number for hearts
+	if (value == hp_gem_value) {
+		value += 1;
+	}
+	CreateGem(x, y, r, value);
 }
 
 float PlayerDir(int x, int y)
@@ -1553,7 +1561,7 @@ void MoveEnemy(struct enemy *e)
 					if (b->firer == e) {
 						// add_int_stat(STAT_BULLETS_CANCELLED, 1);
 						b->delete_me = 1;
-						CreateGem(b->x, b->y, b->room,
+						CreateEnemyGem(b->x, b->y, b->room,
 							(e->max_gems + e->min_gems) / 5 + (artifacts[AF_CRYSTAL_EFFICIENCY] * (e->max_gems + e->min_gems) / 4));
 					}
 				}
@@ -1577,7 +1585,7 @@ void MoveEnemy(struct enemy *e)
 				rooms[e->room].enemies--;
 				n_gems = e->min_gems + rand()%(e->max_gems - e->min_gems + 1);
 				for (i = 0; i < n_gems; i++) {
-					CreateGem(e->x - 16 + rand()%32,
+					CreateEnemyGem(e->x - 16 + rand()%32,
 						e->y - 16 + rand()%32, e->room, 1+rand()%4 + (artifacts[T_CRYSTAL_EFFICIENCY]*rand()%3));
 				}
 				if (rooms[e->room].room_type == 3) {
