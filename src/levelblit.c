@@ -926,7 +926,6 @@ int DungeonPlay(const char *fname)
   }
 
   RandomGenerateMap();
-  InitEnemies();
   InitBossVars();
 
   PlayerDefaultStats();

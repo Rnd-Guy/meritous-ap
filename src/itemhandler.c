@@ -70,7 +70,7 @@ const char *itemNames[] = {
 
 int rooms_to_gen = 3000;
 int rooms_to_knife = 3000;
-float room_crystal_scaling = 1.0f; // 10000 / total_enemies, adds multiplier to crystal gain to make up for fewer enemies
+float crystal_scaling = 1.0f; // adds multiplier to crystal gain to make up for fewer enemies when using smaller room counts
 
 char apEnabled = 0;
 char apStatus[24] = {0};
@@ -193,7 +193,7 @@ void ProcessItem(t_itemTypes item, const char *source, char isRelease) {
       if (item >= T_CRYSTALS_1000) basemod *= 2;
       if (item == T_CRYSTALS_2000) basemod *= 2;
       //printf("Crystals x%d\n", basemod);
-      int collect = rand()%((1 << (explored / ((int)(rooms_to_gen * room_crystal_scaling) / 15))) * basemod);
+      int collect = rand()%((1 << (explored / ((int)(rooms_to_gen * crystal_scaling) / 15))) * basemod);
       add_int_stat(STAT_GEMS_COLLECTED, collect);
       player_gems += collect;
       break;

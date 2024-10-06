@@ -49,7 +49,14 @@ int fc_open = 0;
 int max_activate_dist = 0;
 
 const int hp_gem_value = 31337; // this specific value is checked against to determine if a crystal is actually a heart
-float fractional_crystals = 0.0f; // get back the crystals we lose due to casting crystal_value*room_crystal_scaling back to an int
+float fractional_crystals = 0.0f; // get back the crystals we lose due to casting crystal_value*crystal_scaling back to an int
+
+// room count balancing: how many gem drops are we expecting to see in this dungeon?
+float average_gems = 0.0f; 
+
+// room count balancing: after multiplierse, how many equivalent gem drops are we expecting to see in this dungeon? 
+// this is used to prevent dungeons genning with too few crystals
+float expected_total_gems = 0.0f; 
 
 // enemy
 
@@ -647,6 +654,7 @@ struct enemy *CreateEnemyEx(int enemy_x, int enemy_y, int enemy_room, int enemy_
 	AddEnemyPos(new_enemy);
 
 	total_enemies++;
+	average_gems += (new_enemy->min_gems + new_enemy->max_gems) / 2.0f;
 	
 	return new_enemy;
 }
@@ -702,7 +710,7 @@ void CreateEnemyGem(int x, int y, int r, int v)
 {
 	if (v == 0) return;
 
-	float float_value = (float)v * room_crystal_scaling;
+	float float_value = (float)v * crystal_scaling;
 	int value = (int)float_value;
 
 	// keep track of crystals lost from rounding errors, and add to the value if so
@@ -901,6 +909,8 @@ void InitEnemies()
 	int nx, ny;
 	
 	max_activate_dist = 0;
+	average_gems = 0.0f;
+	expected_total_gems = 0.0f;
 
 	InitEnemySprites();
 	
@@ -965,9 +975,15 @@ void InitEnemies()
 		}
 	}
 
-	// make up for the reduced number of enemies
-	if (total_enemies < 10000) room_crystal_scaling = 10000.0 / (float)total_enemies;
-	else room_crystal_scaling = 1.0;
+	// make up for the reduced number of enemies (and thus gems) on smaller room counts by multiplying crystal gain
+	// 10480 is roughly the average enemy count when I genned 50 vanilla dungeons rooms.
+	// however we cut off dungeons that gen with too fewer crystals, which bumps the average by a bit, so we'll use 10000 to tune it down
+	//    (eg. average of 8,9,10,11,12 and 6,8,10,12,14 are both 10 but if you remove values below 8, then average of the second set is now 11)
+	if (rooms_to_gen < 3000) crystal_scaling = 10000.0f / (float)total_enemies;
+	else crystal_scaling = 1.0f;
+
+	// expected crystal count in the dungeon after multipliers, to make sure it's not too low
+	expected_total_gems = crystal_scaling * average_gems;
 }
 
 int EnemyMovement(struct enemy *e, int move_x, int move_y)

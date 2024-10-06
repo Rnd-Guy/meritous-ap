@@ -30,6 +30,7 @@
 #include "save.h"
 #include "levelblit.h"
 #include "itemhandler.h"
+#include "demon.h"
 
 void NewLevel();
   
@@ -44,7 +45,12 @@ int place_of_power = 0;
 int boss_room_interval; // weapon or boss room interval, ie rooms_to_gen/6. Original is 500
 
 int max_dist = 0; // distance of furthest room, capped at 50. Used for small dungeon scaling
-float dist_scaling = 1; // factor to multiply room.s_dist for anything distance related
+float dist_scaling = 1.0f; // factor to multiply room.s_dist for anything distance related
+
+// vanilla does calculations based on a max dist of 50, but can gen dungeons with higher than 50.
+// we then mimic this overshooting for small dungeons too, to try to keep the proportion of difficult/far rooms the same.
+// generated 50 vanilla worlds and got their average max_dist (51.4) so for calculations we'll use 50/51.4 (ie 97.276%) of the actual max distance
+float max_dist_overshoot = 0.97276f; // 
 
 struct RoomConnection {
   int x, y;
@@ -152,12 +158,9 @@ void ReadRoomData(Room *rm)
     rm->con->n = rt;
   }
 
-  if (max_dist < 50 && rm->s_dist > max_dist) {
+  // keep track of the furthest distance in preparation for small dungeon scaling
+  if (rm->s_dist > max_dist) {
     max_dist = rm->s_dist;
-    if (max_dist > 50) {
-      max_dist = 50;
-    }
-    dist_scaling = 50.0 / (float)max_dist;
   }
 }
 
@@ -207,6 +210,15 @@ void ReadMapData()
     }
   }
   LoadingScreen(1, 1);
+
+  // calculate distance scaling for smaller dungeons, to ensure the harder enemies still spawn and caches still appear
+  // vanilla uses 50 for calculations and guarantees the dungeon is at least that size but can still be higher, so we let smaller dungeons "overshoot" as well
+  if (max_dist >= 50) {
+    dist_scaling = 1.0f;
+  }
+  else if (max_dist > 2) {
+    dist_scaling = 50.0f / ((float)max_dist * max_dist_overshoot);
+  }
 }
 
 int rndval(int a, int b)
@@ -234,6 +246,7 @@ void RandomGenerateMap()
   if (game_load) {
     NewLevel();
     ReadMapData();
+    InitEnemies();
   } else {
     NewLevel();
     boss_room_interval = rooms_to_gen / 6;
@@ -995,17 +1008,32 @@ int Generate()
     return 0;
   }
 
-  // cap this to 50 before calculating scaling to match original behaviour on original room count
-  if (max_dist > 50) {
-    max_dist = 50;
+  // calculate distance scaling for smaller dungeons, to ensure the harder enemies still spawn and caches still appear
+  // vanilla uses 50 for calculations and guarantees the dungeon is at least that size but can still be higher, so we let smaller dungeons "overshoot" as well
+  if (max_dist >= 50) {
+    dist_scaling = 1.0f;
+  } 
+  else {
+    dist_scaling = 50.0f / ((float)max_dist * max_dist_overshoot);
   }
-  dist_scaling = 50.0 / (float)max_dist;
   
   //printf("Rooms: %d\n", total_rooms);
   
   MakeSpecialRooms();
   
   map.totalRooms = total_rooms;
+
+  InitEnemies();
+
+  // enforce a minimum crystal count to avoid getting shafted by smaller dungeons being much more volatile.
+  // the aim is to have at least as little as the worst vanilla worlds
+  // the value 250000 is from test gens of 3000 rooms, with it only genning below 250000 twice in 36 attempts
+  if (expected_total_gems < 250000.0f) {
+    DoRepeat = 0;
+    ResetLevel();
+    return 0;
+  }
+
   return 1;
 }
 

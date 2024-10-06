@@ -23,7 +23,7 @@
 extern const char* enemyNames[];
 extern int rooms_to_gen;
 extern int rooms_to_knife;
-extern float room_crystal_scaling;
+extern float crystal_scaling;
 
 void InitRando();
 
