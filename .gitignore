@@ -7,3 +7,11 @@ stdout.txt
 meritous.res
 *.sav
 meritous
+build/
+src/submodules/asio/
+src/submodules/openssl/
+.vs/
+src/submodules/websocketpp
+meritous-ap.json
+uuid
+testing/

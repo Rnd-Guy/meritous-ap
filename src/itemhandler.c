@@ -193,7 +193,7 @@ void ProcessItem(t_itemTypes item, const char *source, char isRelease) {
       if (item >= T_CRYSTALS_1000) basemod *= 2;
       if (item == T_CRYSTALS_2000) basemod *= 2;
       //printf("Crystals x%d\n", basemod);
-      int collect = rand()%((1 << (explored / ((int)(rooms_to_gen * crystal_scaling) / 15))) * basemod);
+      int collect = rand()%((1 << (explored / ((int)(rooms_to_gen / 15))) * basemod);
       add_int_stat(STAT_GEMS_COLLECTED, collect);
       player_gems += collect;
       break;
