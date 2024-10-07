@@ -19,8 +19,8 @@
 #   along with Meritous.  If not, see <http://www.gnu.org/licenses/>.
 #
 LDFLAGS = `sdl2-config --libs` -lSDL2_image -lSDL2_mixer -lz -lpthread
-CCFLAGS = -Os -Wall `sdl2-config --cflags` -ggdb
-#CCFLAGS = -Wall `sdl2-config --cflags`
+#CCFLAGS = -Wall `sdl-config --cflags` -ggdb
+CCFLAGS = -Os -Wall `sdl2-config --cflags`
 #DEFINES = -DDEBUG_KEYS
 
 AP_INCLUDES = -Isrc/submodules/wswrap/include\
@@ -31,8 +31,7 @@ AP_INCLUDES = -Isrc/submodules/wswrap/include\
               -Isrc/submodules
 AP_LIBS     = -lssl -lcrypto 
 AP_WIN_LIBS = -lwsock32 -lws2_32 -lcrypt32
-AP_DEFINES2  = -DASIO_STANDALONE
-AP_DEFINES = -DASIO_STANDALONE -D_WEBSOCKETPP_CPP11_THREAD_
+AP_DEFINES  = -DASIO_STANDALONE
 
 #
 OBJS = 	src/levelblit.o \
@@ -50,8 +49,7 @@ OBJS = 	src/levelblit.o \
 		src/itemhandler.o \
 		src/stats.o
 #
-#default:	meritous
-default:        debug
+default:	meritous
 
 debug: CCFLAGS += -g -D DEBUG
 debug: meritous
@@ -73,12 +71,11 @@ meritous.res: meritous.rc
 		windres $? -O coff -o $@
 
 meritous:	${OBJS} apinterface.o meritous.res
-		g++ -o build/$@ ${OBJS} apinterface.o meritous.res ${AP_LIBS} ${AP_WIN_LIBS} ${LDFLAGS}
+		g++ -o $@ ${OBJS} apinterface.o meritous.res ${AP_LIBS} ${AP_WIN_LIBS} ${LDFLAGS}
 
 meritous_linux: ${OBJS} apinterface.o
 		g++ -o meritous ${OBJS} apinterface.o ${AP_LIBS} ${LDFLAGS}
 
 clean:		
-		rm ${OBJS} apinterface.o build/meritous.exe
-#		rm ${OBJS} wswrap.o apinterface.o
+		rm ${OBJS} wswrap.o apinterface.o
 
