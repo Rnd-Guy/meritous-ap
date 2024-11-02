@@ -58,7 +58,6 @@ extern Room rooms[3000];
 extern float dist_scaling;
 
 void RandomGenerateMap();
-void InitStores();
 
 void Put(int x, int y, unsigned char tile, int room);
 unsigned char Get(int x, int y);

@@ -50,7 +50,7 @@ float dist_scaling = 1.0f; // factor to multiply room.s_dist for anything distan
 // vanilla does calculations based on a max dist of 50, but can gen dungeons with higher than 50.
 // we then mimic this overshooting for small dungeons too, to try to keep the proportion of difficult/far rooms the same.
 // generated 50 vanilla worlds and got their average max_dist (51.4) so for calculations we'll use 50/51.4 (ie 97.276%) of the actual max distance
-float max_dist_overshoot = 0.97276f; // 
+const float max_dist_overshoot = 0.97276f;
 
 struct RoomConnection {
   int x, y;
