@@ -968,6 +968,8 @@ int Generate()
   max_dist = 0;
   rdir = rand()%4;
 
+  DestroyThings();
+
   NewRoom(map.w / 2 - 20 / 2, map.h / 2 - 15 / 2, 20, 15, -1);
   
   for (attempts = 0; attempts < 100000; attempts++) {
